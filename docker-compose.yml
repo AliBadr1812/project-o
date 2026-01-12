@@ -4,43 +4,47 @@
 version: '3.8'
 
 services:
-  # ============ DATABASE ============
-  postgres:
-    image: postgres:16-alpine
-    container_name: fullstack-postgres
+  # ============ MARIA DATABASE ============
+  mariadb:
+    image: mariadb:11.3
+    container_name: fullstack-db
     environment:
-      POSTGRES_DB: ${DB_NAME:-appdb}
-      POSTGRES_USER: ${DB_USER:-appuser}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-apppass}
+      MYSQL_ROOT_PASSWORD: rootpass          # Root password
+      MYSQL_DATABASE: appdb                  # Database name
+      MYSQL_USER: appuser                    # App username
+      MYSQL_PASSWORD: apppass                # App password
     ports:
-      - "5432:5432"
+      - "3306:3306"                          # MariaDB default port
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mariadb_data:/var/lib/mysql          # Persistent storage
       - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    command: 
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-appuser}"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
     networks:
       - app-network
-    restart: unless-stopped
 
   # ============ BACKEND (Java 21) ============
-  backend:
+  api:
     build:
-      context: ./backend
+      context: ./api
       dockerfile: Dockerfile
-    container_name: fullstack-backend
+    container_name: fullstack-api
     ports:
       - "8080:8080"
     environment:
       # Database
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-appdb}
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/appdb?useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-appuser}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-apppass}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+      SPRING_H2_CONSOLE_ENABLED: true
       
       # Java 21 specific
       JAVA_TOOL_OPTIONS: "-XX:+UseZGC -Xmx512m -XX:+UseContainerSupport"
@@ -53,10 +57,10 @@ services:
       # Actuator (monitoring)
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics
     depends_on:
-      postgres:
+      mariadb:
         condition: service_healthy
     volumes:
-      - ./backend:/app
+      - ./api:/app
       - maven_cache:/root/.m2
     networks:
       - app-network
@@ -69,11 +73,11 @@ services:
       start_period: 40s
 
   # ============ FRONTEND ============
-  frontend:
+  web:
     build:
-      context: ./frontend
+      context: ./web
       dockerfile: Dockerfile
-    container_name: fullstack-frontend
+    container_name: fullstack-web
     ports:
       - "3000:80"
     environment:
@@ -81,25 +85,10 @@ services:
       VITE_APP_NAME: Java 21 + Vue 3 FullStack
       VITE_APP_VERSION: 1.0.0
     depends_on:
-      - backend
+      - api
     volumes:
-      - ./frontend:/app
+      - ./web:/app
       - /app/node_modules
-    networks:
-      - app-network
-    restart: unless-stopped
-
-  # ============ PGADMIN (Optional - Database GUI) ============
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: fullstack-pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
-    depends_on:
-      - postgres
     networks:
       - app-network
     restart: unless-stopped
@@ -112,7 +101,7 @@ networks:
 
 # ============ VOLUMES ============
 volumes:
-  postgres_data:
+  mariadb_data:
     driver: local
   maven_cache:
     driver: local
