@@ -1,85 +1,76 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <div id="app" class="min-h-screen bg-gray-50 flex">
+    <!-- Sidebar on left -->
+    <Sidebar />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+    <!-- Main content area (right side) -->
+    <div class="flex-1 flex flex-col min-h-screen">
+      <!-- Header at top of right side -->
+      <Header :user="user" />
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+      <!-- Main content below header -->
+      <main class="flex-1 p-6">
+        <!-- Breadcrumb -->
+        <Breadcrumb :items="breadcrumbs"/>
+
+        <!-- Page Content -->
+        <router-view v-slot="{ Component }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </main>
+
+      <!-- Footer at bottom of right side -->
+      <Footer />
     </div>
-  </header>
 
-  <RouterView />
+    <!-- Loading Overlay -->
+    <LoadingSpinner v-if="isLoading" />
+  </div>
 </template>
 
+<script setup lang="ts">
+import LoadingSpinner from './components/shared/LoadingSpinner.vue';
+import Header from './components/layout/Header.vue';
+import Sidebar from './components/layout/Sidebar.vue';
+import Breadcrumb from './components/layout/Breadcrumb.vue';
+import Footer from './components/layout/Footer.vue';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
+const isLoading = false;
+const route = useRoute();
+const user = {
+  email: "blabla",
+  profileImageUrl: "",
+  name: "John Doe"
+};
+
+const breadcrumbs = computed(() => {
+  const items = [
+    { path: '/dashboard', name: 'Dashboard' }
+  ];
+
+  if (route.meta.breadcrumb) {
+    items.push({
+      path: route.path,
+      name: route.meta.breadcrumb as string
+    });
+  }
+
+  return items;
+});
+</script>
+
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
