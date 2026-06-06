@@ -1,280 +1,179 @@
 <template>
-  <div class="category-form min-h-screen">
+  <div class="flex flex-col gap-6">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">{{ isEditing ? 'Edit Category' : 'Create Category' }}</h1>
+        <p class="page-subtitle">{{ isEditing ? 'Update your category details' : 'Add a new category to organize your products' }}</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button type="button" @click="handleCancel" class="btn-glass text-sm">Cancel</button>
+        <button type="button" @click="handleSubmit" :disabled="submitting" class="btn-accent text-sm">
+          <i v-if="submitting" class="fas fa-spinner fa-spin text-xs mr-1"></i>
+          {{ isEditing ? 'Update Category' : 'Create Category' }}
+        </button>
+      </div>
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Main Form Column -->
+      <!-- Main Form -->
       <div class="lg:col-span-2">
-        <Card class="p-6">
-          <div class="mb-6">
-            <h2 class="page-title">
-              {{ isEditing ? 'Edit Category' : 'Create New Category' }}
-            </h2>
-            <p class="text-[var(--text-secondary)] mt-1">
-              {{ isEditing ? 'Update your category details' : 'Add a new category to organize your products' }}
-            </p>
+        <Card>
+          <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+            <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Category Details</h2>
           </div>
-
-          <form @submit.prevent="handleSubmit" class="space-y-6">
-            <!-- Category Name -->
-            <div>
-              <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                Category Name <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                v-model="form.name"
-                required
-                placeholder="Enter category name"
-                class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                :class="{ 'border-red-500': errors.name }"
-              />
-              <p v-if="errors.name" class="mt-1 text-sm text-red-500">
-                {{ errors.name }}
-              </p>
-            </div>
-
-            <!-- Description -->
-            <div>
-              <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                Description
-              </label>
-              <textarea
-                v-model="form.description"
-                rows="4"
-                placeholder="Enter category description"
-                class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-              ></textarea>
-            </div>
-
-            <!-- Parent Category and Icon -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-5">
+            <form @submit.prevent="handleSubmit" class="flex flex-col gap-5">
+              <!-- Name -->
               <div>
-                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Parent Category
+                <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">
+                  Category Name <span style="color: var(--ni-red);">*</span>
                 </label>
-                <select
-                  v-model="form.parentId"
-                  class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                >
-                  <option value="" class="bg-[var(--glass-bg)]">No Parent Category</option>
-                  <option
-                    v-for="category in parentCategories"
-                    :key="category.id"
-                    :value="category.id"
-                    class="bg-[var(--glass-bg)]"
-                  >
-                    {{ category.name }}
-                  </option>
-                </select>
+                <input type="text" v-model="form.name" required placeholder="Enter category name"
+                  class="glass-input w-full"
+                  :style="errors.name ? 'border-color: var(--ni-red);' : ''" />
+                <p v-if="errors.name" class="mt-1 text-xs" style="color: var(--ni-red);">{{ errors.name }}</p>
               </div>
 
+              <!-- Description -->
               <div>
-                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Icon
-                </label>
-                <div class="relative">
-                  <i
-                    :class="form.icon || 'fas fa-folder'"
-                    class="absolute left-3 top-3 text-[var(--text-secondary)]"
-                  ></i>
-                  <input
-                    type="text"
-                    v-model="form.icon"
-                    placeholder="fas fa-folder"
-                    class="w-full pl-10 pr-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                  />
-                </div>
-                <p class="mt-1 text-sm text-[var(--text-secondary)]">
-                  Use Font Awesome class names (e.g., "fas fa-folder")
-                </p>
-              </div>
-            </div>
-
-            <!-- Status and Display Order -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Status <span class="text-red-500">*</span>
-                </label>
-                <div class="flex gap-6">
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      v-model="form.status"
-                      value="active"
-                      class="mr-2 accent-blue-500"
-                    />
-                    <span class="text-[var(--text-primary)]">Active</span>
-                  </label>
-                  <label class="flex items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      v-model="form.status"
-                      value="inactive"
-                      class="mr-2 accent-blue-500"
-                    />
-                    <span class="text-[var(--text-primary)]">Inactive</span>
-                  </label>
-                </div>
+                <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Description</label>
+                <textarea v-model="form.description" rows="4" placeholder="Enter category description"
+                  class="glass-input w-full resize-none"></textarea>
               </div>
 
-              <div>
-                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Display Order
-                </label>
-                <input
-                  type="number"
-                  v-model="form.displayOrder"
-                  min="0"
-                  class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                />
-              </div>
-            </div>
-
-            <!-- SEO Fields -->
-            <div>
-              <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">SEO Settings</h3>
-              <div class="space-y-4">
+              <!-- Parent + Icon -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                    Meta Keywords
-                  </label>
-                  <input
-                    type="text"
-                    v-model="form.metaKeywords"
-                    placeholder="e.g., electronics, gadgets, tech"
-                    class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                  />
+                  <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Parent Category</label>
+                  <select v-model="form.parentId" class="glass-select w-full">
+                    <option value="">No Parent Category</option>
+                    <option v-for="category in parentCategories" :key="category.id" :value="category.id">
+                      {{ category.name }}
+                    </option>
+                  </select>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                    Meta Description
-                  </label>
-                  <textarea
-                    v-model="form.metaDescription"
-                    rows="2"
-                    placeholder="Brief description for search engines"
-                    class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                  ></textarea>
+                  <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Icon</label>
+                  <div class="relative">
+                    <i :class="form.icon || 'fas fa-folder'" class="absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--text-secondary);"></i>
+                    <input type="text" v-model="form.icon" placeholder="fas fa-folder" class="glass-input w-full pl-9" />
+                  </div>
+                  <p class="mt-1 text-xs" style="color: var(--text-muted);">Font Awesome class (e.g., "fas fa-folder")</p>
                 </div>
               </div>
-            </div>
 
-            <!-- Form Actions -->
-            <div class="flex justify-end gap-4 pt-6 mt-6 border-t border-[var(--glass-border)]">
-              <Button
-                type="button"
-                variant="outline"
-                @click="handleCancel"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                :loading="submitting"
-              >
-                {{ isEditing ? 'Update Category' : 'Create Category' }}
-              </Button>
-            </div>
-          </form>
+              <!-- Status + Display Order -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">
+                    Status <span style="color: var(--ni-red);">*</span>
+                  </label>
+                  <div class="flex gap-5">
+                    <label class="flex items-center gap-2 cursor-pointer text-sm" style="color: var(--text-primary);">
+                      <input type="radio" v-model="form.status" value="active" style="accent-color: var(--accent);" />
+                      Active
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm" style="color: var(--text-primary);">
+                      <input type="radio" v-model="form.status" value="inactive" style="accent-color: var(--accent);" />
+                      Inactive
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Display Order</label>
+                  <input type="number" v-model="form.displayOrder" min="0" class="glass-input w-full" />
+                </div>
+              </div>
+
+              <!-- SEO -->
+              <div class="pt-4" style="border-top: 1px solid var(--glass-border);">
+                <h3 class="text-sm font-semibold mb-4" style="color: var(--text-primary);">SEO Settings</h3>
+                <div class="flex flex-col gap-4">
+                  <div>
+                    <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Meta Keywords</label>
+                    <input type="text" v-model="form.metaKeywords" placeholder="e.g., electronics, gadgets, tech" class="glass-input w-full" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Meta Description</label>
+                    <textarea v-model="form.metaDescription" rows="2" placeholder="Brief description for search engines" class="glass-input w-full resize-none"></textarea>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
         </Card>
       </div>
 
-      <!-- Sidebar Column -->
-      <div class="space-y-6">
-        <!-- Category Image Card -->
-        <Card class="p-6">
-          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">
-            Category Image
-          </h3>
-          <div class="space-y-4">
-            <div
-              v-if="form.imageUrl"
-              class="relative rounded-lg overflow-hidden border border-[var(--glass-border)]"
-            >
-              <img
-                :src="form.imageUrl"
-                :alt="form.name"
-                class="w-full h-48 object-cover"
-              />
-              <button
-                @click="form.imageUrl = ''"
-                class="absolute top-2 right-2 bg-red-500 text-[var(--text-primary)] rounded-full p-2 hover:bg-red-600 transition-colors"
-              >
-                <i class="fas fa-times"></i>
+      <!-- Sidebar -->
+      <div class="flex flex-col gap-4">
+        <!-- Image -->
+        <Card>
+          <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+            <h3 class="text-[15px] font-semibold" style="color: var(--text-primary);">Category Image</h3>
+          </div>
+          <div class="p-5">
+            <div v-if="form.imageUrl" class="relative rounded-xl overflow-hidden" style="border: 1px solid var(--glass-border);">
+              <img :src="form.imageUrl" :alt="form.name" class="w-full h-44 object-cover" />
+              <button @click="form.imageUrl = ''" class="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center" style="background: var(--ni-red); color: var(--text-primary);">
+                <i class="fas fa-times text-xs"></i>
               </button>
             </div>
-            <div
-              v-else
-              class="border-2 border-dashed border-[var(--glass-border)] rounded-lg p-8 text-center hover:border-[var(--accent)] transition-colors"
-            >
-              <i class="fas fa-image text-4xl text-[var(--text-secondary)] mb-3"></i>
-              <p class="text-[var(--text-secondary)] mb-4">No image selected</p>
-              <input
-                type="file"
-                ref="fileInput"
-                accept="image/*"
-                class="hidden"
-                @change="handleFileSelect"
-              />
-              <Button
-                variant="outline"
-                @click="triggerFileUpload"
-              >
-                <i class="fas fa-upload mr-2"></i> Upload Image
-              </Button>
+            <div v-else class="rounded-xl p-8 text-center cursor-pointer transition-colors" style="border: 2px dashed var(--glass-border);"
+              @click="triggerFileUpload">
+              <i class="fas fa-image text-3xl mb-3" style="color: var(--text-secondary);"></i>
+              <p class="text-sm mb-3" style="color: var(--text-secondary);">No image selected</p>
+              <input type="file" ref="fileInput" accept="image/*" class="hidden" @change="handleFileSelect" />
+              <button type="button" class="btn-glass text-sm" @click.stop="triggerFileUpload">
+                <i class="fas fa-upload text-xs mr-1"></i> Upload Image
+              </button>
             </div>
           </div>
         </Card>
 
-        <!-- Quick Stats Card (only in edit mode) -->
-        <Card v-if="isEditing" class="p-6">
-          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">
-            Quick Stats
-          </h3>
-          <div class="space-y-3">
-            <div class="flex justify-between items-center py-2 border-b border-[var(--glass-border)]">
-              <span class="text-[var(--text-secondary)]">Total Products</span>
-              <span class="font-semibold text-[var(--text-primary)]">{{ categoryStats?.productCount || 0 }}</span>
+        <!-- Quick Stats (edit mode) -->
+        <Card v-if="isEditing">
+          <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+            <h3 class="text-[15px] font-semibold" style="color: var(--text-primary);">Quick Stats</h3>
+          </div>
+          <div class="p-5 flex flex-col gap-3 text-sm">
+            <div class="flex justify-between py-2" style="border-bottom: 1px solid var(--glass-border);">
+              <span style="color: var(--text-secondary);">Total Products</span>
+              <span class="font-semibold" style="color: var(--text-primary);">{{ categoryStats?.productCount || 0 }}</span>
             </div>
-            <div class="flex justify-between items-center py-2 border-b border-[var(--glass-border)]">
-              <span class="text-[var(--text-secondary)]">Active Products</span>
-              <span class="font-semibold text-[var(--text-primary)]">{{ categoryStats?.activeProducts || 0 }}</span>
+            <div class="flex justify-between py-2" style="border-bottom: 1px solid var(--glass-border);">
+              <span style="color: var(--text-secondary);">Active Products</span>
+              <span class="font-semibold" style="color: var(--text-primary);">{{ categoryStats?.activeProducts || 0 }}</span>
             </div>
-            <div class="flex justify-between items-center py-2 border-b border-[var(--glass-border)]">
-              <span class="text-[var(--text-secondary)]">Created</span>
-              <span class="text-[var(--text-primary)]">{{ formatDate(form.createdAt) }}</span>
+            <div class="flex justify-between py-2" style="border-bottom: 1px solid var(--glass-border);">
+              <span style="color: var(--text-secondary);">Created</span>
+              <span style="color: var(--text-primary);">{{ formatDate(form.createdAt) }}</span>
             </div>
-            <div class="flex justify-between items-center py-2">
-              <span class="text-[var(--text-secondary)]">Last Updated</span>
-              <span class="text-[var(--text-primary)]">{{ formatDate(form.updatedAt) }}</span>
+            <div class="flex justify-between py-2">
+              <span style="color: var(--text-secondary);">Last Updated</span>
+              <span style="color: var(--text-primary);">{{ formatDate(form.updatedAt) }}</span>
             </div>
           </div>
         </Card>
 
-        <!-- Preview Card -->
-        <Card class="p-6">
-          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">
-            Preview
-          </h3>
-          <div class="bg-[var(--glass-bg)] rounded-lg p-4 border border-[var(--glass-border)]">
-            <div class="flex items-center gap-3">
-              <div
-                class="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center"
-              >
-                <i :class="form.icon || 'fas fa-folder'" class="text-[var(--accent)] text-xl"></i>
+        <!-- Preview -->
+        <Card>
+          <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+            <h3 class="text-[15px] font-semibold" style="color: var(--text-primary);">Preview</h3>
+          </div>
+          <div class="p-5">
+            <div class="p-4 rounded-xl" style="background: var(--glass-bg); border: 1px solid var(--glass-border);">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background: rgba(var(--accent-rgb, 59, 130, 246), 0.1);">
+                  <i :class="form.icon || 'fas fa-folder'" class="text-xl" style="color: var(--accent);"></i>
+                </div>
+                <div>
+                  <p class="font-medium text-sm" style="color: var(--text-primary);">{{ form.name || 'Category Name' }}</p>
+                  <Badge :variant="form.status === 'active' ? 'success' : 'secondary'">{{ form.status || 'active' }}</Badge>
+                </div>
               </div>
-              <div>
-                <p class="font-medium text-[var(--text-primary)]">{{ form.name || 'Category Name' }}</p>
-                <Badge :variant="form.status === 'active' ? 'success' : 'secondary'">
-                  {{ form.status || 'active' }}
-                </Badge>
-              </div>
+              <p class="text-xs" style="color: var(--text-secondary);">{{ form.description || 'No description provided' }}</p>
             </div>
-            <p class="text-sm text-[var(--text-secondary)] mt-3 line-clamp-2">
-              {{ form.description || 'No description provided' }}
-            </p>
           </div>
         </Card>
       </div>
@@ -454,50 +353,3 @@ watch(form, (newVal) => {
 }, { deep: true });
 </script>
 
-<style scoped>
-/* Override input styles for better contrast */
-input[type="text"],
-input[type="number"],
-textarea,
-select {
-  background-color: var(--glass-bg);
-  color: white;
-}
-
-input[type="text"]::placeholder,
-textarea::placeholder {
-  color: #6b7280;
-}
-
-select option {
-  background-color: var(--color-primary);
-  color: white;
-}
-
-/* Custom scrollbar for textareas */
-textarea {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border) var(--glass-bg);
-}
-
-textarea::-webkit-scrollbar {
-  width: 8px;
-}
-
-textarea::-webkit-scrollbar-track {
-  background: var(--glass-bg);
-}
-
-textarea::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
-  border-radius: 4px;
-}
-
-/* Line clamp utility */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>

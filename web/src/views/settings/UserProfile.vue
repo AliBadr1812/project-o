@@ -300,8 +300,7 @@
                   <label class="flex flex-col items-center gap-1 cursor-pointer">
                     <button
                       @click="pref.email = !pref.email"
-                      class="toggle-switch"
-                      style="width:36px; height:22px;"
+                      class="toggle-switch toggle-sm"
                       :class="pref.email ? 'toggle-on' : 'toggle-off'"
                     ></button>
                     <span class="text-[10px]" style="color:var(--text-muted)">Email</span>
@@ -309,8 +308,7 @@
                   <label class="flex flex-col items-center gap-1 cursor-pointer">
                     <button
                       @click="pref.push = !pref.push"
-                      class="toggle-switch"
-                      style="width:36px; height:22px;"
+                      class="toggle-switch toggle-sm"
                       :class="pref.push ? 'toggle-on' : 'toggle-off'"
                     ></button>
                     <span class="text-[10px]" style="color:var(--text-muted)">Push</span>
@@ -678,7 +676,7 @@ onMounted(() => {});
   margin-bottom: 5px;
 }
 
-/* iOS toggle */
+/* iOS toggle — large (default 51×31) */
 .toggle-switch {
   width: 51px;
   height: 31px;
@@ -694,6 +692,7 @@ onMounted(() => {});
   content: '';
   position: absolute;
   top: 2px;
+  left: 2px; /* default — overridden by on/off below */
   width: 27px;
   height: 27px;
   border-radius: 50%;
@@ -708,8 +707,18 @@ onMounted(() => {});
 .toggle-on { background: var(--accent); box-shadow: 0 0 12px rgba(124,94,240,0.4); }
 .toggle-on::after { left: 22px; }
 
-/* Small toggles (notifications) */
-.toggle-switch[style*="height:22px"] { width: 36px; height: 22px; }
-.toggle-switch[style*="height:22px"]::after { width: 18px; height: 18px; }
-.toggle-switch[style*="height:22px"].toggle-on::after { left: 16px; }
+/* Small toggle (36×22) — used for notification rows */
+.toggle-sm {
+  width: 36px;
+  height: 22px;
+}
+
+.toggle-sm::after {
+  width: 18px;
+  height: 18px;
+  top: 2px;
+}
+
+.toggle-sm.toggle-off::after { left: 2px; }
+.toggle-sm.toggle-on::after  { left: 16px; }
 </style>

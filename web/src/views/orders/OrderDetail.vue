@@ -1,6 +1,6 @@
 <template>
     <div v-if="!order"></div>
-    <div v-else class="gap-6">
+    <div v-else class="flex flex-col gap-6">
         <!-- Page Header -->
         <div class="page-header">
             <div>

@@ -1,107 +1,84 @@
 <template>
-  <div class="analytics-dashboard gap-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between pb-5">
+  <div class="flex flex-col gap-6">
+    <!-- Page Header -->
+    <div class="page-header">
       <div>
         <h1 class="page-title">Analytics Dashboard</h1>
-        <p class="text-[var(--text-secondary)]">Track your business performance and metrics</p>
+        <p class="page-subtitle">Track your business performance and metrics</p>
       </div>
       <div class="flex items-center gap-3">
-        <Button class="text-[var(--color-gray-400)] active:text-[var(--color-white)]" variant="outline" size="sm" @click="handleRefresh">
-            <i class="fas fa-sync-alt fa-1x mr-1"></i>
-            Refresh
-        </Button>
-        <Button class="btn-accent" variant="outline" size="sm" @click="handleExport">
-            <i class="fas fa-arrow-up-from-bracket fa-1x mr-1"></i>
-            Export
-        </Button>
+        <button @click="handleRefresh" class="btn-glass text-sm">
+          <i class="fas fa-sync-alt text-xs mr-1"></i>Refresh
+        </button>
+        <button @click="handleExport" class="btn-accent text-sm">
+          <i class="fas fa-arrow-up-from-bracket text-xs mr-1"></i>Export
+        </button>
       </div>
     </div>
 
     <!-- Time Range Selector -->
-    <Card class="mb-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4">
-        <div class="flex items-center gap-2">
-          <Button
+    <Card>
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button
             v-for="range in timeRanges"
-            class="text-[var(--color-gray-400)] active:text-[var(--color-white)]"
             :key="range.value"
-            :variant="timeRange === range.value ? 'primary' : 'outline'"
-            size="sm"
             @click="setTimeRange(range.value)"
+            class="text-sm px-3 py-1.5 rounded-lg transition-colors"
+            :class="timeRange === range.value ? 'btn-accent' : 'btn-glass'"
           >
             {{ range.label }}
-          </Button>
+          </button>
         </div>
-        <div class="flex items-center gap-2">
-          <input
-            type="date"
-            v-model="customDateRange.start"
-            class="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent"
-            :max="customDateRange.end"
-          />
-          <span class="text-[var(--text-secondary)]">to</span>
-          <input
-            type="date"
-            v-model="customDateRange.end"
-            class="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent"
-            :min="customDateRange.start"
-            :max="today"
-          />
-          <Button
-            variant="outline"
-            class="flex items-center px-3 py-1.5 bg-[var(--accent)] text-[var(--text-primary)] rounded-lg hover:bg-blue-700 transition-colors duration-200"
-            size="sm"
-            @click="applyCustomDate"
-            :disabled="!isCustomDateValid"
-          >
-            Apply
-          </Button>
+        <div class="flex items-center gap-2 flex-wrap">
+          <input type="date" v-model="customDateRange.start" :max="customDateRange.end"
+            class="glass-input text-sm" />
+          <span class="text-sm" style="color: var(--text-secondary);">to</span>
+          <input type="date" v-model="customDateRange.end" :min="customDateRange.start" :max="today"
+            class="glass-input text-sm" />
+          <button @click="applyCustomDate" :disabled="!isCustomDateValid" class="btn-accent text-sm">Apply</button>
         </div>
       </div>
     </Card>
 
     <!-- Stats Bar -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <Card v-for="metric in metrics" :key="metric.key" class="p-5 cursor-pointer hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
-        <div class="flex items-center justify-between mb-4">
-          <div :class="['w-12 h-12 rounded-lg flex items-center justify-center', metric.iconBg]">
-            <i :class="[metric.icon, metric.iconColor, 'text-xl']"></i>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <Card v-for="metric in metrics" :key="metric.key">
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon" :class="metric.iconClass">
+              <i :class="metric.icon"></i>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium" :style="metric.trendStyle">
+              <i v-if="metric.trend > 0" class="fas fa-arrow-up text-[9px] mr-0.5"></i>
+              <i v-else class="fas fa-arrow-down text-[9px] mr-0.5"></i>
+              {{ Math.abs(metric.trend) }}%
+            </span>
           </div>
-          <div :class="['text-sm flex items-center px-2 py-1 rounded-full', metric.trendBg]">
-            <i v-if="metric.trend > 0" class="fas fa-arrow-up fa-2xs text-green-500 mr-1"></i>
-            <i v-else class="fas fa-arrow-down fa-2xs text-red-500 mr-1"></i>
-            {{ Math.abs(metric.trend) }}%
-          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">{{ metric.label }}</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ formatMetricValue(metric) }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">{{ metric.subtext }}</p>
         </div>
-        <p class="text-sm font-medium text-[var(--text-secondary)] mb-1">{{ metric.label }}</p>
-        <p class="text-2xl font-bold text-[var(--text-primary)] mb-2">{{ formatMetricValue(metric) }}</p>
-        <p class="text-xs text-[var(--text-secondary)]">{{ metric.subtext }}</p>
       </Card>
     </div>
 
     <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Sales Chart -->
       <Card class="lg:col-span-2">
         <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-[var(--text-primary)]">Sales Trend</h2>
-              <p class="text-sm text-[var(--text-secondary)]">Revenue over time</p>
+              <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Sales Trend</h2>
+              <p class="text-xs mt-0.5" style="color: var(--text-muted);">Revenue over time</p>
             </div>
-            <div class="flex items-center gap-2">
-              <select
-                v-model="salesChartType"
-                class="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent"
-              >
-                <option value="line">Line Chart</option>
-                <option value="bar">Bar Chart</option>
-              </select>
-            </div>
+            <select v-model="salesChartType" class="glass-select text-sm">
+              <option value="line">Line Chart</option>
+              <option value="bar">Bar Chart</option>
+            </select>
           </div>
         </div>
-        <div class="p-6">
+        <div class="p-5">
           <div class="h-72 flex items-center justify-center">
             <canvas id="salesChart"></canvas>
           </div>
@@ -113,35 +90,26 @@
         <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-[var(--text-primary)]">Revenue by Category</h2>
-              <p class="text-sm text-[var(--text-secondary)]">Distribution across categories</p>
+              <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Revenue by Category</h2>
+              <p class="text-xs mt-0.5" style="color: var(--text-muted);">Distribution across categories</p>
             </div>
-            <Button variant="ghost" size="sm" @click="exportCategories">
+            <button @click="exportCategories" class="btn-glass-icon w-7 h-7 rounded-lg text-xs">
               <i class="fas fa-download"></i>
-            </Button>
+            </button>
           </div>
         </div>
-        <div class="p-4">
-          <div v-if="categoryRevenue.length === 0" class="h-64 flex items-center justify-center">
-            <div class="text-center text-[var(--text-secondary)]">
-              <svg class="w-12 h-12 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/>
-                <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/>
-              </svg>
-              <p>No data available</p>
-            </div>
+        <div class="p-5">
+          <div v-if="categoryRevenue.length === 0" class="h-48 flex items-center justify-center">
+            <p class="text-sm" style="color: var(--text-muted);">No data available</p>
           </div>
-          <div v-else class="space-y-4">
-            <div v-for="item in categoryRevenue" :key="item.category" class="space-y-1">
-              <div class="flex justify-between text-sm">
-                <span class="text-[var(--text-secondary)]">{{ item.category }}</span>
-                <span class="text-[var(--text-primary)] font-medium">{{ formatCurrency(item.revenue) }}</span>
+          <div v-else class="flex flex-col gap-4">
+            <div v-for="item in categoryRevenue" :key="item.category">
+              <div class="flex justify-between text-sm mb-1">
+                <span style="color: var(--text-secondary);">{{ item.category }}</span>
+                <span class="font-medium" style="color: var(--text-primary);">{{ formatCurrency(item.revenue) }}</span>
               </div>
-              <div class="h-2 bg-[var(--glass-bg)] rounded-full overflow-hidden">
-                <div
-                  :style="{ width: item.percentage + '%' }"
-                  class="h-full bg-blue-500 rounded-full transition-all duration-500"
-                ></div>
+              <div class="progress-track">
+                <div class="progress-fill" :style="{ width: item.percentage + '%', background: 'var(--progress-primary)' }"></div>
               </div>
             </div>
           </div>
@@ -149,62 +117,55 @@
       </Card>
     </div>
 
-    <!-- Top Products and Recent Orders -->
+    <!-- Top Products + Recent Orders -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Top Products -->
       <Card>
         <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-[var(--text-primary)]">Top Products</h2>
-              <p class="text-sm text-[var(--text-secondary)]">Best selling products</p>
+              <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Top Products</h2>
+              <p class="text-xs mt-0.5" style="color: var(--text-muted);">Best selling products</p>
             </div>
-            <router-link to="/products" class="text-sm text-[var(--accent)] hover:text-[var(--text-accent)] transition-colors">
-              View all
-            </router-link>
+            <router-link to="/products" class="text-sm font-medium" style="color: var(--text-accent);">View all →</router-link>
           </div>
         </div>
-        <Table>
-          <template #header>
-            <tr class="bg-[var(--glass-bg)] text-[var(--text-secondary)]">
-              <th class="py-3 px-6 text-left">Product</th>
-              <th class="py-3 px-6 text-left">Sales</th>
-              <th class="py-3 px-6 text-left">Revenue</th>
-              <th class="py-3 px-6 text-left">Stock</th>
-            </tr>
-          </template>
-          <template #body>
-            <tr v-for="product in topProducts" :key="product.id" class="hover:bg-[var(--glass-bg)]">
-              <td class="py-3 px-6">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-[var(--glass-bg)] rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-[var(--text-muted)]" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"/>
-                      <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                    </svg>
+        <div class="overflow-x-auto">
+          <table class="glass-table w-full">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Sales</th>
+                <th>Revenue</th>
+                <th>Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="product in topProducts" :key="product.id">
+                <td>
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--glass-bg); border: 1px solid var(--glass-border);">
+                      <i class="fas fa-box text-xs" style="color: var(--text-muted);"></i>
+                    </div>
+                    <div>
+                      <p class="td-primary">{{ product.name }}</p>
+                      <p class="text-xs" style="color: var(--text-muted);">{{ product.category }}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p class="font-medium text-[var(--text-primary)] text-sm">{{ product.name }}</p>
-                    <p class="text-xs text-[var(--text-secondary)]">{{ product.category }}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="py-3 px-6 text-[var(--text-primary)]">{{ product.sales }}</td>
-              <td class="py-3 px-6 text-[var(--text-primary)]">{{ formatCurrency(product.revenue) }}</td>
-              <td class="py-3 px-6">
-                <Badge
-                  :variant="product.stock > 20 ? 'success' : product.stock > 5 ? 'warning' : 'danger'"
-                >
-                  {{ product.stock }} left
-                </Badge>
-              </td>
-            </tr>
-          </template>
-        </Table>
-        <div class="border-t border-[var(--glass-border)] px-6 py-3 text-right">
-          <Button variant="ghost" size="sm" @click="viewAllProducts">
-            View All Products
-          </Button>
+                </td>
+                <td><span class="text-sm font-medium" style="color: var(--text-primary);">{{ product.sales }}</span></td>
+                <td class="td-accent">{{ formatCurrency(product.revenue) }}</td>
+                <td>
+                  <Badge :variant="product.stock > 20 ? 'success' : product.stock > 5 ? 'warning' : 'danger'">
+                    {{ product.stock }} left
+                  </Badge>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="px-6 py-3 text-right" style="border-top: 1px solid var(--glass-border);">
+          <button @click="viewAllProducts" class="btn-glass text-sm">View All Products</button>
         </div>
       </Card>
 
@@ -213,38 +174,31 @@
         <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-[var(--text-primary)]">Recent Orders</h2>
-              <p class="text-sm text-[var(--text-secondary)]">Latest customer orders</p>
+              <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Recent Orders</h2>
+              <p class="text-xs mt-0.5" style="color: var(--text-muted);">Latest customer orders</p>
             </div>
-            <router-link to="/orders" class="text-sm text-[var(--accent)] hover:text-[var(--text-accent)] transition-colors">
-              View all
-            </router-link>
+            <router-link to="/orders" class="text-sm font-medium" style="color: var(--text-accent);">View all →</router-link>
           </div>
         </div>
-        <div class="divide-y divide-[var(--color-border)]">
-          <div
-            v-for="order in recentOrders"
-            :key="order.id"
-            class="flex items-center justify-between p-4 hover:bg-[var(--glass-bg)] transition-colors cursor-pointer"
-            @click="goToOrder(order.id)"
-          >
+        <div class="flex flex-col" style="divide-y: 1px solid var(--glass-border);">
+          <div v-for="order in recentOrders" :key="order.id"
+            class="flex items-center justify-between px-5 py-3 cursor-pointer transition-colors"
+            style="border-bottom: 1px solid var(--glass-border);"
+            @click="goToOrder(order.id)">
             <div class="flex items-center gap-3">
-              <div
-                class="w-10 h-10 rounded-lg flex items-center justify-center text-[var(--text-primary)] text-sm font-medium"
-                :style="{ background: `linear-gradient(135deg, ${stringToColor(order.customerName)}, ${stringToColor(order.customerName + '2')})` }"
-              >
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-semibold"
+                style="color: var(--text-primary);"
+                :style="{ background: `linear-gradient(135deg, ${stringToColor(order.customerName)}, ${stringToColor(order.customerName + '2')})` }">
                 {{ getInitials(order.customerName) }}
               </div>
               <div>
-                <p class="font-medium text-[var(--text-primary)] text-sm">Order #{{ order.id }}</p>
-                <p class="text-xs text-[var(--text-secondary)]">{{ order.customerName }}</p>
+                <p class="td-primary">Order #{{ order.id }}</p>
+                <p class="text-xs" style="color: var(--text-secondary);">{{ order.customerName }}</p>
               </div>
             </div>
             <div class="text-right">
-              <p class="font-medium text-[var(--text-primary)] text-sm">{{ formatCurrency(order.amount) }}</p>
-              <Badge :variant="getOrderStatusVariant(order.status)">
-                {{ order.status }}
-              </Badge>
+              <p class="font-medium text-sm td-accent">{{ formatCurrency(order.amount) }}</p>
+              <Badge :variant="getOrderStatusVariant(order.status)" class="mt-1">{{ order.status }}</Badge>
             </div>
           </div>
         </div>
@@ -252,28 +206,25 @@
     </div>
 
     <!-- Geographic Distribution -->
-    <Card class="mt-6">
+    <Card>
       <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
-        <h2 class="text-lg font-semibold text-[var(--text-primary)]">Geographic Distribution</h2>
-        <p class="text-sm text-[var(--text-secondary)]">Customer locations by region</p>
+        <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Geographic Distribution</h2>
+        <p class="text-xs mt-0.5" style="color: var(--text-muted);">Customer locations by region</p>
       </div>
-      <div class="p-6">
+      <div class="p-5">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div>
-                <GeoMap :regions="mapRegions" />
-            </div>
-          <div class="space-y-4">
-            <h3 class="text-sm font-medium text-[var(--text-secondary)] mb-3">Top Regions</h3>
-            <div v-for="region in topRegions" :key="region.name" class="space-y-1">
-              <div class="flex justify-between text-sm">
-                <span class="text-[var(--text-secondary)]">{{ region.name }}</span>
-                <span class="text-[var(--text-primary)] font-medium">{{ region.percentage }}%</span>
+          <div>
+            <GeoMap :regions="mapRegions" />
+          </div>
+          <div class="flex flex-col gap-3">
+            <p class="text-xs font-medium mb-1" style="color: var(--text-secondary);">Top Regions</p>
+            <div v-for="region in topRegions" :key="region.name">
+              <div class="flex justify-between text-sm mb-1">
+                <span style="color: var(--text-secondary);">{{ region.name }}</span>
+                <span class="font-medium" style="color: var(--text-primary);">{{ region.percentage }}%</span>
               </div>
-              <div class="h-1.5 bg-[var(--glass-bg)] rounded-full overflow-hidden">
-                <div
-                  :style="{ width: region.percentage + '%' }"
-                  class="h-full bg-blue-500 rounded-full transition-all duration-500"
-                ></div>
+              <div class="progress-track">
+                <div class="progress-fill" :style="{ width: region.percentage + '%', background: 'var(--progress-primary)' }"></div>
               </div>
             </div>
           </div>
@@ -286,9 +237,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import Button from '@/components/ui/Button.vue';
 import Card from '@/components/ui/Card.vue';
-import Table from '@/components/ui/Table.vue';
 import Badge from '@/components/ui/Badge.vue';
 import { formatCurrency, getInitials } from '@/utils/formatters';
 import Chart from 'chart.js/auto';
@@ -304,9 +253,8 @@ interface Metric {
   trend: number;
   subtext: string;
   icon: string;
-  iconBg: string;
-  iconColor: string;
-  trendBg: string;
+  iconClass: string;
+  trendStyle: string;
   format?: 'currency' | 'number' | 'percent';
 }
 
@@ -402,9 +350,8 @@ const metrics = computed<Metric[]>(() => {
       trend: 12.5,
       subtext: 'vs previous period',
       icon: 'fas fa-shopping-cart',
-      iconBg: 'bg-blue-500/10',
-      iconColor: 'text-[var(--accent)]',
-      trendBg: 'text-green-500 bg-green-500/10',
+      iconClass: 'ni-b',
+      trendStyle: `color: var(--ni-green); background: rgba(var(--ni-green-rgb, 34,197,94), 0.1);`,
       format: 'currency'
     },
     {
@@ -414,9 +361,8 @@ const metrics = computed<Metric[]>(() => {
       trend: 8.2,
       subtext: `Avg order: ${formatCurrency(74.53)}`,
       icon: 'fas fa-box',
-      iconBg: 'bg-green-500/10',
-      iconColor: 'text-green-500',
-      trendBg: 'text-green-500 bg-green-500/10',
+      iconClass: 'ni-g',
+      trendStyle: `color: var(--ni-green); background: rgba(var(--ni-green-rgb, 34,197,94), 0.1);`,
       format: 'number'
     },
     {
@@ -426,9 +372,8 @@ const metrics = computed<Metric[]>(() => {
       trend: 15.3,
       subtext: `+${Math.round(128 * multiplier)} new this month`,
       icon: 'fas fa-users',
-      iconBg: 'bg-purple-500/10',
-      iconColor: 'text-purple-500',
-      trendBg: 'text-green-500 bg-green-500/10',
+      iconClass: 'ni-p',
+      trendStyle: `color: var(--ni-green); background: rgba(var(--ni-green-rgb, 34,197,94), 0.1);`,
       format: 'number'
     },
     {
@@ -438,9 +383,8 @@ const metrics = computed<Metric[]>(() => {
       trend: -2.1,
       subtext: `From ${Math.round(76025 * multiplier)} visitors`,
       icon: 'fas fa-eye',
-      iconBg: 'bg-yellow-500/10',
-      iconColor: 'text-yellow-500',
-      trendBg: 'text-red-500 bg-red-500/10',
+      iconClass: 'ni-o',
+      trendStyle: `color: var(--ni-red); background: rgba(var(--ni-red-rgb, 239,68,68), 0.1);`,
       format: 'percent'
     }
   ];
@@ -814,127 +758,3 @@ watch([timeRange, salesChartType], () => {
 });
 </script>
 
-<style scoped>
-.analytics-dashboard {
-  min-height: 100vh;
-}
-
-/* Stats card hover effect */
-.hover\:shadow-lg {
-  transition: box-shadow 0.3s ease;
-}
-
-/* Progress bar animations */
-.h-2 > div, .h-1\.5 > div {
-  transition: width 0.5s ease-in-out;
-}
-
-/* Chart container */
-canvas {
-  max-width: 100%;
-  height: auto;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
-
-/* Date input styling */
-input[type="date"] {
-  color-scheme: dark;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  opacity: 0.6;
-  cursor: pointer;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-}
-
-/* Table styles from CategoryList */
-th {
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 0.75rem;
-}
-
-tbody tr {
-  transition: background-color 0.15s ease;
-  cursor: pointer;
-}
-
-/* Avatar gradient effect from CategoryList */
-.w-10.h-10 {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.w-10.h-10:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* Select dropdown styling from CategoryList */
-select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
-  background-repeat: no-repeat;
-  background-size: 1.5em 1.5em;
-  padding-right: 2.5rem;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-/* Loading animation */
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .gap-6 {
-    gap: 1rem;
-  }
-
-  .text-2xl {
-    font-size: 1.5rem;
-  }
-
-  .p-6 {
-    padding: 1rem;
-  }
-}
-
-/* Smooth transitions */
-button, a, .cursor-pointer {
-  transition: all 0.15s ease-out;
-}
-
-/* Focus styles */
-button:focus-visible, a:focus-visible {
-  outline: 2px solid #3B82F6;
-  outline-offset: 2px;
-}
-
-/* Disabled state */
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Icon styling from CategoryList */
-.fas {
-  font-size: 0.875rem;
-}
-</style>

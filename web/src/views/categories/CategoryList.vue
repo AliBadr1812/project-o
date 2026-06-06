@@ -1,209 +1,164 @@
 <template>
-  <div class="gap-6">
-    <!-- Header with actions -->
-    <div class="flex items-center justify-between pb-5">
+  <div class="flex flex-col gap-6">
+    <!-- Page Header -->
+    <div class="page-header">
       <div>
         <h1 class="page-title">Categories</h1>
-        <p class="text-[var(--text-secondary)]">Manage your product categories</p>
+        <p class="page-subtitle">Manage your product categories</p>
       </div>
       <div class="flex items-center gap-3">
-        <!-- Filter by Status -->
-        <div class="relative text-[var(--text-secondary)]">
-            <select
-                v-model="statusFilter"
-                class="appearance-none text-[var(--text-secondary)] border border-[var(--glass-border)] rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent cursor-pointer"
-            >
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-            </select>
-            <i class="fas fa-angle-down fa-1x absolute right-4 top-4"></i>
-        </div>
-
-        <!-- Search -->
-        <div class="relative">
-          <input
-            type="search"
-            v-model="searchQuery"
-            placeholder="Search categories..."
-            class="border border-[var(--glass-border)] rounded-lg pl-10 pr-4 py-2 w-64 bg-[var(--glass-bg)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-          >
-          <i class="fas fa-search absolute left-4 top-3.5 text-[var(--text-secondary)]"></i>
-        </div>
-
-        <!-- New Category Button -->
-        <button
-          @click="handleCreate"
-          class="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-lg hover:bg-blue-700"
-        >
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z" clip-rule="evenodd"/>
-          </svg>
-          <span>New Category</span>
+        <button @click="handleCreate" class="btn-accent text-sm">
+          <i class="fas fa-plus text-xs mr-1"></i>New Category
         </button>
       </div>
     </div>
 
-    <!-- Stats Bar -->
-    <div class="grid grid-cols-4 gap-4 pb-4">
-      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--text-secondary)] font-medium">Total Categories</p>
-        <p class="page-title">{{ stats.total }}</p>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-b"><i class="fas fa-folder"></i></div>
+            <span class="badge badge-info">All</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Total Categories</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.total }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Across all products</p>
+        </div>
       </Card>
-      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--text-secondary)] font-medium">Active</p>
-        <p class="page-title">{{ stats.active }}</p>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-g"><i class="fas fa-circle-check"></i></div>
+            <span class="badge badge-success">Active</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Active</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.active }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Currently published</p>
+        </div>
       </Card>
-      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--text-secondary)] font-medium">Inactive</p>
-        <p class="page-title">{{ stats.inactive }}</p>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-s"><i class="fas fa-eye-slash"></i></div>
+            <span class="badge badge-warning">Inactive</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Inactive</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.inactive }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Hidden from store</p>
+        </div>
       </Card>
-      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--text-secondary)] font-medium">Avg Products</p>
-        <p class="page-title">{{ stats.avgProducts }}</p>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-p"><i class="fas fa-chart-bar"></i></div>
+            <span class="badge badge-info">Average</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Avg Products</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.avgProducts }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Per category</p>
+        </div>
       </Card>
     </div>
 
     <!-- Categories Table -->
-    <Card>
-      <Table class="rounded-xl">
-        <template #header>
-          <tr class="bg-[var(--glass-bg)] text-[var(--text-secondary)]">
-            <th class="py-3 px-4 text-left w-12">
-              <input type="checkbox" v-model="selectAll" />
-            </th>
-            <th class="py-3 px-4 text-left">Name</th>
-            <th class="py-3 px-4 text-left">Description</th>
-            <th class="py-3 px-4 text-left">Products</th>
-            <th class="py-3 px-4 text-left">Status</th>
-            <th class="py-3 px-4 text-left">Created</th>
-            <th class="py-3 px-4 text-left">Actions</th>
-          </tr>
-        </template>
-        <template #body>
-          <tr v-for="category in paginatedCategories" :key="category.id" class="hover:bg-[var(--glass-bg)]">
-            <td class="py-3 px-4">
-              <input
-                type="checkbox"
-                :value="category.id"
-                v-model="selectedCategories"
-              />
-            </td>
-            <td class="py-3 px-4">
-              <div class="flex items-center gap-3">
-                <div
-                  v-if="category.icon"
-                  class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center"
-                >
-                  <i :class="category.icon" class="text-[var(--accent)] text-lg"></i>
-                </div>
-                <div v-else class="w-10 h-10 rounded-lg bg-gray-500/10 flex items-center justify-center">
-                  <svg class="w-5 h-5 text-[var(--text-secondary)]" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V8a2 2 0 00-2-2h-5L9 4H4z" clip-rule="evenodd"/>
-                  </svg>
-                </div>
-                <div>
-                  <p class="font-medium text-[var(--text-secondary)]">{{ category.name }}</p>
-                  <p class="text-sm text-[var(--text-secondary)]">ID: {{ category.id }}</p>
-                </div>
-              </div>
-            </td>
-            <td class="py-3 px-4 text-[var(--text-secondary)]">
-              {{ truncateText(category.description, 60) }}
-            </td>
-            <td class="py-3 px-4">
-              <div class="flex items-center gap-2">
-                <span class="text-[var(--text-secondary)]">{{ category.productCount }}</span>
-                <div class="w-24 h-2 bg-[var(--glass-bg)] rounded-full overflow-hidden border border-[var(--glass-border)]">
-                  <div
-                    class="h-full bg-blue-500"
-                    :style="{ width: Math.min((category.productCount / maxProducts) * 100, 100) + '%' }"
-                  ></div>
-                </div>
-              </div>
-            </td>
-            <td class="py-3 px-4">
-              <Badge
-                :variant="category.status === 'active' ? 'success' : 'secondary'"
-              >
-                {{ category.status }}
-              </Badge>
-            </td>
-            <td class="py-3 px-4 text-[var(--text-secondary)]">
-              {{ formatDate(category.createdAt) }}
-            </td>
-            <td class="py-3 px-4">
-              <div class="flex items-center gap-2">
-                <button
-                  @click="handleEdit(category.id)"
-                  class="p-1 text-[var(--text-secondary)] hover:text-[var(--accent)]"
-                >
-                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                  </svg>
-                </button>
-                <button
-                  @click="handleView(category.id)"
-                  class="p-1 text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
-                >
-                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                  </svg>
-                </button>
-                <button
-                  @click="handleDelete(category.id)"
-                  class="p-1 text-[var(--text-secondary)] hover:text-red-800"
-                >
-                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </template>
-      </Table>
+    <Card class="overflow-hidden">
+      <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Category List</h2>
+            <p class="text-xs mt-0.5" style="color: var(--text-muted);">{{ filteredCategories.length }} categories</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="relative flex-1 min-w-[200px]">
+            <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color: var(--text-muted)"></i>
+            <input v-model="searchQuery" type="text" placeholder="Search categories..." class="glass-input w-full pl-9 text-sm">
+          </div>
+          <select v-model="statusFilter" class="glass-select text-sm">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
 
-      <!-- Empty State -->
-      <EmptyState
-        v-if="categories.length === 0"
-        title="No categories found"
+      <div class="overflow-x-auto">
+        <table class="glass-table w-full">
+          <thead>
+            <tr>
+              <th class="w-10"><input type="checkbox" v-model="selectAll" style="accent-color: var(--accent); width: 14px; height: 14px;" /></th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Products</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="category in paginatedCategories" :key="category.id">
+              <td>
+                <input type="checkbox" :value="category.id" v-model="selectedCategories" style="accent-color: var(--accent); width: 14px; height: 14px;" />
+              </td>
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--accent)1a;">
+                    <i :class="category.icon || 'fas fa-folder'" style="color: var(--accent);"></i>
+                  </div>
+                  <div>
+                    <p class="td-primary">{{ category.name }}</p>
+                    <p class="text-xs" style="color: var(--text-muted);">ID: {{ category.id }}</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="text-sm" style="color: var(--text-secondary);">{{ truncateText(category.description, 60) }}</span>
+              </td>
+              <td>
+                <div class="flex items-center gap-2">
+                  <span class="font-medium text-sm" style="color: var(--text-primary);">{{ category.productCount }}</span>
+                  <div class="progress-track w-20">
+                    <div class="progress-fill" :style="{ width: Math.min((category.productCount / maxProducts) * 100, 100) + '%', background: 'var(--progress-primary)' }"></div>
+                  </div>
+                </div>
+              </td>
+              <td><Badge :variant="category.status === 'active' ? 'success' : 'secondary'">{{ category.status }}</Badge></td>
+              <td><span class="text-sm" style="color: var(--text-secondary);">{{ formatDate(category.createdAt) }}</span></td>
+              <td>
+                <div class="flex items-center gap-1">
+                  <button @click="handleView(category.id)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="View">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button @click="handleEdit(category.id)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Edit">
+                    <i class="fas fa-pen"></i>
+                  </button>
+                  <button @click="handleDelete(category.id)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <EmptyState v-if="categories.length === 0" title="No categories found"
         description="Get started by creating your first category."
-        action-text="Create Category"
-        @action="handleCreate"
-      />
+        action-text="Create Category" @action="handleCreate" />
 
-      <!-- Pagination -->
-      <Pagination
-        v-if="filteredCategories.length > 0"
-        :current-page="currentPage"
-        :total-pages="totalPages"
-        :total-items="filteredCategories.length"
-        :items-per-page="itemsPerPage"
-        @page-change="handlePageChange"
-      />
+      <Pagination v-if="filteredCategories.length > 0" :current-page="currentPage"
+        :total-pages="totalPages" :total-items="filteredCategories.length"
+        :items-per-page="itemsPerPage" @page-change="handlePageChange" />
     </Card>
 
-    <!-- Bulk Actions Bar -->
-    <div v-if="selectedCategories.length > 0" class="fixed bottom-6 right-6">
-      <Card class="shadow-xl">
+    <!-- Bulk Actions -->
+    <div v-if="selectedCategories.length > 0" class="fixed bottom-6 right-6 z-50">
+      <Card>
         <div class="flex items-center gap-4 p-3">
-          <span class="text-[var(--text-secondary)] font-medium">
-            {{ selectedCategories.length }} selected
-          </span>
-          <button
-            @click="handleBulkStatusChange"
-            class="px-3 py-1.5 border border-[var(--glass-border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]"
-          >
-            Change Status
-          </button>
-          <button
-            @click="handleBulkDelete"
-            class="px-3 py-1.5 bg-red-600 text-[var(--text-primary)] rounded-lg hover:bg-red-700"
-          >
-            Delete Selected
-          </button>
+          <span class="text-sm font-medium" style="color: var(--text-secondary);">{{ selectedCategories.length }} selected</span>
+          <button @click="handleBulkStatusChange" class="btn-glass text-sm">Change Status</button>
+          <button @click="handleBulkDelete" class="btn-accent text-sm" style="background: var(--ni-red);">Delete Selected</button>
         </div>
       </Card>
     </div>
@@ -214,7 +169,6 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
-import Table from '@/components/ui/Table.vue';
 import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
@@ -488,24 +442,3 @@ watch([searchQuery, statusFilter], () => {
 });
 </script>
 
-<style scoped>
-.category-list {
-  min-height: 100vh;
-}
-
-input[type="checkbox"] {
-  accent-color: var(--accent);
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-.fixed {
-  z-index: 50;
-}
-
-/* Icon styling */
-.fas {
-  font-size: 0.875rem; /* 14px */
-}
-</style>

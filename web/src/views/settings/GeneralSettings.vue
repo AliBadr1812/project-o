@@ -412,6 +412,7 @@ const saveStore = () => console.log('Store saved:', store);
   content: '';
   position: absolute;
   top: 2px;
+  left: 2px;
   width: 27px;
   height: 27px;
   border-radius: 50%;

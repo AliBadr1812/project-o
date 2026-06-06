@@ -1,206 +1,157 @@
 <template>
-  <div class="gap-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between pb-5">
+  <div class="flex flex-col gap-6">
+    <!-- Page Header -->
+    <div class="page-header">
       <div>
         <h1 class="page-title">Customers</h1>
-        <p class="text-[var(--text-secondary)]">Manage your customer database</p>
+        <p class="page-subtitle">Manage your customer database</p>
       </div>
-
       <div class="flex items-center gap-3">
-        <!-- Search -->
-        <div class="relative">
-          <input
-            type="search"
-            v-model="searchQuery"
-            placeholder="Search customers..."
-            class="border border-[var(--glass-border)] rounded-lg pl-10 pr-4 py-2 w-64 bg-[var(--glass-bg)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)]"
-          >
-          <i class="fas fa-search fa-1x absolute left-4 top-3.5 text-[var(--text-secondary)]"></i>
-        </div>
-
-        <!-- Filter -->
-        <div class="relative">
-          <select
-            v-model="customerType"
-            class="glass-select"
-          >
-            <option value="">All Customers</option>
-            <option value="new">New Customers</option>
-            <option value="returning">Returning Customers</option>
-            <option value="vip">VIP Customers</option>
-          </select>
-          <i class="fas fa-angle-down absolute right-4 top-3.5 text-[var(--text-secondary)]"></i>
-        </div>
-
-        <!-- Import Button -->
-        <button @click="showImportModal = true" class="btn-accent">
-          <i class="fas fa-download text-xs"></i>
-          <span>Import</span>
+        <button @click="showImportModal = true" class="btn-accent text-sm">
+          <i class="fas fa-download text-xs mr-1"></i>
+          Import
         </button>
       </div>
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-4 gap-4 pb-6">
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-3 mb-2">
-          <div class="stat-icon ni-b"><i class="fas fa-users text-sm"></i></div>
-          <p class="text-sm font-medium" style="color:var(--ni-blue)">Total Customers</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-b"><i class="fas fa-users"></i></div>
+            <span class="badge badge-info">All</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Total Customers</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.total }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">In your database</p>
         </div>
-        <p class="text-2xl font-bold" style="color:var(--text-primary)">{{ stats.total }}</p>
-      </div>
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-3 mb-2">
-          <div class="stat-icon ni-g"><i class="fas fa-circle-check text-sm"></i></div>
-          <p class="text-sm font-medium" style="color:var(--ni-green)">Active</p>
+      </Card>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-g"><i class="fas fa-circle-check"></i></div>
+            <span class="badge badge-success">Active</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Active</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.active }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Currently active accounts</p>
         </div>
-        <p class="text-2xl font-bold" style="color:var(--text-primary)">{{ stats.active }}</p>
-      </div>
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-3 mb-2">
-          <div class="stat-icon ni-o"><i class="fas fa-star text-sm"></i></div>
-          <p class="text-sm font-medium" style="color:var(--ni-orange)">New This Month</p>
+      </Card>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-o"><i class="fas fa-star"></i></div>
+            <span class="badge badge-warning">This month</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">New This Month</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.newThisMonth }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Recently joined</p>
         </div>
-        <p class="text-2xl font-bold" style="color:var(--text-primary)">{{ stats.newThisMonth }}</p>
-      </div>
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-3 mb-2">
-          <div class="stat-icon ni-p"><i class="fas fa-dollar-sign text-sm"></i></div>
-          <p class="text-sm font-medium" style="color:var(--ni-purple)">Avg. Order Value</p>
+      </Card>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-p"><i class="fas fa-dollar-sign"></i></div>
+            <span class="badge badge-info">Average</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Avg. Order Value</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ formatCurrency(stats.avgOrderValue) }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Per customer</p>
         </div>
-        <p class="text-2xl font-bold" style="color:var(--text-primary)">{{ formatCurrency(stats.avgOrderValue) }}</p>
-      </div>
+      </Card>
     </div>
 
     <!-- Customers Table -->
     <Card class="overflow-hidden">
-      <div class="px-5 py-4" style="border-bottom: 1px solid var(--glass-border);">
-        <h2 class="text-lg font-semibold text-[var(--text-primary)]">Customer List</h2>
-        <p class="text-sm text-[var(--text-secondary)]">Showing {{ paginatedCustomers.length }} of {{ filteredCustomers.length }} customers</p>
+      <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Customer List</h2>
+            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Showing {{ paginatedCustomers.length }} of {{ filteredCustomers.length }} customers</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="relative flex-1 min-w-[200px]">
+            <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color: var(--text-muted)"></i>
+            <input v-model="searchQuery" type="text" placeholder="Search customers..." class="glass-input w-full pl-9 text-sm">
+          </div>
+          <select v-model="customerType" class="glass-select text-sm">
+            <option value="">All Customers</option>
+            <option value="new">New Customers</option>
+            <option value="returning">Returning Customers</option>
+            <option value="vip">VIP Customers</option>
+          </select>
+        </div>
       </div>
 
       <div class="overflow-x-auto">
-        <Table>
-          <template #header>
-            <tr class="bg-[var(--glass-bg)] text-[var(--text-secondary)]">
-              <th class="py-3 px-4 text-left font-semibold text-sm">Customer</th>
-              <th class="py-3 px-4 text-left font-semibold text-sm">Email</th>
-              <th class="py-3 px-4 text-left font-semibold text-sm">Orders</th>
-              <th class="py-3 px-4 text-left font-semibold text-sm">Total Spent</th>
-              <th class="py-3 px-4 text-left font-semibold text-sm">Last Order</th>
-              <th class="py-3 px-4 text-left font-semibold text-sm">Status</th>
-              <th class="py-3 px-4 text-left font-semibold text-sm">Actions</th>
+        <table class="glass-table w-full">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Email</th>
+              <th>Orders</th>
+              <th>Total Spent</th>
+              <th>Last Order</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          </template>
-
-          <template #body>
-            <tr
-              v-for="customer in paginatedCustomers"
-              :key="customer.id"
-              class="hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-150 border-b border-[var(--glass-border)] last:border-b-0"
-            >
-              <td class="py-4 px-4">
+          </thead>
+          <tbody>
+            <tr v-for="customer in paginatedCustomers" :key="customer.id">
+              <td>
                 <div class="flex items-center gap-3">
-                  <div
-                    class="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-primary)] font-medium text-sm border-2 border-[var(--glass-border)]"
-                    :style="{
-                      background: `linear-gradient(135deg, ${stringToColor(customer.name)}, ${stringToColor(customer.name + '2')})`
-                    }"
-                  >
+                  <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium"
+                    style="color: var(--text-primary);"
+                    :style="{ background: `linear-gradient(135deg, ${stringToColor(customer.name)}, ${stringToColor(customer.name + '2')})` }">
                     {{ getInitials(customer.name) }}
                   </div>
                   <div>
-                    <p class="font-medium text-[var(--text-primary)]">{{ customer.name }}</p>
-                    <p class="text-sm text-[var(--text-muted)]">{{ customer.phone }}</p>
+                    <p class="td-primary">{{ customer.name }}</p>
+                    <p class="text-xs" style="color: var(--text-muted);">{{ customer.phone }}</p>
                   </div>
                 </div>
               </td>
-              <td class="py-4 px-4">
-                <p class="text-[var(--text-secondary)]">{{ customer.email }}</p>
-              </td>
-              <td class="py-4 px-4">
-                <div class="flex items-center">
-                  <span class="font-medium text-[var(--text-primary)] mr-2">{{ customer.orderCount }}</span>
-                  <div class="w-16 h-2 bg-[var(--glass-bg)] rounded-full overflow-hidden">
-                    <div
-                      class="h-full transition-all duration-500 rounded-full"
-                      style="background: var(--accent);"
-                      :style="{ width: Math.min((customer.orderCount / maxOrders) * 100, 100) + '%' }"
-                    ></div>
+              <td><span class="text-sm" style="color: var(--text-secondary);">{{ customer.email }}</span></td>
+              <td>
+                <div class="flex items-center gap-2">
+                  <span class="font-medium text-sm" style="color: var(--text-primary);">{{ customer.orderCount }}</span>
+                  <div class="progress-track w-16">
+                    <div class="progress-fill" :style="{ width: Math.min((customer.orderCount / maxOrders) * 100, 100) + '%', background: 'var(--progress-primary)' }"></div>
                   </div>
                 </div>
               </td>
-              <td class="py-4 px-4 font-medium text-[var(--text-primary)]">
-                {{ formatCurrency(customer.totalSpent) }}
+              <td class="td-accent">{{ formatCurrency(customer.totalSpent) }}</td>
+              <td><span class="text-sm" style="color: var(--text-secondary);">{{ formatDate(customer.lastOrderDate) }}</span></td>
+              <td>
+                <Badge :variant="customer.status === 'active' ? 'success' : 'secondary'">{{ customer.status }}</Badge>
               </td>
-              <td class="py-4 px-4">
-                <p class="text-sm text-[var(--text-secondary)]">{{ formatDate(customer.lastOrderDate) }}</p>
-              </td>
-              <td class="py-4 px-4">
-                <Badge :variant="customer.status === 'active' ? 'success' : 'secondary'">
-                  <span class="flex items-center gap-1.5">
-                    <span
-                      class="w-2 h-2 rounded-full animate-pulse"
-                      :class="{
-                        'bg-green-500': customer.status === 'active',
-                        'bg-gray-500': customer.status !== 'active',
-                        'animate-none': customer.status !== 'active'
-                      }"
-                    ></span>
-                    {{ customer.status }}
-                  </span>
-                </Badge>
-              </td>
-              <td class="py-4 px-4">
+              <td>
                 <div class="flex items-center gap-1">
-                  <button
-                    @click="viewCustomer(customer.id)"
-                    class="btn-glass-icon"
-                    title="View customer"
-                  >
-                    <i class="fas fa-eye w-4 h-4 text-xs"></i>
+                  <button @click="viewCustomer(customer.id)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="View">
+                    <i class="fas fa-eye"></i>
                   </button>
-                  <button
-                    @click="editCustomer(customer.id)"
-                    class="btn-glass-icon"
-                    title="Edit customer"
-                  >
-                    <i class="fas fa-pen w-4 h-4 text-xs"></i>
+                  <button @click="editCustomer(customer.id)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Edit">
+                    <i class="fas fa-pen"></i>
                   </button>
-                  <button
-                    @click="sendEmailToCustomer(customer.email)"
-                    class="btn-glass-icon"
-                    title="Send email"
-                  >
-                    <i class="fas fa-envelope w-4 h-4 text-xs"></i>
+                  <button @click="sendEmailToCustomer(customer.email)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Email">
+                    <i class="fas fa-envelope"></i>
                   </button>
                 </div>
               </td>
             </tr>
-          </template>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
-      <!-- Empty State -->
-      <EmptyState
-        v-if="filteredCustomers.length === 0"
-        title="No customers found"
+      <EmptyState v-if="filteredCustomers.length === 0" title="No customers found"
         description="When customers place orders, they will appear here."
-        action-text="Import Customers"
-        @action-click="showImportModal = true"
-        class="py-12"
-      />
+        action-text="Import Customers" @action-click="showImportModal = true" class="py-12" />
 
-      <!-- Pagination -->
-      <Pagination
-        v-if="filteredCustomers.length > 0"
-        :current-page="currentPage"
-        :total-pages="totalPages"
-        :total-items="filteredCustomers.length"
-        :items-per-page="itemsPerPage"
-        @page-change="onPageChange"
-      />
+      <Pagination v-if="filteredCustomers.length > 0" :current-page="currentPage"
+        :total-pages="totalPages" :total-items="filteredCustomers.length"
+        :items-per-page="itemsPerPage" @page-change="onPageChange" />
     </Card>
   </div>
 </template>
@@ -209,7 +160,6 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
-import Table from '@/components/ui/Table.vue';
 import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
@@ -442,12 +392,3 @@ watch([searchQuery, customerType], () => {
 });
 </script>
 
-<style scoped>
-.overflow-x-auto {
-  scrollbar-width: thin;
-  scrollbar-color: var(--glass-border) transparent;
-}
-.overflow-x-auto::-webkit-scrollbar { height: 6px; }
-.overflow-x-auto::-webkit-scrollbar-track { background: transparent; }
-.overflow-x-auto::-webkit-scrollbar-thumb { background-color: var(--glass-border); border-radius: 3px; }
-</style>

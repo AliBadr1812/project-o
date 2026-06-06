@@ -1,5 +1,5 @@
 <template>
-  <div class="gap-6">
+  <div class="flex flex-col gap-6">
     <div v-if="loading" class="py-12 flex items-center justify-center">
       <LoadingSpinner />
     </div>
