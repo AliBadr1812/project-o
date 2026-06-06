@@ -29,7 +29,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: production
       DB_URL: jdbc:mariadb://db:3306/shopadmin_db
       DB_USER: shopadmin_user
       DB_PASSWORD: shopadmin_pass
