@@ -6,10 +6,10 @@
       <div class="lg:col-span-2">
         <Card class="p-6">
           <div class="mb-6">
-            <h2 class="text-2xl font-bold text-white">
+            <h2 class="page-title">
               {{ isEditing ? 'Edit Category' : 'Create New Category' }}
             </h2>
-            <p class="text-[var(--color-icon)] mt-1">
+            <p class="text-[var(--text-secondary)] mt-1">
               {{ isEditing ? 'Update your category details' : 'Add a new category to organize your products' }}
             </p>
           </div>
@@ -17,7 +17,7 @@
           <form @submit.prevent="handleSubmit" class="space-y-6">
             <!-- Category Name -->
             <div>
-              <label class="block text-sm font-medium text-[var(--color-icon)] mb-2">
+              <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 Category Name <span class="text-red-500">*</span>
               </label>
               <input
@@ -25,7 +25,7 @@
                 v-model="form.name"
                 required
                 placeholder="Enter category name"
-                class="w-full px-4 py-2.5 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                 :class="{ 'border-red-500': errors.name }"
               />
               <p v-if="errors.name" class="mt-1 text-sm text-red-500">
@@ -35,33 +35,33 @@
 
             <!-- Description -->
             <div>
-              <label class="block text-sm font-medium text-[var(--color-icon)] mb-2">
+              <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 Description
               </label>
               <textarea
                 v-model="form.description"
                 rows="4"
                 placeholder="Enter category description"
-                class="w-full px-4 py-2.5 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
               ></textarea>
             </div>
 
             <!-- Parent Category and Icon -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-[var(--color-icon)] mb-2">
+                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Parent Category
                 </label>
                 <select
                   v-model="form.parentId"
-                  class="w-full px-4 py-2.5 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                 >
-                  <option value="" class="bg-[var(--color-primary)]">No Parent Category</option>
+                  <option value="" class="bg-[var(--glass-bg)]">No Parent Category</option>
                   <option
                     v-for="category in parentCategories"
                     :key="category.id"
                     :value="category.id"
-                    class="bg-[var(--color-primary)]"
+                    class="bg-[var(--glass-bg)]"
                   >
                     {{ category.name }}
                   </option>
@@ -69,22 +69,22 @@
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-[var(--color-icon)] mb-2">
+                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Icon
                 </label>
                 <div class="relative">
                   <i
                     :class="form.icon || 'fas fa-folder'"
-                    class="absolute left-3 top-3 text-[var(--color-icon)]"
+                    class="absolute left-3 top-3 text-[var(--text-secondary)]"
                   ></i>
                   <input
                     type="text"
                     v-model="form.icon"
                     placeholder="fas fa-folder"
-                    class="w-full pl-10 pr-4 py-2.5 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="w-full pl-10 pr-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                   />
                 </div>
-                <p class="mt-1 text-sm text-[var(--color-icon)]">
+                <p class="mt-1 text-sm text-[var(--text-secondary)]">
                   Use Font Awesome class names (e.g., "fas fa-folder")
                 </p>
               </div>
@@ -93,7 +93,7 @@
             <!-- Status and Display Order -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-[var(--color-icon)] mb-2">
+                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Status <span class="text-red-500">*</span>
                 </label>
                 <div class="flex gap-6">
@@ -104,7 +104,7 @@
                       value="active"
                       class="mr-2 accent-blue-500"
                     />
-                    <span class="text-white">Active</span>
+                    <span class="text-[var(--text-primary)]">Active</span>
                   </label>
                   <label class="flex items-center cursor-pointer">
                     <input
@@ -113,55 +113,55 @@
                       value="inactive"
                       class="mr-2 accent-blue-500"
                     />
-                    <span class="text-white">Inactive</span>
+                    <span class="text-[var(--text-primary)]">Inactive</span>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-[var(--color-icon)] mb-2">
+                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Display Order
                 </label>
                 <input
                   type="number"
                   v-model="form.displayOrder"
                   min="0"
-                  class="w-full px-4 py-2.5 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                 />
               </div>
             </div>
 
             <!-- SEO Fields -->
             <div>
-              <h3 class="text-lg font-semibold text-white mb-4">SEO Settings</h3>
+              <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">SEO Settings</h3>
               <div class="space-y-4">
                 <div>
-                  <label class="block text-sm font-medium text-[var(--color-icon)] mb-2">
+                  <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                     Meta Keywords
                   </label>
                   <input
                     type="text"
                     v-model="form.metaKeywords"
                     placeholder="e.g., electronics, gadgets, tech"
-                    class="w-full px-4 py-2.5 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-[var(--color-icon)] mb-2">
+                  <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                     Meta Description
                   </label>
                   <textarea
                     v-model="form.metaDescription"
                     rows="2"
                     placeholder="Brief description for search engines"
-                    class="w-full px-4 py-2.5 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="w-full px-4 py-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                   ></textarea>
                 </div>
               </div>
             </div>
 
             <!-- Form Actions -->
-            <div class="flex justify-end gap-4 pt-6 mt-6 border-t border-[var(--color-border)]">
+            <div class="flex justify-end gap-4 pt-6 mt-6 border-t border-[var(--glass-border)]">
               <Button
                 type="button"
                 variant="outline"
@@ -185,13 +185,13 @@
       <div class="space-y-6">
         <!-- Category Image Card -->
         <Card class="p-6">
-          <h3 class="text-lg font-semibold text-white mb-4">
+          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">
             Category Image
           </h3>
           <div class="space-y-4">
             <div
               v-if="form.imageUrl"
-              class="relative rounded-lg overflow-hidden border border-[var(--color-border)]"
+              class="relative rounded-lg overflow-hidden border border-[var(--glass-border)]"
             >
               <img
                 :src="form.imageUrl"
@@ -200,17 +200,17 @@
               />
               <button
                 @click="form.imageUrl = ''"
-                class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
+                class="absolute top-2 right-2 bg-red-500 text-[var(--text-primary)] rounded-full p-2 hover:bg-red-600 transition-colors"
               >
                 <i class="fas fa-times"></i>
               </button>
             </div>
             <div
               v-else
-              class="border-2 border-dashed border-[var(--color-border)] rounded-lg p-8 text-center hover:border-blue-500 transition-colors"
+              class="border-2 border-dashed border-[var(--glass-border)] rounded-lg p-8 text-center hover:border-[var(--accent)] transition-colors"
             >
-              <i class="fas fa-image text-4xl text-[var(--color-icon)] mb-3"></i>
-              <p class="text-[var(--color-icon)] mb-4">No image selected</p>
+              <i class="fas fa-image text-4xl text-[var(--text-secondary)] mb-3"></i>
+              <p class="text-[var(--text-secondary)] mb-4">No image selected</p>
               <input
                 type="file"
                 ref="fileInput"
@@ -230,49 +230,49 @@
 
         <!-- Quick Stats Card (only in edit mode) -->
         <Card v-if="isEditing" class="p-6">
-          <h3 class="text-lg font-semibold text-white mb-4">
+          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">
             Quick Stats
           </h3>
           <div class="space-y-3">
-            <div class="flex justify-between items-center py-2 border-b border-[var(--color-border)]">
-              <span class="text-[var(--color-icon)]">Total Products</span>
-              <span class="font-semibold text-white">{{ categoryStats?.productCount || 0 }}</span>
+            <div class="flex justify-between items-center py-2 border-b border-[var(--glass-border)]">
+              <span class="text-[var(--text-secondary)]">Total Products</span>
+              <span class="font-semibold text-[var(--text-primary)]">{{ categoryStats?.productCount || 0 }}</span>
             </div>
-            <div class="flex justify-between items-center py-2 border-b border-[var(--color-border)]">
-              <span class="text-[var(--color-icon)]">Active Products</span>
-              <span class="font-semibold text-white">{{ categoryStats?.activeProducts || 0 }}</span>
+            <div class="flex justify-between items-center py-2 border-b border-[var(--glass-border)]">
+              <span class="text-[var(--text-secondary)]">Active Products</span>
+              <span class="font-semibold text-[var(--text-primary)]">{{ categoryStats?.activeProducts || 0 }}</span>
             </div>
-            <div class="flex justify-between items-center py-2 border-b border-[var(--color-border)]">
-              <span class="text-[var(--color-icon)]">Created</span>
-              <span class="text-white">{{ formatDate(form.createdAt) }}</span>
+            <div class="flex justify-between items-center py-2 border-b border-[var(--glass-border)]">
+              <span class="text-[var(--text-secondary)]">Created</span>
+              <span class="text-[var(--text-primary)]">{{ formatDate(form.createdAt) }}</span>
             </div>
             <div class="flex justify-between items-center py-2">
-              <span class="text-[var(--color-icon)]">Last Updated</span>
-              <span class="text-white">{{ formatDate(form.updatedAt) }}</span>
+              <span class="text-[var(--text-secondary)]">Last Updated</span>
+              <span class="text-[var(--text-primary)]">{{ formatDate(form.updatedAt) }}</span>
             </div>
           </div>
         </Card>
 
         <!-- Preview Card -->
         <Card class="p-6">
-          <h3 class="text-lg font-semibold text-white mb-4">
+          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">
             Preview
           </h3>
-          <div class="bg-[var(--color-card)] rounded-lg p-4 border border-[var(--color-border)]">
+          <div class="bg-[var(--glass-bg)] rounded-lg p-4 border border-[var(--glass-border)]">
             <div class="flex items-center gap-3">
               <div
                 class="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center"
               >
-                <i :class="form.icon || 'fas fa-folder'" class="text-blue-500 text-xl"></i>
+                <i :class="form.icon || 'fas fa-folder'" class="text-[var(--accent)] text-xl"></i>
               </div>
               <div>
-                <p class="font-medium text-white">{{ form.name || 'Category Name' }}</p>
+                <p class="font-medium text-[var(--text-primary)]">{{ form.name || 'Category Name' }}</p>
                 <Badge :variant="form.status === 'active' ? 'success' : 'secondary'">
                   {{ form.status || 'active' }}
                 </Badge>
               </div>
             </div>
-            <p class="text-sm text-[var(--color-icon)] mt-3 line-clamp-2">
+            <p class="text-sm text-[var(--text-secondary)] mt-3 line-clamp-2">
               {{ form.description || 'No description provided' }}
             </p>
           </div>
@@ -460,7 +460,7 @@ input[type="text"],
 input[type="number"],
 textarea,
 select {
-  background-color: var(--color-card);
+  background-color: var(--glass-bg);
   color: white;
 }
 
@@ -477,7 +477,7 @@ select option {
 /* Custom scrollbar for textareas */
 textarea {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border) var(--color-card);
+  scrollbar-color: var(--color-border) var(--glass-bg);
 }
 
 textarea::-webkit-scrollbar {
@@ -485,7 +485,7 @@ textarea::-webkit-scrollbar {
 }
 
 textarea::-webkit-scrollbar-track {
-  background: var(--color-card);
+  background: var(--glass-bg);
 }
 
 textarea::-webkit-scrollbar-thumb {

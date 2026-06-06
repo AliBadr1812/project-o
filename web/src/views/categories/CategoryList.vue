@@ -3,15 +3,15 @@
     <!-- Header with actions -->
     <div class="flex items-center justify-between pb-5">
       <div>
-        <h1 class="text-2xl font-bold text-white">Categories</h1>
-        <p class="text-[var(--color-icon)]">Manage your product categories</p>
+        <h1 class="page-title">Categories</h1>
+        <p class="text-[var(--text-secondary)]">Manage your product categories</p>
       </div>
       <div class="flex items-center gap-3">
         <!-- Filter by Status -->
-        <div class="relative text-[var(--color-icon)]">
+        <div class="relative text-[var(--text-secondary)]">
             <select
                 v-model="statusFilter"
-                class="appearance-none text-[var(--color-icon)] border border-[var(--color-border)] rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                class="appearance-none text-[var(--text-secondary)] border border-[var(--glass-border)] rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent cursor-pointer"
             >
                 <option value="">All Status</option>
                 <option value="active">Active</option>
@@ -26,15 +26,15 @@
             type="search"
             v-model="searchQuery"
             placeholder="Search categories..."
-            class="border border-[var(--color-border)] rounded-lg pl-10 pr-4 py-2 w-64 bg-[var(--color-card)] text-[var(--color-icon)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="border border-[var(--glass-border)] rounded-lg pl-10 pr-4 py-2 w-64 bg-[var(--glass-bg)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
           >
-          <i class="fas fa-search absolute left-4 top-3.5 text-[var(--color-icon)]"></i>
+          <i class="fas fa-search absolute left-4 top-3.5 text-[var(--text-secondary)]"></i>
         </div>
 
         <!-- New Category Button -->
         <button
           @click="handleCreate"
-          class="flex items-center gap-2 px-4 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700"
+          class="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-lg hover:bg-blue-700"
         >
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z" clip-rule="evenodd"/>
@@ -46,21 +46,21 @@
 
     <!-- Stats Bar -->
     <div class="grid grid-cols-4 gap-4 pb-4">
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-all duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--color-icon)] font-medium">Total Categories</p>
-        <p class="text-2xl font-bold text-white">{{ stats.total }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">Total Categories</p>
+        <p class="page-title">{{ stats.total }}</p>
       </Card>
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-all duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--color-icon)] font-medium">Active</p>
-        <p class="text-2xl font-bold text-white">{{ stats.active }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">Active</p>
+        <p class="page-title">{{ stats.active }}</p>
       </Card>
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-all duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--color-icon)] font-medium">Inactive</p>
-        <p class="text-2xl font-bold text-white">{{ stats.inactive }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">Inactive</p>
+        <p class="page-title">{{ stats.inactive }}</p>
       </Card>
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-all duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--color-icon)] font-medium">Avg Products</p>
-        <p class="text-2xl font-bold text-white">{{ stats.avgProducts }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">Avg Products</p>
+        <p class="page-title">{{ stats.avgProducts }}</p>
       </Card>
     </div>
 
@@ -68,7 +68,7 @@
     <Card>
       <Table class="rounded-xl">
         <template #header>
-          <tr class="bg-[var(--color-card)] text-[var(--color-icon)]">
+          <tr class="bg-[var(--glass-bg)] text-[var(--text-secondary)]">
             <th class="py-3 px-4 text-left w-12">
               <input type="checkbox" v-model="selectAll" />
             </th>
@@ -81,7 +81,7 @@
           </tr>
         </template>
         <template #body>
-          <tr v-for="category in paginatedCategories" :key="category.id" class="hover:bg-[var(--color-card)]">
+          <tr v-for="category in paginatedCategories" :key="category.id" class="hover:bg-[var(--glass-bg)]">
             <td class="py-3 px-4">
               <input
                 type="checkbox"
@@ -95,26 +95,26 @@
                   v-if="category.icon"
                   class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center"
                 >
-                  <i :class="category.icon" class="text-blue-500 text-lg"></i>
+                  <i :class="category.icon" class="text-[var(--accent)] text-lg"></i>
                 </div>
                 <div v-else class="w-10 h-10 rounded-lg bg-gray-500/10 flex items-center justify-center">
-                  <svg class="w-5 h-5 text-[var(--color-icon)]" fill="currentColor" viewBox="0 0 20 20">
+                  <svg class="w-5 h-5 text-[var(--text-secondary)]" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V8a2 2 0 00-2-2h-5L9 4H4z" clip-rule="evenodd"/>
                   </svg>
                 </div>
                 <div>
-                  <p class="font-medium text-[var(--color-icon)]">{{ category.name }}</p>
-                  <p class="text-sm text-gray-300">ID: {{ category.id }}</p>
+                  <p class="font-medium text-[var(--text-secondary)]">{{ category.name }}</p>
+                  <p class="text-sm text-[var(--text-secondary)]">ID: {{ category.id }}</p>
                 </div>
               </div>
             </td>
-            <td class="py-3 px-4 text-[var(--color-icon)]">
+            <td class="py-3 px-4 text-[var(--text-secondary)]">
               {{ truncateText(category.description, 60) }}
             </td>
             <td class="py-3 px-4">
               <div class="flex items-center gap-2">
-                <span class="text-[var(--color-icon)]">{{ category.productCount }}</span>
-                <div class="w-24 h-2 bg-[var(--color-primary)] rounded-full overflow-hidden border border-[var(--color-border)]">
+                <span class="text-[var(--text-secondary)]">{{ category.productCount }}</span>
+                <div class="w-24 h-2 bg-[var(--glass-bg)] rounded-full overflow-hidden border border-[var(--glass-border)]">
                   <div
                     class="h-full bg-blue-500"
                     :style="{ width: Math.min((category.productCount / maxProducts) * 100, 100) + '%' }"
@@ -129,14 +129,14 @@
                 {{ category.status }}
               </Badge>
             </td>
-            <td class="py-3 px-4 text-[var(--color-icon)]">
+            <td class="py-3 px-4 text-[var(--text-secondary)]">
               {{ formatDate(category.createdAt) }}
             </td>
             <td class="py-3 px-4">
               <div class="flex items-center gap-2">
                 <button
                   @click="handleEdit(category.id)"
-                  class="p-1 text-[var(--color-icon)] hover:text-[var(--primary-color)]"
+                  class="p-1 text-[var(--text-secondary)] hover:text-[var(--accent)]"
                 >
                   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
@@ -144,7 +144,7 @@
                 </button>
                 <button
                   @click="handleView(category.id)"
-                  class="p-1 text-[var(--color-icon)] hover:text-gray-600"
+                  class="p-1 text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                 >
                   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
@@ -153,7 +153,7 @@
                 </button>
                 <button
                   @click="handleDelete(category.id)"
-                  class="p-1 text-[var(--color-icon)] hover:text-red-800"
+                  class="p-1 text-[var(--text-secondary)] hover:text-red-800"
                 >
                   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
@@ -189,18 +189,18 @@
     <div v-if="selectedCategories.length > 0" class="fixed bottom-6 right-6">
       <Card class="shadow-xl">
         <div class="flex items-center gap-4 p-3">
-          <span class="text-[var(--color-icon)] font-medium">
+          <span class="text-[var(--text-secondary)] font-medium">
             {{ selectedCategories.length }} selected
           </span>
           <button
             @click="handleBulkStatusChange"
-            class="px-3 py-1.5 border border-[var(--color-border)] rounded-lg text-[var(--color-icon)] hover:bg-[var(--color-card)]"
+            class="px-3 py-1.5 border border-[var(--glass-border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]"
           >
             Change Status
           </button>
           <button
             @click="handleBulkDelete"
-            class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            class="px-3 py-1.5 bg-red-600 text-[var(--text-primary)] rounded-lg hover:bg-red-700"
           >
             Delete Selected
           </button>
@@ -494,7 +494,7 @@ watch([searchQuery, statusFilter], () => {
 }
 
 input[type="checkbox"] {
-  accent-color: var(--primary-color);
+  accent-color: var(--accent);
   width: 16px;
   height: 16px;
   cursor: pointer;
