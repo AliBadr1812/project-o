@@ -1,1036 +1,715 @@
 <template>
-  <div class="gap-6">
-    <!-- Header -->
-    <div class="pb-5">
-      <h1 class="page-title">My Profile</h1>
-      <p class="text-[var(--text-secondary)] mt-1">Manage your personal information and account settings</p>
+  <div class="max-w-5xl mx-auto">
+
+    <!-- ── Hero card ───────────────────────────────────────────────────── -->
+    <div
+      class="glass-card p-0 overflow-hidden mb-6"
+      style="background: linear-gradient(135deg, rgba(185,127,255,0.18) 0%, rgba(124,94,240,0.10) 50%, rgba(90,200,250,0.08) 100%);"
+    >
+      <!-- Top band -->
+      <div class="h-24 relative" style="background: linear-gradient(135deg,#b97fff,#7c5ef0,#5e5ce6); opacity: 0.85;"></div>
+
+      <div class="px-6 pb-5">
+        <!-- Avatar row -->
+        <div class="flex items-end justify-between -mt-12 mb-4">
+          <div class="relative">
+            <div
+              class="w-24 h-24 rounded-[22px] overflow-hidden flex-shrink-0"
+              style="border: 3px solid rgba(255,255,255,0.85); box-shadow: 0 8px 24px rgba(124,94,240,0.35);"
+            >
+              <img v-if="userProfile.avatar" :src="userProfile.avatar" :alt="userProfile.name" class="w-full h-full object-cover">
+              <div
+                v-else
+                class="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
+                style="background: linear-gradient(145deg,#b97fff,#7c5ef0);"
+              >{{ getUserInitials(userProfile.name) }}</div>
+            </div>
+            <button
+              @click="triggerAvatarUpload"
+              class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center"
+              style="background: var(--accent); color:#fff; box-shadow: 0 2px 8px rgba(124,94,240,0.5);"
+              title="Change avatar"
+            >
+              <i class="fas fa-camera text-[11px]"></i>
+            </button>
+            <input ref="avatarInput" type="file" accept="image/*" class="hidden" @change="handleAvatarUpload">
+          </div>
+
+          <!-- Action buttons -->
+          <div class="flex gap-2 mt-2">
+            <button @click="editPersonalInfo" class="btn-glass text-[13px]">
+              <i class="fas fa-pen text-xs mr-1.5"></i>Edit Profile
+            </button>
+            <button @click="showDeleteModal = true" class="btn-glass text-[13px]" style="color:#ef4444; border-color: rgba(239,68,68,0.3);">
+              <i class="fas fa-trash-can text-xs mr-1.5"></i>Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Name + role -->
+        <div class="mb-4">
+          <h1 class="text-[22px] font-bold tracking-tight" style="color:var(--text-primary)">{{ userProfile.name }}</h1>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="badge badge-info text-[11px]">{{ userProfile.role }}</span>
+            <span class="text-[12px]" style="color:var(--text-muted)">{{ userProfile.email }}</span>
+            <span class="w-1 h-1 rounded-full" style="background:var(--text-muted)"></span>
+            <span class="text-[12px]" style="color:var(--text-muted)">
+              <i class="fas fa-calendar-days mr-1 text-[10px]"></i>Since {{ formatDate(userProfile.createdAt) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="grid grid-cols-3 gap-3">
+          <div
+            class="rounded-2xl p-3 text-center"
+            style="background: rgba(255,255,255,0.40); border: 1px solid var(--glass-border);"
+          >
+            <div class="text-[22px] font-bold" style="color:var(--text-primary)">{{ userStats.orders }}</div>
+            <div class="text-[11px]" style="color:var(--text-muted)">Orders managed</div>
+          </div>
+          <div
+            class="rounded-2xl p-3 text-center"
+            style="background: rgba(255,255,255,0.40); border: 1px solid var(--glass-border);"
+          >
+            <div class="text-[22px] font-bold" style="color:var(--text-primary)">{{ formatCurrency(userStats.revenue) }}</div>
+            <div class="text-[11px]" style="color:var(--text-muted)">Revenue tracked</div>
+          </div>
+          <div
+            class="rounded-2xl p-3 text-center"
+            style="background: rgba(255,255,255,0.40); border: 1px solid var(--glass-border);"
+          >
+            <div class="text-[22px] font-bold" style="color:var(--text-primary)">{{ userStats.customers }}</div>
+            <div class="text-[11px]" style="color:var(--text-muted)">Customers served</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Left Column - Profile Overview -->
-      <div>
-        <!-- Profile Card -->
-        <Card class="mb-6 border border-[var(--glass-border)] bg-[var(--glass-bg)]">
-          <div class="text-center p-6">
-            <!-- Profile Picture -->
-            <div class="relative inline-block mb-4">
-              <div
-                class="w-32 h-32 rounded-full overflow-hidden border-4 shadow-lg mx-auto"
-              style="border-color: var(--glass-border);"
-              >
-                <img
-                  v-if="userProfile.avatar"
-                  :src="userProfile.avatar"
-                  :alt="userProfile.name"
-                  class="w-full h-full object-cover"
-                />
-                <div
-                  v-else
-                  class="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-[var(--text-primary)] text-4xl font-bold"
-                >
-                  {{ getUserInitials(userProfile.name) }}
-                </div>
-              </div>
-              <button
-                @click="triggerAvatarUpload"
-                class="absolute bottom-2 right-2 rounded-full p-2 shadow-lg transition-opacity hover:opacity-80 cursor-pointer"
-                style="background: var(--accent); color: #fff;"
-              >
-                <i class="fas fa-camera text-xs"></i>
-              </button>
-              <input
-                ref="avatarInput"
-                type="file"
-                accept="image/*"
-                class="hidden"
-                @change="handleAvatarUpload"
-              />
-            </div>
+    <!-- ── Two-column body ─────────────────────────────────────────────── -->
+    <div class="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-5">
 
-            <!-- User Info -->
-            <h2 class="text-xl font-bold text-[var(--text-primary)]">{{ userProfile.name }}</h2>
-            <p class="text-[var(--text-secondary)] mb-1">{{ userProfile.email }}</p>
-            <div class="inline-block">
-              <span class="text-xs text-[var(--text-muted)] bg-[rgba(255,255,255,0.25)] px-3 py-1 rounded-full">{{ userProfile.role }}</span>
-            </div>
+      <!-- Left: main sections -->
+      <div class="flex flex-col gap-5">
 
-            <!-- Stats -->
-            <div class="grid grid-cols-3 gap-4 pb-4">
-              <div class="text-center">
-                <div class="text-lg font-bold text-[var(--text-primary)]">{{ userStats.orders }}</div>
-                <div class="text-xs text-[var(--text-secondary)]">Orders</div>
-              </div>
-              <div class="text-center">
-                <div class="text-lg font-bold text-[var(--text-primary)]">
-                  {{ formatCurrency(userStats.revenue) }}
-                </div>
-                <div class="text-xs text-[var(--text-secondary)]">Revenue</div>
-              </div>
-              <div class="text-center">
-                <div class="text-lg font-bold text-[var(--text-primary)]">{{ userStats.customers }}</div>
-                <div class="text-xs text-[var(--text-secondary)]">Customers</div>
-              </div>
-            </div>
-
-            <!-- Member Since -->
-            <div class="text-center pt-4 border-t border-[var(--glass-border)]">
-              <p class="text-sm text-[var(--text-secondary)]">
-                <svg class="w-4 h-4 inline mr-1 -mt-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                </svg>
-                Member since {{ formatDate(userProfile.createdAt) }}
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <!-- Quick Links -->
-        <Card class="border border-[var(--glass-border)] bg-[var(--glass-bg)] p-6">
-          <h3 class="text-lg font-semibold text-[var(--text-primary)] pb-4">Quick Links</h3>
-          <div class="grid grid-cols-1 gap-2">
-            <button
-              @click="viewOrders"
-              class="cursor-pointer w-full text-left px-4 py-3 border border-[var(--glass-border)] rounded-lg text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.35)] hover:text-[var(--text-primary)] transition-colors duration-150 flex items-center"
-            >
-              <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
-              </svg>
-              My Orders
-            </button>
-            <button
-              @click="viewActivity"
-              class="cursor-pointer w-full text-left px-4 py-3 border border-[var(--glass-border)] rounded-lg text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.35)] hover:text-[var(--text-primary)] transition-colors duration-150 flex items-center"
-            >
-              <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-              </svg>
-              Activity Log
-            </button>
-            <button
-              @click="downloadData"
-              class="cursor-pointer w-full text-left px-4 py-3 border border-[var(--glass-border)] rounded-lg text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.35)] hover:text-[var(--text-primary)] transition-colors duration-150 flex items-center"
-            >
-              <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
-              </svg>
-              Download My Data
-            </button>
-            <button
-              @click="showDeleteModal = true"
-              class="cursor-pointer w-full text-left px-4 py-3 border border-red-500/30 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors duration-150 flex items-center"
-            >
-              <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
-              </svg>
-              Delete Account
-            </button>
-          </div>
-        </Card>
-      </div>
-
-      <!-- Right Column - Profile Settings -->
-      <div class="lg:col-span-2">
         <!-- Personal Information -->
-        <Card class="mb-6 border border-[var(--glass-border)] bg-[var(--glass-bg)] p-6">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-semibold text-[var(--text-primary)]">Personal Information</h2>
-            <button
-              @click="editPersonalInfo"
-              class="flex items-center gap-2 px-4 py-2 border border-[var(--glass-border)] rounded-lg text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.35)] hover:text-[var(--text-primary)] transition-colors duration-150"
-            >
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-              </svg>
-              <span>Edit</span>
+        <div class="glass-card p-0 overflow-hidden">
+          <div class="flex items-center justify-between px-5 pt-5 pb-3">
+            <div class="flex items-center gap-2">
+              <div class="stat-icon" style="background: linear-gradient(135deg,#b97fff,#7c5ef0); width:30px; height:30px; font-size:13px;">
+                <i class="fas fa-user"></i>
+              </div>
+              <h2 class="text-[14px] font-semibold" style="color:var(--text-primary)">Personal Information</h2>
+            </div>
+            <button v-if="!editingPersonalInfo" @click="editPersonalInfo" class="btn-glass-icon" style="width:32px;height:32px;" title="Edit">
+              <i class="fas fa-pen text-xs"></i>
             </button>
           </div>
 
-          <div v-if="!editingPersonalInfo" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm text-[var(--text-secondary)] mb-1">Full Name</label>
-              <p class="font-medium text-[var(--text-primary)]">{{ userProfile.name }}</p>
+          <!-- View mode -->
+          <div v-if="!editingPersonalInfo" class="settings-rows">
+            <div class="settings-row">
+              <span class="settings-label">Full Name</span>
+              <span class="text-[13px] font-medium" style="color:var(--text-primary)">{{ userProfile.name }}</span>
             </div>
-            <div>
-              <label class="block text-sm text-[var(--text-secondary)] mb-1">Email Address</label>
-              <p class="font-medium text-[var(--text-primary)]">{{ userProfile.email }}</p>
+            <div class="settings-row">
+              <span class="settings-label">Email</span>
+              <span class="text-[13px]" style="color:var(--text-primary)">{{ userProfile.email }}</span>
             </div>
-            <div>
-              <label class="block text-sm text-[var(--text-secondary)] mb-1">Phone Number</label>
-              <p class="font-medium text-[var(--text-primary)]">{{ userProfile.phone || 'Not set' }}</p>
+            <div class="settings-row">
+              <span class="settings-label">Phone</span>
+              <span class="text-[13px]" style="color:var(--text-primary)">{{ userProfile.phone || '—' }}</span>
             </div>
-            <div>
-              <label class="block text-sm text-[var(--text-secondary)] mb-1">Location</label>
-              <p class="font-medium text-[var(--text-primary)]">{{ userProfile.location || 'Not set' }}</p>
+            <div class="settings-row">
+              <span class="settings-label">Location</span>
+              <span class="text-[13px]" style="color:var(--text-primary)">{{ userProfile.location || '—' }}</span>
             </div>
-            <div class="md:col-span-2">
-              <label class="block text-sm text-[var(--text-secondary)] mb-1">Bio</label>
-              <p class="text-[var(--text-secondary)]">{{ userProfile.bio || 'No bio added yet.' }}</p>
+            <div class="settings-row border-none">
+              <span class="settings-label">Bio</span>
+              <span class="text-[13px]" style="color:var(--text-secondary); max-width:340px;">{{ userProfile.bio || 'No bio added yet.' }}</span>
             </div>
           </div>
 
-          <form v-else @submit.prevent="savePersonalInfo" class="gap-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Edit mode -->
+          <form v-else @submit.prevent="savePersonalInfo" class="px-5 pb-5 flex flex-col gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  v-model="personalInfoForm.name"
-                  required
-                  class="w-full px-4 py-2.5 border border-[var(--glass-border)] rounded-lg bg-transparent text-[var(--text-primary)] focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)]"
-                  placeholder="Enter your full name"
-                />
+                <label class="up-label">Full Name *</label>
+                <input v-model="personalInfoForm.name" type="text" required class="glass-input w-full">
               </div>
               <div>
-                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  v-model="personalInfoForm.email"
-                  required
-                  class="w-full px-4 py-2.5 border border-[var(--glass-border)] rounded-lg bg-transparent text-[var(--text-primary)] focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)]"
-                  placeholder="Enter your email"
-                />
+                <label class="up-label">Email *</label>
+                <input v-model="personalInfoForm.email" type="email" required class="glass-input w-full">
+              </div>
+              <div>
+                <label class="up-label">Phone</label>
+                <input v-model="personalInfoForm.phone" type="tel" class="glass-input w-full">
+              </div>
+              <div>
+                <label class="up-label">Location</label>
+                <input v-model="personalInfoForm.location" type="text" class="glass-input w-full">
               </div>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  v-model="personalInfoForm.phone"
-                  class="w-full px-4 py-2.5 border border-[var(--glass-border)] rounded-lg bg-transparent text-[var(--text-primary)] focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)]"
-                  placeholder="Enter your phone number"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  v-model="personalInfoForm.location"
-                  class="w-full px-4 py-2.5 border border-[var(--glass-border)] rounded-lg bg-transparent text-[var(--text-primary)] focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)]"
-                  placeholder="Enter your location"
-                />
-              </div>
-            </div>
-
             <div>
-              <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                Bio
-              </label>
-              <textarea
-                v-model="personalInfoForm.bio"
-                rows="3"
-                placeholder="Tell us a little about yourself..."
-                class="w-full px-4 py-2.5 border border-[var(--glass-border)] rounded-lg bg-transparent text-[var(--text-primary)] focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)]"
-              ></textarea>
+              <label class="up-label">Bio</label>
+              <textarea v-model="personalInfoForm.bio" rows="3" class="glass-input w-full" placeholder="Tell us about yourself…"></textarea>
             </div>
-
-            <div class="flex justify-end gap-4 pt-4">
-              <button
-                type="button"
-                @click="cancelEditPersonalInfo"
-                class="px-6 py-2.5 border border-[var(--glass-border)] rounded-lg text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-150"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                :disabled="savingPersonalInfo"
-                class="btn-accent disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <svg v-if="savingPersonalInfo" class="animate-spin h-4 w-4 text-[var(--text-primary)]" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>{{ savingPersonalInfo ? 'Saving...' : 'Save Changes' }}</span>
+            <div class="flex justify-end gap-2">
+              <button type="button" @click="cancelEditPersonalInfo" class="btn-glass">Cancel</button>
+              <button type="submit" :disabled="savingPersonalInfo" class="btn-accent">
+                {{ savingPersonalInfo ? 'Saving…' : 'Save Changes' }}
               </button>
             </div>
           </form>
-        </Card>
+        </div>
 
-        <!-- Security Settings -->
-        <Card class="mb-6 border border-[var(--glass-border)] bg-[var(--glass-bg)] p-6">
-          <h2 class="text-xl font-semibold text-[var(--text-primary)] mb-6">Security Settings</h2>
-          <div class="gap-6">
-            <!-- Password Change -->
-            <div>
-              <div class="flex justify-between items-center mb-4">
+        <!-- Security -->
+        <div class="glass-card p-0 overflow-hidden">
+          <div class="px-5 pt-5 pb-3">
+            <div class="flex items-center gap-2">
+              <div class="stat-icon" style="background: linear-gradient(135deg,#ff9f0a,#e08800); width:30px; height:30px; font-size:13px;">
+                <i class="fas fa-lock"></i>
+              </div>
+              <h2 class="text-[14px] font-semibold" style="color:var(--text-primary)">Security</h2>
+            </div>
+          </div>
+          <div class="settings-rows">
+            <!-- 2FA row -->
+            <div class="settings-row-toggle">
+              <div>
+                <p class="text-[13px] font-medium" style="color:var(--text-primary)">Two-Factor Authentication</p>
+                <p class="text-[12px]" style="color:var(--text-muted)">Extra layer of security on sign-in</p>
+              </div>
+              <button
+                @click="userProfile.twoFactorEnabled = !userProfile.twoFactorEnabled; toggleTwoFactor()"
+                class="toggle-switch flex-shrink-0"
+                :class="userProfile.twoFactorEnabled ? 'toggle-on' : 'toggle-off'"
+              ></button>
+            </div>
+            <!-- Password change -->
+            <div class="px-5 py-4" style="border-bottom: 1px solid var(--glass-border);">
+              <div class="flex items-center justify-between mb-3">
                 <div>
-                  <h3 class="text-lg font-medium text-[var(--text-primary)]">Password</h3>
-                  <p class="text-sm text-[var(--text-secondary)]">Update your password regularly</p>
+                  <p class="text-[13px] font-medium" style="color:var(--text-primary)">Password</p>
+                  <p class="text-[12px]" style="color:var(--text-muted)">Update your login password</p>
                 </div>
-                <button
-                  @click="showChangePassword = !showChangePassword"
-                  class="px-4 py-2 border border-[var(--glass-border)] rounded-lg text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.35)] hover:text-[var(--text-primary)] transition-colors duration-150"
-                >
-                  {{ showChangePassword ? 'Cancel' : 'Change Password' }}
+                <button @click="showChangePassword = !showChangePassword" class="btn-glass text-[12px] py-1.5 px-3">
+                  {{ showChangePassword ? 'Cancel' : 'Change' }}
                 </button>
               </div>
-
-              <form
-                v-if="showChangePassword"
-                @submit.prevent="changePassword"
-                class="gap-4 pt-4 border-t border-[var(--glass-border)]"
-              >
-                <div>
-                  <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                    Current Password *
-                  </label>
-                  <div class="relative">
-                    <input
-                      :type="showCurrentPassword ? 'text' : 'password'"
-                      v-model="passwordForm.currentPassword"
-                      required
-                      class="w-full px-4 py-2.5 border border-[var(--glass-border)] rounded-lg bg-transparent text-[var(--text-primary)] focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)] pr-10"
-                      placeholder="Enter current password"
-                    />
-                    <button
-                      type="button"
-                      @click="showCurrentPassword = !showCurrentPassword"
-                      class="absolute right-3 top-2.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                    >
-                      <!-- Eye icon for show, Eye-slash for hide -->
-                      <svg v-if="showCurrentPassword" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd"/>
-                        <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z"/>
-                      </svg>
-                      <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                      New Password *
-                    </label>
-                    <div class="relative">
-                      <input
-                        :type="showNewPassword ? 'text' : 'password'"
-                        v-model="passwordForm.newPassword"
-                        required
-                        class="w-full px-4 py-2.5 border border-[var(--glass-border)] rounded-lg bg-transparent text-[var(--text-primary)] focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)] pr-10"
-                        placeholder="Enter new password"
-                      />
-                      <button
-                        type="button"
-                        @click="showNewPassword = !showNewPassword"
-                        class="absolute right-3 top-2.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                      >
-                        <!-- Eye icon for show, Eye-slash for hide -->
-                        <svg v-if="showNewPassword" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd"/>
-                          <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z"/>
-                        </svg>
-                        <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                          <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                      Confirm Password *
-                    </label>
-                    <div class="relative">
-                      <input
-                        :type="showConfirmPassword ? 'text' : 'password'"
-                        v-model="passwordForm.confirmPassword"
-                        required
-                        class="w-full px-4 py-2.5 border border-[var(--glass-border)] rounded-lg bg-transparent text-[var(--text-primary)] focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)] pr-10"
-                        placeholder="Confirm new password"
-                      />
-                      <button
-                        type="button"
-                        @click="showConfirmPassword = !showConfirmPassword"
-                        class="absolute right-3 top-2.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                      >
-                        <!-- Eye icon for show, Eye-slash for hide -->
-                        <svg v-if="showConfirmPassword" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd"/>
-                          <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z"/>
-                        </svg>
-                        <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                          <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div v-if="passwordError" class="text-sm text-red-500 p-3 bg-red-500/10 rounded-lg">
+              <form v-if="showChangePassword" @submit.prevent="changePassword" class="flex flex-col gap-3 pt-3" style="border-top: 1px solid var(--glass-border);">
+                <div v-if="passwordError" class="text-[12px] px-3 py-2 rounded-xl" style="background: rgba(239,68,68,0.10); color:#ef4444; border: 1px solid rgba(239,68,68,0.2);">
                   {{ passwordError }}
                 </div>
-
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label class="up-label">Current Password</label>
+                    <input v-model="passwordForm.currentPassword" type="password" required class="glass-input w-full" placeholder="••••••••">
+                  </div>
+                  <div>
+                    <label class="up-label">New Password</label>
+                    <input v-model="passwordForm.newPassword" type="password" required class="glass-input w-full" placeholder="••••••••">
+                  </div>
+                  <div>
+                    <label class="up-label">Confirm</label>
+                    <input v-model="passwordForm.confirmPassword" type="password" required class="glass-input w-full" placeholder="••••••••">
+                  </div>
+                </div>
                 <div class="flex justify-end">
-                  <button
-                    type="submit"
-                    :disabled="changingPassword"
-                    class="btn-accent disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg v-if="changingPassword" class="animate-spin h-4 w-4 text-[var(--text-primary)]" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>{{ changingPassword ? 'Updating...' : 'Update Password' }}</span>
+                  <button type="submit" :disabled="changingPassword" class="btn-accent text-[13px]">
+                    {{ changingPassword ? 'Updating…' : 'Update Password' }}
                   </button>
                 </div>
               </form>
             </div>
 
-            <!-- Two-Factor Authentication -->
-            <div class="border-t border-[var(--glass-border)] pt-6">
-              <div class="flex justify-between items-center">
+            <!-- Active sessions -->
+            <div class="px-5 py-4">
+              <div class="flex items-center justify-between mb-3">
                 <div>
-                  <h3 class="text-lg font-medium text-[var(--text-primary)]">Two-Factor Authentication</h3>
-                  <p class="text-sm text-[var(--text-secondary)]">Add an extra layer of security to your account</p>
+                  <p class="text-[13px] font-medium" style="color:var(--text-primary)">Active Sessions</p>
+                  <p class="text-[12px]" style="color:var(--text-muted)">Devices currently signed in</p>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    v-model="userProfile.twoFactorEnabled"
-                    class="sr-only peer"
-                    @change="toggleTwoFactor"
-                  />
-                  <div class="w-11 h-6 bg-[var(--glass-bg)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
-                </label>
-              </div>
-
-              <div v-if="userProfile.twoFactorEnabled" class="mt-4 p-4 bg-blue-500/10 rounded-lg border border-[var(--accent)]/20">
-                <div class="flex items-start">
-                  <svg class="w-5 h-5 text-[var(--text-accent)] mt-1 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                  </svg>
-                  <div>
-                    <p class="text-sm text-[var(--text-accent)] font-medium">2FA is enabled</p>
-                    <p class="text-xs text-[var(--text-accent)]/80 mt-1">
-                      Your account is protected with two-factor authentication.
-                      Last used: {{ formatDate(userProfile.twoFactorLastUsed) }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Active Sessions -->
-            <div class="border-t border-[var(--glass-border)] pt-6">
-              <div class="flex justify-between items-center mb-4">
-                <div>
-                  <h3 class="text-lg font-medium text-[var(--text-primary)]">Active Sessions</h3>
-                  <p class="text-sm text-[var(--text-secondary)]">Manage your active login sessions</p>
-                </div>
-                <button
-                  @click="refreshSessions"
-                  class="flex items-center gap-2 px-4 py-2 border border-[var(--glass-border)] rounded-lg text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.35)] hover:text-[var(--text-primary)] transition-colors duration-150"
-                >
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-                  </svg>
-                  <span>Refresh</span>
+                <button @click="terminateAllSessions" class="btn-glass text-[12px] py-1.5 px-3" style="color:#ef4444;">
+                  Sign out all
                 </button>
               </div>
-
-              <div v-if="activeSessions.length === 0" class="text-center py-4 text-[var(--text-secondary)]">
-                <p>No active sessions found</p>
-              </div>
-
-              <div v-else class="grid grid-cols-1 gap-3">
+              <div class="flex flex-col gap-2">
                 <div
                   v-for="session in activeSessions"
                   :key="session.id"
-                  class="flex items-center justify-between p-3 border border-[var(--glass-border)] rounded-lg hover:border-[var(--accent)] transition-colors duration-150"
-                  :class="{ 'border-[var(--accent)] bg-blue-500/10': session.isCurrent }"
+                  class="flex items-center gap-3 p-3 rounded-xl"
+                  :style="session.isCurrent
+                    ? 'background: rgba(124,94,240,0.09); border: 1px solid rgba(124,94,240,0.22);'
+                    : 'background: rgba(255,255,255,0.25); border: 1px solid var(--glass-border);'"
                 >
-                  <div class="flex items-center">
-                    <div class="mr-3">
-                      <svg class="w-6 h-6 text-[var(--text-secondary)]" fill="currentColor" viewBox="0 0 20 20">
-                        <path v-if="session.deviceType === 'desktop'" fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd"/>
-                        <path v-if="session.deviceType === 'mobile'" d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zM7 4h6v12H7V4z"/>
-                        <path v-if="session.deviceType === 'tablet'" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <p class="font-medium text-[var(--text-primary)]">{{ session.deviceName }}</p>
-                      <p class="text-xs text-[var(--text-secondary)]">
-                        {{ session.browser }} • {{ session.location }}
-                      </p>
-                      <p class="text-xs text-[var(--text-muted)]">
-                        Last active: {{ formatTimeAgo(session.lastActive) }}
-                      </p>
-                    </div>
+                  <div
+                    class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style="background: rgba(255,255,255,0.4); border: 1px solid var(--glass-border);"
+                  >
+                    <i :class="getDeviceIcon(session.deviceType)" class="text-sm" style="color:var(--text-secondary)"></i>
                   </div>
-                  <div class="flex items-center gap-2">
-                    <span
-                      v-if="session.isCurrent"
-                      class="px-2 py-1 text-xs bg-blue-500/20 text-[var(--text-accent)] rounded-full"
-                    >
-                      Current
-                    </span>
-                    <button
-                      v-if="!session.isCurrent"
-                      @click="terminateSession(session.id)"
-                      class="p-2 text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-150"
-                    >
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
-                      </svg>
-                    </button>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <p class="text-[13px] font-medium truncate" style="color:var(--text-primary)">{{ session.deviceName }}</p>
+                      <span v-if="session.isCurrent" class="badge badge-info text-[10px] py-0.5 px-2 flex-shrink-0">Current</span>
+                    </div>
+                    <p class="text-[11px]" style="color:var(--text-muted)">{{ session.browser }} · {{ session.location }} · {{ formatTimeAgo(session.lastActive) }}</p>
                   </div>
+                  <button
+                    v-if="!session.isCurrent"
+                    @click="terminateSession(session.id)"
+                    class="btn-glass-icon flex-shrink-0"
+                    style="width:30px;height:30px;color:#ef4444;"
+                    title="Sign out"
+                  >
+                    <i class="fas fa-right-from-bracket text-xs"></i>
+                  </button>
                 </div>
-              </div>
-
-              <div class="mt-4 text-right">
-                <button
-                  @click="terminateAllSessions"
-                  class="px-4 py-2 border border-[var(--glass-border)] rounded-lg text-[var(--text-secondary)] hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 transition-colors duration-150 flex items-center gap-2"
-                >
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
-                  </svg>
-                  Terminate All Other Sessions
-                </button>
               </div>
             </div>
           </div>
-        </Card>
+        </div>
 
         <!-- Notification Preferences -->
-        <Card class="border border-[var(--glass-border)] bg-[var(--glass-bg)] p-6">
-          <h2 class="text-xl font-semibold text-[var(--text-primary)] mb-6">Notification Preferences</h2>
-          <div class="gap-6">
-            <div v-for="category in notificationPreferences" :key="category.id" class="mb-6 last:mb-0">
-              <h3 class="text-lg font-medium text-[var(--text-primary)] mb-4">{{ category.name }}</h3>
-              <div class="grid grid-cols-1 gap-4">
-                <div
-                  v-for="pref in category.preferences"
-                  :key="pref.id"
-                  class="flex items-center justify-between py-3 border-b border-[var(--glass-border)] last:border-b-0"
-                >
-                  <div>
-                    <label class="font-medium text-[var(--text-primary)]">{{ pref.name }}</label>
-                    <p class="text-sm text-[var(--text-secondary)]">{{ pref.description }}</p>
-                  </div>
-                  <div class="flex items-center gap-4">
-                    <label class="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        v-model="pref.email"
-                        class="rounded text-[var(--accent)] bg-transparent border-[var(--glass-border)]"
-                      />
-                      <span class="text-sm text-[var(--text-secondary)]">Email</span>
-                    </label>
-                    <label class="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        v-model="pref.push"
-                        class="rounded text-[var(--accent)] bg-transparent border-[var(--glass-border)]"
-                      />
-                      <span class="text-sm text-[var(--text-secondary)]">Push</span>
-                    </label>
-                  </div>
-                </div>
+        <div class="glass-card p-0 overflow-hidden">
+          <div class="px-5 pt-5 pb-3">
+            <div class="flex items-center gap-2">
+              <div class="stat-icon" style="background: linear-gradient(135deg,#ff6b6b,#ee5a24); width:30px; height:30px; font-size:13px;">
+                <i class="fas fa-bell"></i>
               </div>
-            </div>
-
-            <div class="flex justify-end pt-6 border-t border-[var(--glass-border)]">
-              <button
-                @click="saveNotificationPreferences"
-                :disabled="savingNotifications"
-                class="btn-accent disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <svg v-if="savingNotifications" class="animate-spin h-4 w-4 text-[var(--text-primary)]" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>{{ savingNotifications ? 'Saving...' : 'Save Preferences' }}</span>
-              </button>
+              <h2 class="text-[14px] font-semibold" style="color:var(--text-primary)">Notification Preferences</h2>
             </div>
           </div>
-        </Card>
+          <div class="settings-rows">
+            <template v-for="category in notificationPreferences" :key="category.id">
+              <div class="px-5 py-2.5" style="border-bottom: 1px solid var(--glass-border); background: rgba(0,0,0,0.02);">
+                <p class="text-[11px] font-semibold uppercase tracking-wide" style="color:var(--text-muted)">{{ category.name }}</p>
+              </div>
+              <div
+                v-for="pref in category.preferences"
+                :key="pref.id"
+                class="flex items-center justify-between px-5 py-3"
+                style="border-bottom: 1px solid var(--glass-border);"
+              >
+                <div>
+                  <p class="text-[13px] font-medium" style="color:var(--text-primary)">{{ pref.name }}</p>
+                  <p class="text-[11px]" style="color:var(--text-muted)">{{ pref.description }}</p>
+                </div>
+                <div class="flex items-center gap-4">
+                  <label class="flex flex-col items-center gap-1 cursor-pointer">
+                    <button
+                      @click="pref.email = !pref.email"
+                      class="toggle-switch"
+                      style="width:36px; height:22px;"
+                      :class="pref.email ? 'toggle-on' : 'toggle-off'"
+                    ></button>
+                    <span class="text-[10px]" style="color:var(--text-muted)">Email</span>
+                  </label>
+                  <label class="flex flex-col items-center gap-1 cursor-pointer">
+                    <button
+                      @click="pref.push = !pref.push"
+                      class="toggle-switch"
+                      style="width:36px; height:22px;"
+                      :class="pref.push ? 'toggle-on' : 'toggle-off'"
+                    ></button>
+                    <span class="text-[10px]" style="color:var(--text-muted)">Push</span>
+                  </label>
+                </div>
+              </div>
+            </template>
+          </div>
+          <div class="flex justify-end px-5 py-4">
+            <button @click="saveNotificationPreferences" :disabled="savingNotifications" class="btn-accent text-[13px]">
+              {{ savingNotifications ? 'Saving…' : 'Save Preferences' }}
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: quick links -->
+      <div class="flex flex-col gap-5">
+
+        <!-- Quick actions -->
+        <div class="glass-card p-0 overflow-hidden">
+          <div class="px-5 pt-5 pb-3">
+            <div class="flex items-center gap-2">
+              <div class="stat-icon" style="background: linear-gradient(135deg,#34c759,#30a84b); width:30px; height:30px; font-size:13px;">
+                <i class="fas fa-bolt"></i>
+              </div>
+              <h2 class="text-[14px] font-semibold" style="color:var(--text-primary)">Quick Actions</h2>
+            </div>
+          </div>
+          <div class="settings-rows">
+            <button @click="viewOrders" class="settings-action-row">
+              <div class="action-icon-wrap" style="background: linear-gradient(135deg,#5ac8fa,#007aff);">
+                <i class="fas fa-bag-shopping text-[11px] text-white"></i>
+              </div>
+              <span class="text-[13px]" style="color:var(--text-primary)">My Orders</span>
+              <i class="fas fa-chevron-right text-[10px] ml-auto" style="color:var(--text-muted)"></i>
+            </button>
+            <button @click="viewActivity" class="settings-action-row">
+              <div class="action-icon-wrap" style="background: linear-gradient(135deg,#c084fc,#9333ea);">
+                <i class="fas fa-clock-rotate-left text-[11px] text-white"></i>
+              </div>
+              <span class="text-[13px]" style="color:var(--text-primary)">Activity Log</span>
+              <i class="fas fa-chevron-right text-[10px] ml-auto" style="color:var(--text-muted)"></i>
+            </button>
+            <button @click="downloadData" class="settings-action-row border-none">
+              <div class="action-icon-wrap" style="background: linear-gradient(135deg,#34c759,#30a84b);">
+                <i class="fas fa-download text-[11px] text-white"></i>
+              </div>
+              <span class="text-[13px]" style="color:var(--text-primary)">Download My Data</span>
+              <i class="fas fa-chevron-right text-[10px] ml-auto" style="color:var(--text-muted)"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Account info -->
+        <div class="glass-card p-0 overflow-hidden">
+          <div class="px-5 pt-5 pb-3">
+            <div class="flex items-center gap-2">
+              <div class="stat-icon" style="background: linear-gradient(135deg,#ff9f0a,#e08800); width:30px; height:30px; font-size:13px;">
+                <i class="fas fa-circle-info"></i>
+              </div>
+              <h2 class="text-[14px] font-semibold" style="color:var(--text-primary)">Account Info</h2>
+            </div>
+          </div>
+          <div class="settings-rows">
+            <div class="settings-row">
+              <span class="settings-label">Role</span>
+              <span class="badge badge-info text-[11px]">{{ userProfile.role }}</span>
+            </div>
+            <div class="settings-row">
+              <span class="settings-label">Member since</span>
+              <span class="text-[12px]" style="color:var(--text-secondary)">{{ formatDate(userProfile.createdAt) }}</span>
+            </div>
+            <div class="settings-row border-none">
+              <span class="settings-label">2FA</span>
+              <span
+                class="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                :style="userProfile.twoFactorEnabled
+                  ? 'background: rgba(52,199,89,0.14); color: #22c55e;'
+                  : 'background: rgba(120,120,128,0.14); color: var(--text-muted);'"
+              >{{ userProfile.twoFactorEnabled ? 'Enabled' : 'Disabled' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="glass-card p-0 overflow-hidden" style="border-color: rgba(239,68,68,0.25);">
+          <div class="px-5 pt-5 pb-3">
+            <div class="flex items-center gap-2">
+              <div class="stat-icon" style="background: linear-gradient(135deg,#ef4444,#b91c1c); width:30px; height:30px; font-size:13px;">
+                <i class="fas fa-triangle-exclamation"></i>
+              </div>
+              <h2 class="text-[14px] font-semibold" style="color:#ef4444">Danger Zone</h2>
+            </div>
+          </div>
+          <div class="px-5 pb-5">
+            <p class="text-[12px] mb-3" style="color:var(--text-muted)">Permanently delete your account and all associated data. This cannot be undone.</p>
+            <button
+              @click="showDeleteModal = true"
+              class="w-full py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150"
+              style="background: rgba(239,68,68,0.10); color:#ef4444; border: 1px solid rgba(239,68,68,0.25);"
+              onmouseover="this.style.background='rgba(239,68,68,0.18)'"
+              onmouseout="this.style.background='rgba(239,68,68,0.10)'"
+            >
+              <i class="fas fa-trash-can mr-2 text-xs"></i>Delete Account
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Delete Account Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div class="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg w-full max-w-md p-6">
-        <div class="flex items-start mb-4">
-          <div class="flex-shrink-0">
-            <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-            </svg>
+    <!-- ── Delete confirmation modal ──────────────────────────────────── -->
+    <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.45); backdrop-filter: blur(6px);">
+      <div class="glass-card p-6 w-full max-w-md">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="stat-icon flex-shrink-0" style="background: linear-gradient(135deg,#ef4444,#b91c1c); width:36px; height:36px; font-size:15px;">
+            <i class="fas fa-triangle-exclamation"></i>
           </div>
-          <div class="ml-3">
-            <h3 class="text-lg font-medium text-[var(--text-primary)]">Are you sure you want to delete your account?</h3>
-            <div class="mt-2 text-sm text-[var(--text-secondary)]">
-              <p>This action cannot be undone. All of your data will be permanently removed from our servers.</p>
-              <p class="mt-2 font-medium text-[var(--text-primary)]">Please type "DELETE" to confirm:</p>
-            </div>
+          <div>
+            <h3 class="text-[15px] font-semibold" style="color:var(--text-primary)">Delete Account</h3>
+            <p class="text-[12px]" style="color:var(--text-muted)">This action is permanent and cannot be undone</p>
           </div>
         </div>
-
-        <div class="mb-4">
-          <input
-            type="text"
-            v-model="deleteConfirmation"
-            placeholder="Type DELETE here"
-            class="w-full px-4 py-2.5 border border-[var(--glass-border)] rounded-lg bg-transparent text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 focus:border-red-500 placeholder:text-[var(--text-muted)]"
-            :class="{ 'border-red-500': deleteError }"
-          />
-          <p v-if="deleteError" class="mt-1 text-sm text-red-500">{{ deleteError }}</p>
-        </div>
-
-        <div class="flex justify-end gap-4">
-          <button
-            @click="showDeleteModal = false"
-            class="px-6 py-2.5 border border-[var(--glass-border)] rounded-lg text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-150"
-          >
-            Cancel
-          </button>
+        <p class="text-[13px] mb-4" style="color:var(--text-secondary)">
+          All your data — orders, settings, profile — will be permanently removed. Type <strong style="color:var(--text-primary)">DELETE</strong> to confirm.
+        </p>
+        <input
+          v-model="deleteConfirmation"
+          type="text"
+          placeholder="Type DELETE here"
+          class="glass-input w-full mb-4"
+          :style="deleteError ? 'border-color: rgba(239,68,68,0.6);' : ''"
+        >
+        <p v-if="deleteError" class="text-[12px] mb-3" style="color:#ef4444">{{ deleteError }}</p>
+        <div class="flex gap-2 justify-end">
+          <button @click="showDeleteModal = false; deleteConfirmation = ''; deleteError = ''" class="btn-glass">Cancel</button>
           <button
             :disabled="deleteConfirmation !== 'DELETE'"
             @click="deleteAccount"
-            class="px-6 py-2.5 bg-red-600 text-[var(--text-primary)] rounded-lg hover:bg-red-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Delete Account
-          </button>
+            class="px-4 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 disabled:opacity-40"
+            style="background: #ef4444; color:#fff;"
+          >Delete Account</button>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import Card from '@/components/ui/Card.vue';
 import { formatCurrency, formatDate, formatTimeAgo, getInitials } from '@/utils/formatters';
 
 const router = useRouter();
 
-// User Profile Data
 const userProfile = reactive({
-  name: 'Alex Johnson',
-  email: 'alex.johnson@example.com',
-  phone: '+1 (555) 123-4567',
-  location: 'San Francisco, CA',
-  bio: 'Store administrator with 5+ years of experience in e-commerce management.',
+  name: 'Ali',
+  email: 'alib181220@gmail.com',
+  phone: '+31 6 00 000 000',
+  location: 'Amsterdam, Netherlands',
+  bio: 'Store administrator with a passion for clean design and efficient e-commerce management.',
   role: 'Administrator',
-  avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
-  createdAt: '2023-01-15T10:30:00Z',
+  avatar: '',
+  createdAt: '2024-01-15T10:30:00Z',
   twoFactorEnabled: true,
-  twoFactorLastUsed: '2024-01-10T14:30:00Z'
+  twoFactorLastUsed: '2024-01-10T14:30:00Z',
 });
 
-const userStats = reactive({
-  orders: 42,
-  revenue: 12500,
-  customers: 128
-});
+const userStats = reactive({ orders: 42, revenue: 12500, customers: 128 });
 
-// Personal Info Form
 const editingPersonalInfo = ref(false);
 const savingPersonalInfo = ref(false);
-const personalInfoForm = reactive({
-  name: '',
-  email: '',
-  phone: '',
-  location: '',
-  bio: ''
-});
+const personalInfoForm = reactive({ name: '', email: '', phone: '', location: '', bio: '' });
 
-// Password Change
 const showChangePassword = ref(false);
-const showCurrentPassword = ref(false);
-const showNewPassword = ref(false);
-const showConfirmPassword = ref(false);
 const changingPassword = ref(false);
-const passwordForm = reactive({
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-});
+const passwordForm = reactive({ currentPassword: '', newPassword: '', confirmPassword: '' });
 const passwordError = ref('');
 
-// Active Sessions
 const activeSessions = ref([
-  {
-    id: 1,
-    deviceType: 'desktop',
-    deviceName: 'MacBook Pro',
-    browser: 'Chrome 120',
-    location: 'San Francisco, CA',
-    lastActive: '2024-01-15T14:30:00Z',
-    isCurrent: true
-  },
-  {
-    id: 2,
-    deviceType: 'mobile',
-    deviceName: 'iPhone 15',
-    browser: 'Safari 17',
-    location: 'San Francisco, CA',
-    lastActive: '2024-01-14T09:15:00Z',
-    isCurrent: false
-  },
-  {
-    id: 3,
-    deviceType: 'tablet',
-    deviceName: 'iPad Pro',
-    browser: 'Safari 17',
-    location: 'New York, NY',
-    lastActive: '2024-01-12T16:45:00Z',
-    isCurrent: false
-  }
+  { id: 1, deviceType: 'desktop', deviceName: 'MacBook Pro',  browser: 'Chrome 120', location: 'Amsterdam, NL',   lastActive: '2024-01-15T14:30:00Z', isCurrent: true  },
+  { id: 2, deviceType: 'mobile',  deviceName: 'iPhone 15',    browser: 'Safari 17',  location: 'Amsterdam, NL',   lastActive: '2024-01-14T09:15:00Z', isCurrent: false },
+  { id: 3, deviceType: 'tablet',  deviceName: 'iPad Pro',     browser: 'Safari 17',  location: 'Rotterdam, NL',  lastActive: '2024-01-12T16:45:00Z', isCurrent: false },
 ]);
 
-// Notification Preferences
 const savingNotifications = ref(false);
 const notificationPreferences = ref([
   {
-    id: 1,
-    name: 'Order Notifications',
+    id: 1, name: 'Orders',
     preferences: [
-      {
-        id: 1,
-        name: 'New Orders',
-        description: 'When a customer places a new order',
-        email: true,
-        push: true
-      },
-      {
-        id: 2,
-        name: 'Order Updates',
-        description: 'When an order status changes',
-        email: true,
-        push: false
-      },
-      {
-        id: 3,
-        name: 'Cancellations',
-        description: 'When an order is cancelled',
-        email: true,
-        push: true
-      }
+      { id: 1, name: 'New Orders',     description: 'When a customer places a new order',   email: true,  push: true  },
+      { id: 2, name: 'Order Updates',  description: 'When an order status changes',          email: true,  push: false },
+      { id: 3, name: 'Cancellations',  description: 'When an order is cancelled',            email: true,  push: true  },
     ]
   },
   {
-    id: 2,
-    name: 'Product Notifications',
+    id: 2, name: 'Inventory',
     preferences: [
-      {
-        id: 4,
-        name: 'Low Stock',
-        description: 'When product inventory is running low',
-        email: true,
-        push: false
-      },
-      {
-        id: 5,
-        name: 'Out of Stock',
-        description: 'When products go out of stock',
-        email: true,
-        push: true
-      }
+      { id: 4, name: 'Low Stock',   description: 'When a product is running low',     email: true,  push: false },
+      { id: 5, name: 'Out of Stock',description: 'When a product goes out of stock',  email: true,  push: true  },
     ]
   },
   {
-    id: 3,
-    name: 'Customer Notifications',
+    id: 3, name: 'Customers',
     preferences: [
-      {
-        id: 6,
-        name: 'New Customers',
-        description: 'When new customers register',
-        email: true,
-        push: false
-      },
-      {
-        id: 7,
-        name: 'Reviews',
-        description: 'When customers leave reviews',
-        email: true,
-        push: true
-      }
+      { id: 6, name: 'New Customers', description: 'When new customers register',      email: true,  push: false },
+      { id: 7, name: 'Reviews',       description: 'When customers leave reviews',     email: true,  push: true  },
     ]
-  }
+  },
 ]);
 
-// Delete Account
 const showDeleteModal = ref(false);
 const deleteConfirmation = ref('');
 const deleteError = ref('');
-
-// File upload refs
 const avatarInput = ref<HTMLInputElement | null>(null);
 
-// Helper Functions
-const getUserInitials = (name: string) => {
-  return getInitials(name);
-};
+const getUserInitials = (name: string) => getInitials(name);
 
 const getDeviceIcon = (deviceType: string) => {
-  switch (deviceType) {
-    case 'desktop': return 'fas fa-desktop';
-    case 'mobile': return 'fas fa-mobile-alt';
-    case 'tablet': return 'fas fa-tablet-alt';
-    default: return 'fas fa-laptop';
-  }
+  if (deviceType === 'mobile') return 'fas fa-mobile-screen';
+  if (deviceType === 'tablet') return 'fas fa-tablet-screen-button';
+  return 'fas fa-laptop';
 };
 
-// Methods
-const triggerAvatarUpload = () => {
-  avatarInput.value?.click();
-};
+const triggerAvatarUpload = () => avatarInput.value?.click();
 
-const handleAvatarUpload = (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  if (input.files && input.files[0]) {
-    const file = input.files[0];
-    const url = URL.createObjectURL(file);
-    userProfile.avatar = url;
-    alert('Profile picture updated successfully!');
-  }
+const handleAvatarUpload = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (file) userProfile.avatar = URL.createObjectURL(file);
 };
 
 const editPersonalInfo = () => {
   editingPersonalInfo.value = true;
   Object.assign(personalInfoForm, {
-    name: userProfile.name,
-    email: userProfile.email,
-    phone: userProfile.phone,
-    location: userProfile.location,
-    bio: userProfile.bio
+    name: userProfile.name, email: userProfile.email,
+    phone: userProfile.phone, location: userProfile.location, bio: userProfile.bio,
   });
 };
 
-const cancelEditPersonalInfo = () => {
-  editingPersonalInfo.value = false;
-};
+const cancelEditPersonalInfo = () => { editingPersonalInfo.value = false; };
 
 const savePersonalInfo = async () => {
   savingPersonalInfo.value = true;
-
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 800));
-
-  // Update user profile
+  await new Promise(r => setTimeout(r, 700));
   Object.assign(userProfile, personalInfoForm);
   editingPersonalInfo.value = false;
   savingPersonalInfo.value = false;
-
-  alert('Personal information updated successfully!');
 };
 
 const changePassword = async () => {
-  // Validate passwords
-  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    passwordError.value = 'New passwords do not match';
-    return;
-  }
-
-  if (passwordForm.newPassword.length < 8) {
-    passwordError.value = 'Password must be at least 8 characters long';
-    return;
-  }
-
-  changingPassword.value = true;
-
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // Reset form
-  passwordForm.currentPassword = '';
-  passwordForm.newPassword = '';
-  passwordForm.confirmPassword = '';
   passwordError.value = '';
+  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    passwordError.value = 'Passwords do not match'; return;
+  }
+  if (passwordForm.newPassword.length < 8) {
+    passwordError.value = 'Password must be at least 8 characters'; return;
+  }
+  changingPassword.value = true;
+  await new Promise(r => setTimeout(r, 800));
+  Object.assign(passwordForm, { currentPassword: '', newPassword: '', confirmPassword: '' });
   showChangePassword.value = false;
   changingPassword.value = false;
-
-  alert('Password changed successfully!');
 };
 
 const toggleTwoFactor = async () => {
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  if (userProfile.twoFactorEnabled) {
-    alert('Two-factor authentication has been enabled.');
-    userProfile.twoFactorLastUsed = new Date().toISOString();
-  } else {
-    alert('Two-factor authentication has been disabled.');
-  }
+  await new Promise(r => setTimeout(r, 300));
 };
 
-const refreshSessions = async () => {
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 500));
-  alert('Sessions refreshed!');
-};
-
-const terminateSession = (sessionId: number) => {
-  if (confirm('Are you sure you want to terminate this session?')) {
-    activeSessions.value = activeSessions.value.filter(session => session.id !== sessionId);
-    alert('Session terminated successfully!');
-  }
+const terminateSession = (id: number) => {
+  activeSessions.value = activeSessions.value.filter(s => s.id !== id);
 };
 
 const terminateAllSessions = () => {
-  if (confirm('Are you sure you want to terminate all other sessions?')) {
-    activeSessions.value = activeSessions.value.filter(session => session.isCurrent);
-    alert('All other sessions have been terminated!');
-  }
+  activeSessions.value = activeSessions.value.filter(s => s.isCurrent);
 };
 
 const saveNotificationPreferences = async () => {
   savingNotifications.value = true;
-
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 800));
-
+  await new Promise(r => setTimeout(r, 700));
   savingNotifications.value = false;
-  alert('Notification preferences saved successfully!');
 };
 
-const viewOrders = () => {
-  router.push('/orders');
-};
-
-const viewActivity = () => {
-  router.push('/activity');
-};
+const viewOrders   = () => router.push('/orders');
+const viewActivity = () => router.push('/analytics');
 
 const downloadData = () => {
-  // Create a JSON file with user data
-  const data = {
-    profile: userProfile,
-    stats: userStats,
-    sessions: activeSessions.value,
-    preferences: notificationPreferences.value
-  };
-
-  const dataStr = JSON.stringify(data, null, 2);
-  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-  const exportFileDefaultName = `user_data_${new Date().toISOString().split('T')[0]}.json`;
-
-  const linkElement = document.createElement('a');
-  linkElement.setAttribute('href', dataUri);
-  linkElement.setAttribute('download', exportFileDefaultName);
-  linkElement.click();
-
-  alert('Data download started!');
+  const data = { profile: userProfile, stats: userStats };
+  const uri = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
+  const a = document.createElement('a');
+  a.href = uri; a.download = `profile_${new Date().toISOString().split('T')[0]}.json`; a.click();
 };
 
 const deleteAccount = async () => {
-  if (deleteConfirmation.value !== 'DELETE') {
-    deleteError.value = 'Please type "DELETE" exactly as shown';
-    return;
-  }
-
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1500));
-
+  if (deleteConfirmation.value !== 'DELETE') { deleteError.value = 'Please type DELETE exactly'; return; }
+  await new Promise(r => setTimeout(r, 1200));
   showDeleteModal.value = false;
-  deleteConfirmation.value = '';
-  deleteError.value = '';
-
-  alert('Account deletion initiated. You will be logged out shortly.');
-  // In a real app, you would redirect to logout/login page
-  // router.push('/login');
 };
 
-onMounted(() => {
-  console.log('UserProfile component mounted');
-});
+onMounted(() => {});
 </script>
 
 <style scoped>
-/* Custom scrollbar */
-.overflow-x-auto {
-  scrollbar-width: thin;
-  scrollbar-color: var(--glass-border) transparent;
+.settings-rows { display: flex; flex-direction: column; }
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--glass-border);
+  gap: 12px;
 }
 
-.overflow-x-auto::-webkit-scrollbar {
-  height: 6px;
+.settings-row.border-none { border-bottom: none; }
+
+.settings-row-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--glass-border);
+  gap: 16px;
 }
 
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: transparent;
+.settings-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  min-width: 90px;
 }
 
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background-color: var(--glass-border);
-  border-radius: 3px;
+.settings-action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--glass-border);
+  transition: background 0.15s ease;
+  cursor: pointer;
 }
 
-/* Input focus states */
-input:focus, textarea:focus, select:focus {
-  outline: none;
+.settings-action-row:hover { background: rgba(255,255,255,0.25); }
+.settings-action-row.border-none { border-bottom: none; }
+
+.action-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-/* Checkbox styling */
-input[type="checkbox"] {
-  background-color: transparent;
-  border: 1px solid var(--glass-border);
+.up-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 5px;
 }
 
-input[type="checkbox"]:checked {
-  background-color: var(--accent);
-  border-color: var(--accent);
+/* iOS toggle */
+.toggle-switch {
+  width: 51px;
+  height: 31px;
+  border-radius: 999px;
+  position: relative;
+  border: none;
+  cursor: pointer;
+  transition: background 0.25s ease;
+  flex-shrink: 0;
 }
 
-/* Button transitions */
-button {
-  transition: all 0.15s ease-out;
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  transition: left 0.25s ease;
 }
 
-button:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
+.toggle-off { background: rgba(120,120,128,0.28); }
+.toggle-off::after { left: 2px; }
 
-/* Avatar hover effect */
-.relative:hover .absolute {
-  transform: scale(1.1);
-}
+.toggle-on { background: var(--accent); box-shadow: 0 0 12px rgba(124,94,240,0.4); }
+.toggle-on::after { left: 22px; }
 
-/* Smooth transitions */
-* {
-  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out;
-}
-
-/* Modal backdrop */
-.fixed {
-  z-index: 50;
-}
-
-/* Gradient backgrounds */
-.bg-gradient-to-br {
-  background-size: 200% 200%;
-  animation: gradient 15s ease infinite;
-}
-
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
+/* Small toggles (notifications) */
+.toggle-switch[style*="height:22px"] { width: 36px; height: 22px; }
+.toggle-switch[style*="height:22px"]::after { width: 18px; height: 18px; }
+.toggle-switch[style*="height:22px"].toggle-on::after { left: 16px; }
 </style>
