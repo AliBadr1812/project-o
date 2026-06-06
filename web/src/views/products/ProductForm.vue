@@ -2,330 +2,249 @@
   <div class="max-w-4xl mx-auto">
     <!-- Header -->
     <div class="mb-6">
-      <h1 class="text-2xl font-bold">{{ isEditing ? 'Edit Product' : 'Add New Product' }}</h1>
-      <p class="text-gray-600">{{ isEditing ? 'Update product information' : 'Add a new product to your store' }}</p>
+      <h1 class="page-title">{{ isEditing ? 'Edit Product' : 'Add New Product' }}</h1>
+      <p class="page-subtitle">{{ isEditing ? 'Update product information' : 'Add a new product to your store' }}</p>
     </div>
 
     <!-- Form -->
     <Card>
-      <form @submit.prevent="submitForm">
-        <div class="gap-6">
-          <!-- Basic Information -->
-          <div>
-            <h2 class="text-lg font-semibold mb-4">Basic Information</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Product Name -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Product Name *
-                </label>
-                <input
-                  v-model="product.name"
-                  type="text"
-                  required
-                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter product name"
-                >
-              </div>
+      <form @submit.prevent="submitForm" class="flex flex-col gap-8 p-2">
 
-              <!-- SKU -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  SKU (Stock Keeping Unit) *
-                </label>
-                <input
-                  v-model="product.sku"
-                  type="text"
-                  required
-                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="e.g., PROD-001"
-                >
-              </div>
-
-              <!-- Category -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
-                </label>
-                <select
-                  v-model="product.categoryId"
-                  required
-                  class="appearance-none text-[var(--color-icon)] border border-[var(--color-border)] rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
-                >
-                  <option value="">Select a category</option>
-                  <option v-for="category in categories" :key="category.id" :value="category.id">
-                    {{ category.name }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- Brand -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Brand
-                </label>
-                <input
-                  v-model="product.brand"
-                  type="text"
-                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter brand name"
-                >
-              </div>
-            </div>
-          </div>
-
-          <!-- Pricing -->
-          <div>
-            <h2 class="text-lg font-semibold mb-4">Pricing</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <!-- Price -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Price *
-                </label>
-                <div class="relative">
-                  <span class="absolute left-3 top-2.5 text-gray-500">$</span>
-                  <input
-                    v-model="product.price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    required
-                    class="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0.00"
-                  >
-                </div>
-              </div>
-
-              <!-- Compare Price -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Compare at Price
-                </label>
-                <div class="relative">
-                  <span class="absolute left-3 top-2.5 text-gray-500">$</span>
-                  <input
-                    v-model="product.compareAtPrice"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    class="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0.00"
-                  >
-                </div>
-              </div>
-
-              <!-- Cost per Item -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Cost per Item
-                </label>
-                <div class="relative">
-                  <span class="absolute left-3 top-2.5 text-gray-500">$</span>
-                  <input
-                    v-model="product.costPerItem"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    class="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0.00"
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Inventory -->
-          <div>
-            <h2 class="text-lg font-semibold mb-4">Inventory</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Stock Quantity -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Stock Quantity *
-                </label>
-                <input
-                  v-model="product.stock"
-                  type="number"
-                  min="0"
-                  required
-                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="0"
-                >
-              </div>
-
-              <!-- Low Stock Threshold -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Low Stock Threshold
-                </label>
-                <input
-                  v-model="product.lowStockThreshold"
-                  type="number"
-                  min="0"
-                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="10"
-                >
-                <p class="text-sm text-gray-500 mt-1">Get notified when stock drops below this number</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Images -->
-          <div>
-            <h2 class="text-lg font-semibold mb-4">Product Images</h2>
-            <div class="gap-4">
-              <!-- Main Image -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Main Image *
-                </label>
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <div v-if="mainImagePreview" class="mb-4">
-                    <img :src="mainImagePreview" alt="Main product image" class="mx-auto h-32 w-32 object-cover rounded-lg">
-                  </div>
-                  <div v-else class="text-gray-500 mb-4">
-                    <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                  </div>
-                  <label class="cursor-pointer">
-                    <span class="text-blue-600 hover:text-blue-800 font-medium">Click to upload</span>
-                    <input
-                      type="file"
-                      @change="handleMainImageUpload"
-                      accept="image/*"
-                      class="hidden"
-                    >
-                  </label>
-                  <p class="text-sm text-gray-500 mt-2">PNG, JPG, GIF up to 10MB</p>
-                </div>
-              </div>
-
-              <!-- Additional Images -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Additional Images
-                </label>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div
-                    v-for="(image, index) in additionalImagesPreview"
-                    :key="index"
-                    class="relative border border-gray-300 rounded-lg p-4 text-center"
-                  >
-                    <img :src="image" alt="Additional image" class="h-20 w-20 object-cover rounded mx-auto mb-2">
-                    <button
-                      @click="removeAdditionalImage(index)"
-                      class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                    >
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                      </svg>
-                    </button>
-                  </div>
-                  <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50">
-                    <label class="cursor-pointer">
-                      <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                      </svg>
-                      <span class="text-sm text-gray-600 block mt-2">Add Image</span>
-                      <input
-                        type="file"
-                        @change="handleAdditionalImageUpload"
-                        accept="image/*"
-                        multiple
-                        class="hidden"
-                      >
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Description -->
-          <div>
-            <h2 class="text-lg font-semibold mb-4">Description</h2>
+        <!-- Basic Information -->
+        <div>
+          <h2 class="text-base font-semibold mb-4" style="color:var(--text-primary)">Basic Information</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Product Description *
-              </label>
-              <textarea
-                v-model="product.description"
-                rows="6"
-                required
-                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Describe your product in detail..."
-              ></textarea>
+              <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">Product Name *</label>
+              <input v-model="product.name" type="text" required class="glass-input w-full" placeholder="Enter product name">
             </div>
-          </div>
-
-          <!-- Status -->
-          <div>
-            <h2 class="text-lg font-semibold mb-4">Status</h2>
-            <div class="flex items-center gap-4">
-              <label class="flex items-center">
-                <input
-                  v-model="product.status"
-                  type="radio"
-                  value="active"
-                  class="h-4 w-4 text-blue-600"
-                >
-                <span class="ml-2">Active (Visible in store)</span>
-              </label>
-              <label class="flex items-center">
-                <input
-                  v-model="product.status"
-                  type="radio"
-                  value="draft"
-                  class="h-4 w-4 text-blue-600"
-                >
-                <span class="ml-2">Draft (Hidden from store)</span>
-              </label>
-              <label class="flex items-center">
-                <input
-                  v-model="product.status"
-                  type="radio"
-                  value="archived"
-                  class="h-4 w-4 text-blue-600"
-                >
-                <span class="ml-2">Archived</span>
-              </label>
+            <div>
+              <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">SKU *</label>
+              <input v-model="product.sku" type="text" required class="glass-input w-full" placeholder="e.g., PROD-001">
             </div>
-          </div>
-
-          <!-- Form Actions -->
-          <div class="flex items-center justify-between pt-6 border-t border-gray-200">
-            <router-link
-              to="/products"
-              class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </router-link>
-            <div class="flex items-center gap-3">
-              <button
-                v-if="isEditing"
-                type="button"
-                @click="saveAsDraft"
-                class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Save as Draft
-              </button>
-              <button
-                type="submit"
-                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                :disabled="isSubmitting"
-              >
-                {{ isSubmitting ? 'Saving...' : isEditing ? 'Update Product' : 'Create Product' }}
-              </button>
+            <div>
+              <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">Category *</label>
+              <select v-model="product.categoryId" required class="glass-select w-full">
+                <option value="">Select a category</option>
+                <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">Brand</label>
+              <input v-model="product.brand" type="text" class="glass-input w-full" placeholder="Enter brand name">
             </div>
           </div>
         </div>
+
+        <!-- Pricing -->
+        <div>
+          <h2 class="text-base font-semibold mb-4" style="color:var(--text-primary)">Pricing</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">Price *</label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" style="color:var(--text-muted)">$</span>
+                <input v-model="product.price" type="number" step="0.01" min="0" required class="glass-input w-full pl-8" placeholder="0.00">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">Compare at Price</label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" style="color:var(--text-muted)">$</span>
+                <input v-model="product.compareAtPrice" type="number" step="0.01" min="0" class="glass-input w-full pl-8" placeholder="0.00">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">Cost per Item</label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" style="color:var(--text-muted)">$</span>
+                <input v-model="product.costPerItem" type="number" step="0.01" min="0" class="glass-input w-full pl-8" placeholder="0.00">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory -->
+        <div>
+          <h2 class="text-base font-semibold mb-4" style="color:var(--text-primary)">Inventory</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">Stock Quantity *</label>
+              <input v-model="product.stock" type="number" min="0" required class="glass-input w-full" placeholder="0">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">Low Stock Threshold</label>
+              <input v-model="product.lowStockThreshold" type="number" min="0" class="glass-input w-full" placeholder="10">
+              <p class="text-xs mt-1.5" style="color:var(--text-muted)">Get notified when stock drops below this number</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Images -->
+        <div>
+          <h2 class="text-base font-semibold mb-4" style="color:var(--text-primary)">Product Images</h2>
+          <div class="flex flex-col gap-4">
+            <!-- Main Image -->
+            <div>
+              <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">Main Image *</label>
+              <div
+                class="rounded-2xl p-6 text-center"
+                style="border: 2px dashed var(--glass-border); background: var(--glass-bg);"
+              >
+                <div v-if="mainImagePreview" class="mb-4">
+                  <img :src="mainImagePreview" alt="Main product image" class="mx-auto h-32 w-32 object-cover rounded-xl">
+                </div>
+                <div v-else class="mb-4" style="color:var(--text-muted)">
+                  <i class="fas fa-image text-4xl mb-2"></i>
+                </div>
+                <label class="cursor-pointer">
+                  <span class="text-sm font-medium" style="color:var(--accent)">Click to upload</span>
+                  <input type="file" @change="handleMainImageUpload" accept="image/*" class="hidden">
+                </label>
+                <p class="text-xs mt-2" style="color:var(--text-muted)">PNG, JPG, GIF up to 10MB</p>
+              </div>
+            </div>
+
+            <!-- Additional Images -->
+            <div>
+              <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">Additional Images</label>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div
+                  v-for="(image, index) in additionalImagesPreview"
+                  :key="index"
+                  class="relative rounded-xl p-3 text-center"
+                  style="border: 1px solid var(--glass-border); background: var(--glass-bg);"
+                >
+                  <img :src="image" alt="Additional image" class="h-20 w-20 object-cover rounded-lg mx-auto mb-2">
+                  <button
+                    @click="removeAdditionalImage(index)"
+                    class="absolute -top-2 -right-2 rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                    style="background: #dc2626; color: #fff;"
+                  >
+                    <i class="fas fa-xmark"></i>
+                  </button>
+                </div>
+                <label
+                  class="rounded-xl p-4 text-center cursor-pointer flex flex-col items-center justify-center gap-1 transition-colors"
+                  style="border: 2px dashed var(--glass-border); background: var(--glass-bg); min-height: 100px;"
+                  onmouseover="this.style.background='rgba(255,255,255,0.35)'"
+                  onmouseout="this.style.background='var(--glass-bg)'"
+                >
+                  <i class="fas fa-plus text-lg" style="color:var(--text-muted)"></i>
+                  <span class="text-xs" style="color:var(--text-muted)">Add Image</span>
+                  <input type="file" @change="handleAdditionalImageUpload" accept="image/*" multiple class="hidden">
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <h2 class="text-base font-semibold mb-4" style="color:var(--text-primary)">Description</h2>
+          <label class="block text-sm font-medium mb-2" style="color:var(--text-secondary)">Product Description *</label>
+          <textarea
+            v-model="product.description"
+            rows="6"
+            required
+            class="glass-input w-full"
+            placeholder="Describe your product in detail..."
+          ></textarea>
+        </div>
+
+        <!-- Status -->
+        <div>
+          <h2 class="text-base font-semibold mb-4" style="color:var(--text-primary)">Status</h2>
+          <div class="flex items-center gap-6">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input v-model="product.status" type="radio" value="active" class="accent-[var(--accent)]">
+              <span class="text-sm" style="color:var(--text-secondary)">Active (Visible in store)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input v-model="product.status" type="radio" value="draft" class="accent-[var(--accent)]">
+              <span class="text-sm" style="color:var(--text-secondary)">Draft (Hidden from store)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input v-model="product.status" type="radio" value="archived" class="accent-[var(--accent)]">
+              <span class="text-sm" style="color:var(--text-secondary)">Archived</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--glass-border);">
+          <router-link to="/products">
+            <button type="button" class="btn-glass">Cancel</button>
+          </router-link>
+          <div class="flex items-center gap-3">
+            <button v-if="isEditing" type="button" @click="saveAsDraft" class="btn-glass">
+              Save as Draft
+            </button>
+            <button type="submit" class="btn-accent" :disabled="isSubmitting">
+              {{ isSubmitting ? 'Saving…' : isEditing ? 'Update Product' : 'Create Product' }}
+            </button>
+          </div>
+        </div>
+
       </form>
     </Card>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
+
+const route = useRoute();
+const isEditing = computed(() => !!route.params.id);
+const isSubmitting = ref(false);
+
+const product = ref({
+  name: '', sku: '', categoryId: '', brand: '',
+  price: null, compareAtPrice: null, costPerItem: null,
+  stock: null, lowStockThreshold: 10,
+  description: '', status: 'active',
+});
+
+const categories = ref([
+  { id: 1, name: 'Electronics' },
+  { id: 2, name: 'Clothing' },
+  { id: 3, name: 'Home & Garden' },
+]);
+
+const mainImagePreview = ref<string | null>(null);
+const additionalImagesPreview = ref<string[]>([]);
+
+const handleMainImageUpload = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = ev => { mainImagePreview.value = ev.target?.result as string; };
+    reader.readAsDataURL(file);
+  }
+};
+
+const handleAdditionalImageUpload = (e: Event) => {
+  const files = (e.target as HTMLInputElement).files;
+  if (!files) return;
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => { additionalImagesPreview.value.push(ev.target?.result as string); };
+    reader.readAsDataURL(file);
+  });
+};
+
+const removeAdditionalImage = (index: number) => {
+  additionalImagesPreview.value.splice(index, 1);
+};
+
+const saveAsDraft = () => { product.value.status = 'draft'; submitForm(); };
+
+const submitForm = async () => {
+  isSubmitting.value = true;
+  await new Promise(r => setTimeout(r, 800));
+  console.log('Product saved:', product.value);
+  isSubmitting.value = false;
+};
 </script>

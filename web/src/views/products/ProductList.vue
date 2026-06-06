@@ -3,22 +3,22 @@
     <!-- Header with actions -->
     <div class="flex items-center justify-between pb-5">
       <div>
-        <h1 class="text-2xl font-bold text-white">Products</h1>
-        <p class="text-[var(--color-icon)]">Manage your product inventory</p>
+        <h1 class="page-title">Products</h1>
+        <p class="text-[var(--text-secondary)]">Manage your product inventory</p>
       </div>
       <div class="flex items-center gap-3">
         <!-- Filter/Sort -->
         <div class="relative">
           <select
             v-model="sortBy"
-            class="appearance-none text-[var(--color-icon)] border border-[var(--color-border)] rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer bg-[var(--color-card)]"
+            class="glass-select"
           >
             <option value="createdAt:desc">Newest first</option>
             <option value="price:asc">Price: Low to High</option>
             <option value="price:desc">Price: High to Low</option>
             <option value="name:asc">Name: A to Z</option>
           </select>
-          <svg class="absolute right-3 top-3 w-5 h-5 text-[var(--color-icon)] pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+          <svg class="absolute right-3 top-3 w-5 h-5 text-[var(--text-secondary)] pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
           </svg>
         </div>
@@ -29,9 +29,9 @@
             type="search"
             v-model="searchQuery"
             placeholder="Search products..."
-            class="border border-[var(--color-border)] rounded-lg pl-10 pr-4 py-2 w-64 bg-[var(--color-card)] text-[var(--color-icon)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500"
+            class="border border-[var(--glass-border)] rounded-lg pl-10 pr-4 py-2 w-64 bg-[var(--glass-bg)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)]"
           >
-          <svg class="absolute left-3 top-2.5 w-5 h-5 text-[var(--color-icon)]" fill="currentColor" viewBox="0 0 20 20">
+          <svg class="absolute left-3 top-2.5 w-5 h-5 text-[var(--text-secondary)]" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
           </svg>
         </div>
@@ -39,7 +39,7 @@
         <!-- New Product Button -->
         <router-link
           to="/products/create"
-          class="flex items-center gap-2 px-4 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+          class="btn-accent"
         >
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z" clip-rule="evenodd"/>
@@ -51,38 +51,38 @@
 
     <!-- Stats Bar -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-4">
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-all duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--color-icon)] font-medium">Total Products</p>
-        <p class="text-2xl font-bold text-white">{{ stats.total }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">Total Products</p>
+        <p class="page-title">{{ stats.total }}</p>
       </Card>
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-colors duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--color-icon)] font-medium">In Stock</p>
-        <p class="text-2xl font-bold text-white">{{ stats.inStock }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-200 hover:translate-y-[-2px]">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">In Stock</p>
+        <p class="page-title">{{ stats.inStock }}</p>
         <p class="text-xs text-green-500 mt-1">{{ Math.round((stats.inStock / stats.total) * 100) || 0 }}% of total</p>
       </Card>
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-colors duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--color-icon)] font-medium">Low Stock</p>
-        <p class="text-2xl font-bold text-white">{{ stats.lowStock }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-200 hover:translate-y-[-2px]">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">Low Stock</p>
+        <p class="page-title">{{ stats.lowStock }}</p>
         <p class="text-xs text-yellow-500 mt-1">Needs attention</p>
       </Card>
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-colors duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--color-icon)] font-medium">Out of Stock</p>
-        <p class="text-2xl font-bold text-white">{{ stats.outOfStock }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-200 hover:translate-y-[-2px]">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">Out of Stock</p>
+        <p class="page-title">{{ stats.outOfStock }}</p>
         <p class="text-xs text-red-500 mt-1">Requires restocking</p>
       </Card>
     </div>
 
     <!-- Products Table -->
     <Card class="overflow-hidden">
-      <div class="border-b border-[var(--color-border)] px-4 py-3 bg-[var(--color-card)]">
-        <h2 class="text-lg font-semibold text-white">Product Inventory</h2>
-        <p class="text-sm text-[var(--color-icon)]">Showing {{ paginatedProducts.length }} of {{ filteredProducts.length }} products</p>
+      <div class="px-5 py-4" style="border-bottom: 1px solid var(--glass-border);">
+        <h2 class="text-lg font-semibold text-[var(--text-primary)]">Product Inventory</h2>
+        <p class="text-sm text-[var(--text-secondary)]">Showing {{ paginatedProducts.length }} of {{ filteredProducts.length }} products</p>
       </div>
 
       <div class="overflow-x-auto">
         <Table>
           <template #header>
-            <tr class="bg-[var(--color-card)] text-[var(--color-icon)]">
+            <tr class="bg-[var(--glass-bg)] text-[var(--text-secondary)]">
               <th class="py-3 px-4 text-left font-semibold text-sm">Product</th>
               <th class="py-3 px-4 text-left font-semibold text-sm">Category</th>
               <th class="py-3 px-4 text-left font-semibold text-sm">Price</th>
@@ -95,7 +95,7 @@
             <tr
               v-for="product in paginatedProducts"
               :key="product.id"
-              class="hover:bg-[var(--color-card)] transition-colors duration-150 border-b border-[var(--color-border)] last:border-b-0"
+              class="hover:bg-[var(--glass-bg)] transition-colors duration-150 border-b border-[var(--glass-border)] last:border-b-0"
             >
               <td class="py-4 px-4">
                 <div class="flex items-center gap-3">
@@ -103,13 +103,13 @@
                     <img
                       :src="product.imageUrl || 'https://freesvg.org/img/abstract-user-flat-4.png'"
                       :alt="product.name"
-                      class="w-12 h-12 rounded-lg object-cover border border-[var(--color-border)]"
+                      class="w-12 h-12 rounded-lg object-cover border border-[var(--glass-border)]"
                     >
                     <div
                       v-if="product.stock === 0"
                       class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
                     >
-                      <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <svg class="w-3 h-3 text-[var(--text-primary)]" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                       </svg>
                     </div>
@@ -117,16 +117,16 @@
                       v-else-if="product.stock <= 10"
                       class="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center"
                     >
-                      <span class="text-xs font-bold text-white">!</span>
+                      <span class="text-xs font-bold text-[var(--text-primary)]">!</span>
                     </div>
                   </div>
                   <div>
-                    <p class="font-medium text-white hover:text-[var(--primary-color)] transition-colors duration-150 cursor-pointer" @click="viewProduct(product.id)">
+                    <p class="font-medium text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors duration-150 cursor-pointer" @click="viewProduct(product.id)">
                       {{ product.name }}
                     </p>
                     <div class="flex items-center gap-2 mt-1">
-                      <span class="text-xs text-gray-400 bg-gray-800/50 px-2 py-0.5 rounded">{{ formatSku(product.sku) }}</span>
-                      <span class="text-xs text-gray-400">{{ formatDate(product.createdAt) }}</span>
+                      <span class="text-xs text-[var(--text-muted)] bg-[rgba(255,255,255,0.25)] px-2 py-0.5 rounded">{{ formatSku(product.sku) }}</span>
+                      <span class="text-xs text-[var(--text-muted)]">{{ formatDate(product.createdAt) }}</span>
                     </div>
                   </div>
                 </div>
@@ -135,7 +135,7 @@
                 <Badge
                   class="hover:bg-opacity-80 transition-colors duration-150 cursor-default px-3 py-1"
                   :class="{
-                    'bg-blue-500/20 text-blue-400 border-blue-500/30': product.category === 'Electronics',
+                    'bg-blue-500/20 text-[var(--text-accent)] border-[var(--accent)]/30': product.category === 'Electronics',
                     'bg-green-500/20 text-green-400 border-green-500/30': product.category === 'Clothing',
                     'bg-purple-500/20 text-purple-400 border-purple-500/30': product.category === 'Home & Kitchen',
                     'bg-amber-500/20 text-amber-400 border-amber-500/30': product.category === 'Fitness',
@@ -148,7 +148,7 @@
               </td>
               <td class="py-4 px-4">
                 <div class="flex flex-col">
-                  <span class="font-medium text-white">{{ formatCurrency(product.price) }}</span>
+                  <span class="font-medium text-[var(--text-primary)]">{{ formatCurrency(product.price) }}</span>
                   <span
                     v-if="product.price > 100"
                     class="text-xs text-amber-500 mt-1"
@@ -164,7 +164,7 @@
                 <div class="flex items-center gap-3">
                   <div class="flex-1">
                     <div class="flex justify-between text-sm mb-1">
-                      <span class="text-[var(--color-icon)]">{{ product.stock }} units</span>
+                      <span class="text-[var(--text-secondary)]">{{ product.stock }} units</span>
                       <span
                         class="font-medium"
                         :class="{
@@ -176,7 +176,7 @@
                         {{ getStockLevel(product.stock) }}
                       </span>
                     </div>
-                    <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div class="w-full h-2 bg-[var(--glass-bg)] rounded-full overflow-hidden">
                       <div
                         class="h-full transition-all duration-500 ease-out"
                         :class="{
@@ -213,7 +213,7 @@
                 <div class="flex items-center gap-1">
                   <button
                     @click="editProduct(product.id)"
-                    class="p-2 text-[var(--color-icon)] hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-all duration-150"
+                    class="btn-glass-icon"
                     title="Edit product"
                   >
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -222,7 +222,7 @@
                   </button>
                   <button
                     @click="viewProduct(product.id)"
-                    class="p-2 text-[var(--color-icon)] hover:text-gray-300 hover:bg-gray-500/10 rounded-lg transition-all duration-150"
+                    class="p-2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:bg-gray-500/10 rounded-lg transition-all duration-150"
                     title="View details"
                   >
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -232,7 +232,7 @@
                   </button>
                   <button
                     @click="duplicateProduct(product.id)"
-                    class="p-2 text-[var(--color-icon)] hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-all duration-150"
+                    class="p-2 text-[var(--text-secondary)] hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-all duration-150"
                     title="Duplicate product"
                   >
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -242,7 +242,7 @@
                   </button>
                   <button
                     @click="deleteProduct(product.id)"
-                    class="p-2 text-[var(--color-icon)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-150"
+                    class="p-2 text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-150"
                     title="Delete product"
                   >
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -553,7 +553,7 @@ img:hover {
 
 /* Button focus states */
 button:focus {
-  outline: 2px solid var(--primary-color);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
