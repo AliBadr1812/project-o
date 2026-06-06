@@ -224,7 +224,9 @@ export function validateFile(
       if (type.startsWith('.')) {
         return `.${fileExtension}` === type;
       }
-      return fileType.startsWith(type.split('/')[0]);
+      // split may yield an array with no element when strict index checks
+      const mainType = type.split('/')[0] ?? '';
+      return fileType.startsWith(mainType);
     });
 
     if (!isTypeValid) {
@@ -315,6 +317,8 @@ export function validateForm<T extends Record<string, unknown>>(
   Object.keys(rules).forEach(field => {
     const value = data[field];
     const fieldRules = rules[field];
+
+    if (!fieldRules) return;
 
     // Required validation
     if (fieldRules.required) {

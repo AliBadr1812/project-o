@@ -155,7 +155,7 @@ export function formatOrderNumber(orderId: number | string | null | undefined): 
  */
 export function formatSku(sku: string | null | undefined): string {
   if (!sku) return '';
-  return sku.toUpperCase();
+  return `SKU-${sku.toUpperCase()}`;
 }
 
 /**

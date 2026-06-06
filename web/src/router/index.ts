@@ -6,6 +6,12 @@ import OrderList from '@/views/orders/OrderList.vue';
 import CustomerList from '@/views/customers/CustomerList.vue';
 import AnalyticsDashboard from '@/views/analytics/AnalyticsDashboard.vue';
 import Settings from '@/views/settings/GeneralSettings.vue';
+import OrderDetail from '@/views/orders/OrderDetail.vue';
+import ProductDetail from '@/views/products/ProductDetail.vue';
+import CategoryList from '@/views/categories/CategoryList.vue';
+import UserProfile from '@/views/settings/UserProfile.vue';
+import CustomerDetail from '@/views/customers/CustomerDetail.vue';
+import CategoryForm from '@/views/categories/CategoryForm.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,61 +19,167 @@ const router = createRouter({
     {
     path: '/',
     redirect: '/dashboard'
-  },
+    },
   // {
   //   path: '/login',
   //   name: 'Login',
   //   component: Login,
   //   meta: { public: true }
   // },
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: Dashboard,
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/products',
-    name: 'Products',
-    component: ProductList,
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/products/new',
-    name: 'NewProduct',
-    component: ProductForm,
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/products/:id/edit',
-    name: 'EditProduct',
-    component: ProductForm,
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/orders',
-    name: 'Orders',
-    component: OrderList,
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/customers',
-    name: 'Customers',
-    component: CustomerList,
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/analytics',
-    name: 'Analytics',
-    component: AnalyticsDashboard,
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/settings',
-    name: 'Settings',
-    component: Settings,
-    meta: { requiresAuth: false }
-  }
+    {
+      path: '/dashboard',
+      name: 'Dashboard',
+      component: Dashboard,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Dashboard'
+      }
+    },
+    {
+      path: '/products',
+      name: 'Products',
+      component: ProductList,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Products'
+      }
+    },
+    {
+      path: '/products/create',
+      name: 'CreateProduct',
+      component: ProductForm,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'New',
+        parent: {
+          path: '/products',
+          name: 'Products'
+        }
+      }
+    },
+    {
+      path: '/products/:id',
+      name: 'ProductDetail',
+      component: ProductDetail,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Product Detail',
+        parent: {
+          path: '/products',
+          name: 'Products'
+        }
+      }
+    },
+    {
+      path: '/products/:id/edit',
+      name: 'EditProduct',
+      component: ProductForm,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Edit Product',
+        parent: {
+          path: '/products/:id',
+          name: 'ProductDetail'
+        }
+      }
+    },
+    {
+      path: '/orders',
+      name: 'Orders',
+      component: OrderList,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Orders'
+      }
+    },
+    {
+      path: '/customers',
+      name: 'Customers',
+      component: CustomerList,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Customers'
+      }
+    },
+    {
+      path: '/customers/:id',
+      name: 'CustomerDetail',
+      component: CustomerDetail,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Customer Detail',
+        parent: {
+          path: '/customers',
+          name: 'Customer'
+        }
+      }
+    },
+    {
+      path: '/analytics',
+      name: 'Analytics',
+      component: AnalyticsDashboard,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Analytics'
+      }
+    },
+    {
+      path: '/settings',
+      name: 'Settings',
+      component: Settings,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Settings',
+      }
+    },
+    {
+      path: '/settings/profile',
+      name: 'UserProfile',
+      component: UserProfile,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'User Profile',
+        parent: {
+          path: '/settings',
+          name: 'Settings'
+        }
+      }
+    },
+    {
+      path: '/order/:orderId',
+      name: 'OrderDetails',
+      component: OrderDetail,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Order Details',
+        parent: {
+          path: '/orders',
+          name: 'Orders'
+        }
+      }
+    },
+    {
+      path: '/categories',
+      name: 'Categories',
+      component: CategoryList,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Categories'
+      }
+    },
+    {
+        path: '/categories/create',
+        name: 'CreateCategory',
+        component: CategoryForm,
+        meta: {
+            requiresAuth: false,
+            breadcrumb: 'Create Category',
+            parent: {
+                path: '/categories',
+                name: 'Categories'
+            }
+        }
+    }
   ],
 })
 
