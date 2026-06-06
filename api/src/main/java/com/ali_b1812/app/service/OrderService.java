@@ -3,13 +3,12 @@ package com.ali_b1812.app.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.ali_b1812.app.dto.mapper.OrderMapper;
 import com.ali_b1812.app.dto.request.CreateOrderRequest;
 import com.ali_b1812.app.dto.response.OrderResponse;
+import com.ali_b1812.app.mockdata.OrderMockData;
 import com.ali_b1812.app.model.entity.Order;
-import com.ali_b1812.app.repository.OrderRepository;
 import com.ali_b1812.app.service.interfaces.IOrderService;
 
 import lombok.RequiredArgsConstructor;
@@ -18,16 +17,16 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
-public class OrderService implements IOrderService{
-    private final OrderRepository orderRepository;
+public class OrderService implements IOrderService {
+
+    private final OrderMockData orderMockData;
     private final OrderMapper orderMapper;
     private final AuditLoggerService auditLogger;
 
     @Override
     public OrderResponse getOrderById(Long id) {
         log.info("Fetching order with ID: {}", id);
-        Order order = orderRepository.findById(id)
+        Order order = orderMockData.getOrderById(id)
             .orElseThrow(() -> new RuntimeException("Order not found with ID: " + id));
 
         auditLogger.logOrderActivity(
@@ -46,7 +45,7 @@ public class OrderService implements IOrderService{
     @Override
     public List<OrderResponse> getAllOrders() {
         log.info("Fetching all orders");
-        List<Order> orders = orderRepository.findAll();
+        List<Order> orders = orderMockData.getAllOrders();
 
         auditLogger.logOrderActivity(
             "GET_ALL_ORDERS",
@@ -65,7 +64,7 @@ public class OrderService implements IOrderService{
     public OrderResponse createOrder(CreateOrderRequest request, Long userId) {
         log.info("Creating new order for customer");
         Order order = orderMapper.toEntity(request);
-        Order savedOrder = orderRepository.save(order);
+        Order savedOrder = orderMockData.saveOrder(order);
 
         auditLogger.logOrderActivity(
             "CREATE_ORDER",

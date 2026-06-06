@@ -38,6 +38,12 @@ public class OrderResponse {
     @Schema(description = "ID of the linked Customer record, if any", example = "1")
     private Long customerId;
 
+    @Schema(description = "Order items")
+    private List<OrderItemResponse> items;
+
+    @Schema(description = "Shipping address")
+    private ShippingAddressResponse shippingAddress;
+
     @Schema(description = "Order subtotal before tax and shipping", example = "180.00")
     private Double subtotal;
 
@@ -67,4 +73,51 @@ public class OrderResponse {
 
     @Schema(description = "Order delivery timestamp")
     private LocalDateTime deliveredAt;
+
+    @Schema(description = "Order notes")
+    private List<OrderNoteResponse> notes;
+
+    // ── Nested response types ──────────────────────────────────────────────
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class OrderItemResponse {
+        private Long id;
+        private String name;
+        private String sku;
+        private Double price;
+        private Integer quantity;
+        private String imageUrl;
+        private Double total;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class ShippingAddressResponse {
+        private String name;
+        private String street;
+        private String city;
+        private String state;
+        private String zipCode;
+        private String country;
+        private String phone;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class OrderNoteResponse {
+        private Long id;
+        private String author;
+        private String content;
+        private LocalDateTime createdAt;
+    }
 }
