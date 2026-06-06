@@ -1,35 +1,21 @@
-# ==============================
-# FRONTEND - Vue 3 + Vite
-# ==============================
-
-# Stage 1: Build
+# ── Stage 1: Build ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Copy package files first (better caching)
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
-# Copy source and build
+# VITE_API_URL is baked into the bundle at build time
+ARG VITE_API_URL=http://localhost:8081/api
+ENV VITE_API_URL=${VITE_API_URL}
+
 COPY . .
 RUN npm run build
 
-# ==============================
-# Stage 2: Production server
-# ==============================
-FROM nginx:alpine
-
-# Copy built assets from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Remove default nginx website
-RUN rm -rf /usr/share/nginx/html/*
-
-# Expose port
-EXPOSE 80
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# ── Stage 2: Serve ───────────────────────────────────────────────────────────
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=build /app/dist ./dist
+RUN npm install -g http-server
+EXPOSE 5173
+CMD ["sh", "-c", "http-server -p ${PORT:-5173} ./dist"]
