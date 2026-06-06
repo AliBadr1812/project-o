@@ -1,192 +1,146 @@
 <template>
-  <div class="analytics-dashboard">
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Analytics Dashboard</h1>
-      <p class="text-gray-600 mt-1">Track your business performance and metrics</p>
+  <div class="analytics-dashboard gap-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between pb-5">
+      <div>
+        <h1 class="text-2xl font-bold text-white">Analytics Dashboard</h1>
+        <p class="text-[var(--color-icon)]">Track your business performance and metrics</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <Button class="text-[var(--color-gray-400)] active:text-[var(--color-white)]" variant="outline" size="sm" @click="handleRefresh">
+            <i class="fas fa-sync-alt fa-1x mr-1"></i>
+            Refresh
+        </Button>
+        <Button class="flex items-center gap-2 px-4 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200" variant="outline" size="sm" @click="handleExport">
+            <i class="fas fa-arrow-up-from-bracket fa-1x mr-1"></i>
+            Export
+        </Button>
+      </div>
     </div>
 
-    <div class="mb-6">
-      <Card>
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-0">
-          <div class="flex items-center gap-4">
-            <Button
-              :variant="timeRange === 'today' ? 'primary' : 'outline'"
-              size="sm"
-              @click="timeRange = 'today'"
-            >
-              Today
-            </Button>
-            <Button
-              :variant="timeRange === 'week' ? 'primary' : 'outline'"
-              size="sm"
-              @click="timeRange = 'week'"
-            >
-              This Week
-            </Button>
-            <Button
-              :variant="timeRange === 'month' ? 'primary' : 'outline'"
-              size="sm"
-              @click="timeRange = 'month'"
-            >
-              This Month
-            </Button>
-            <Button
-              :variant="timeRange === 'year' ? 'primary' : 'outline'"
-              size="sm"
-              @click="timeRange = 'year'"
-            >
-              This Year
-            </Button>
-          </div>
-          <div class="flex items-center gap-2">
-            <input
-              type="date"
-              v-model="dateRange.start"
-              class="border border-gray-300 rounded-lg px-3 py-1 text-sm"
-            />
-            <span class="text-gray-500">to</span>
-            <input
-              type="date"
-              v-model="dateRange.end"
-              class="border border-gray-300 rounded-lg px-3 py-1 text-sm"
-            />
-            <Button variant="outline" size="sm" @click="applyCustomDate">
-              Apply
-            </Button>
-          </div>
-        </div>
-      </Card>
-    </div>
-
-    <!-- Overview Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-      <Card class="hover:shadow-lg transition-shadow">
-        <div class="flex items-center">
-          <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mr-4">
-            <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
-          </div>
-          <div>
-            <p class="text-sm text-gray-600">Total Sales</p>
-            <p class="text-2xl font-bold text-gray-800">
-              {{ formatCurrency(overview.totalSales) }}
-            </p>
-            <p
-              :class="overview.salesGrowth >= 0 ? 'text-green-600' : 'text-red-600'"
-              class="text-sm"
-            >
-              <i
-                :class="overview.salesGrowth >= 0 ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"
-                class="mr-1"
-              ></i>
-              {{ Math.abs(overview.salesGrowth) }}% from previous period
-            </p>
-          </div>
-        </div>
-      </Card>
-
-      <Card class="hover:shadow-lg transition-shadow">
-        <div class="flex items-center">
-          <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center mr-4">
-            <i class="fas fa-box text-green-600 text-xl"></i>
-          </div>
-          <div>
-            <p class="text-sm text-gray-600">Orders</p>
-            <p class="text-2xl font-bold text-gray-800">
-              {{ overview.totalOrders }}
-            </p>
-            <p class="text-sm text-gray-600">
-              {{ overview.avgOrderValue }} avg. value
-            </p>
-          </div>
-        </div>
-      </Card>
-
-      <Card class="hover:shadow-lg transition-shadow">
-        <div class="flex items-center">
-          <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center mr-4">
-            <i class="fas fa-users text-purple-600 text-xl"></i>
-          </div>
-          <div>
-            <p class="text-sm text-gray-600">Customers</p>
-            <p class="text-2xl font-bold text-gray-800">
-              {{ overview.totalCustomers }}
-            </p>
-            <p
-              :class="overview.newCustomers >= 0 ? 'text-green-600' : 'text-red-600'"
-              class="text-sm"
-            >
-              +{{ overview.newCustomers }} new
-            </p>
-          </div>
-        </div>
-      </Card>
-
-      <Card class="hover:shadow-lg transition-shadow">
-        <div class="flex items-center">
-          <div class="w-12 h-12 rounded-lg bg-yellow-100 flex items-center justify-center mr-4">
-            <i class="fas fa-eye text-yellow-600 text-xl"></i>
-          </div>
-          <div>
-            <p class="text-sm text-gray-600">Conversion Rate</p>
-            <p class="text-2xl font-bold text-gray-800">
-              {{ overview.conversionRate }}%
-            </p>
-            <p class="text-sm text-gray-600">
-              {{ overview.visitors }} visitors
-            </p>
-          </div>
-        </div>
-      </Card>
-    </div>
-
-    <!-- Charts and Graphs -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      <!-- Sales Chart -->
-      <Card>
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-lg font-semibold text-gray-800">Sales Trend</h3>
-          <select
-            v-model="salesChartType"
-            class="border border-gray-300 rounded-lg px-3 py-1 text-sm"
+    <!-- Time Range Selector -->
+    <Card class="mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4">
+        <div class="flex items-center gap-2">
+          <Button
+            v-for="range in timeRanges"
+            class="text-[var(--color-gray-400)] active:text-[var(--color-white)]"
+            :key="range.value"
+            :variant="timeRange === range.value ? 'primary' : 'outline'"
+            size="sm"
+            @click="setTimeRange(range.value)"
           >
-            <option value="line">Line Chart</option>
-            <option value="bar">Bar Chart</option>
-          </select>
+            {{ range.label }}
+          </Button>
         </div>
-        <div class="h-64 flex items-center justify-center">
-          <!-- Chart would be implemented with Chart.js or similar -->
-          <div class="text-center text-gray-500">
-            <i class="fas fa-chart-line text-4xl mb-3"></i>
-            <p>Sales chart visualization</p>
+        <div class="flex items-center gap-2">
+          <input
+            type="date"
+            v-model="customDateRange.start"
+            class="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-icon)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            :max="customDateRange.end"
+          />
+          <span class="text-[var(--color-icon)]">to</span>
+          <input
+            type="date"
+            v-model="customDateRange.end"
+            class="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-icon)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            :min="customDateRange.start"
+            :max="today"
+          />
+          <Button
+            variant="outline"
+            class="flex items-center px-3 py-1.5 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            size="sm"
+            @click="applyCustomDate"
+            :disabled="!isCustomDateValid"
+          >
+            Apply
+          </Button>
+        </div>
+      </div>
+    </Card>
+
+    <!-- Stats Bar -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <Card v-for="metric in metrics" :key="metric.key" class="p-5 cursor-pointer hover:bg-[var(--color-hover)] transition-all duration-200 hover:translate-y-[-2px]">
+        <div class="flex items-center justify-between mb-4">
+          <div :class="['w-12 h-12 rounded-lg flex items-center justify-center', metric.iconBg]">
+            <i :class="[metric.icon, metric.iconColor, 'text-xl']"></i>
+          </div>
+          <div :class="['text-sm flex items-center px-2 py-1 rounded-full', metric.trendBg]">
+            <i v-if="metric.trend > 0" class="fas fa-arrow-up fa-2xs text-green-500 mr-1"></i>
+            <i v-else class="fas fa-arrow-down fa-2xs text-red-500 mr-1"></i>
+            {{ Math.abs(metric.trend) }}%
+          </div>
+        </div>
+        <p class="text-sm font-medium text-[var(--color-icon)] mb-1">{{ metric.label }}</p>
+        <p class="text-2xl font-bold text-white mb-2">{{ formatMetricValue(metric) }}</p>
+        <p class="text-xs text-[var(--color-icon)]">{{ metric.subtext }}</p>
+      </Card>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <!-- Sales Chart -->
+      <Card class="lg:col-span-2">
+        <div class="border-b border-[var(--color-border)] px-6 py-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-semibold text-white">Sales Trend</h2>
+              <p class="text-sm text-[var(--color-icon)]">Revenue over time</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <select
+                v-model="salesChartType"
+                class="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-icon)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="line">Line Chart</option>
+                <option value="bar">Bar Chart</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="p-6">
+          <div class="h-72 flex items-center justify-center">
+            <canvas id="salesChart"></canvas>
           </div>
         </div>
       </Card>
 
       <!-- Revenue by Category -->
       <Card>
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-lg font-semibold text-gray-800">Revenue by Category</h3>
-          <Button variant="ghost" size="sm">
-            <i class="fas fa-download"></i>
-          </Button>
+        <div class="border-b border-[var(--color-border)] px-6 py-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-semibold text-white">Revenue by Category</h2>
+              <p class="text-sm text-[var(--color-icon)]">Distribution across categories</p>
+            </div>
+            <Button variant="ghost" size="sm" @click="exportCategories">
+              <i class="fas fa-download"></i>
+            </Button>
+          </div>
         </div>
-        <div class="h-64">
-          <div v-if="categoryRevenue.length === 0" class="h-full flex items-center justify-center">
-            <div class="text-center text-gray-500">
-              <i class="fas fa-chart-pie text-4xl mb-3"></i>
-              <p>No category revenue data available</p>
+        <div class="p-4">
+          <div v-if="categoryRevenue.length === 0" class="h-64 flex items-center justify-center">
+            <div class="text-center text-[var(--color-icon)]">
+              <svg class="w-12 h-12 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/>
+                <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/>
+              </svg>
+              <p>No data available</p>
             </div>
           </div>
-          <div v-else class="gap-3">
-            <div v-for="item in categoryRevenue" :key="item.category" class="gap-1">
-              <div class="flex justify-between">
-                <span class="text-sm text-gray-700">{{ item.category }}</span>
-                <span class="text-sm font-medium">{{ formatCurrency(item.revenue) }}</span>
+          <div v-else class="space-y-4">
+            <div v-for="item in categoryRevenue" :key="item.category" class="space-y-1">
+              <div class="flex justify-between text-sm">
+                <span class="text-[var(--color-icon)]">{{ item.category }}</span>
+                <span class="text-white font-medium">{{ formatCurrency(item.revenue) }}</span>
               </div>
-              <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
                 <div
                   :style="{ width: item.percentage + '%' }"
-                  class="h-full bg-blue-600"
+                  class="h-full bg-blue-500 rounded-full transition-all duration-500"
                 ></div>
               </div>
             </div>
@@ -199,42 +153,55 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Top Products -->
       <Card>
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Products</h3>
+        <div class="border-b border-[var(--color-border)] px-6 py-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-semibold text-white">Top Products</h2>
+              <p class="text-sm text-[var(--color-icon)]">Best selling products</p>
+            </div>
+            <router-link to="/products" class="text-sm text-blue-500 hover:text-blue-400 transition-colors">
+              View all
+            </router-link>
+          </div>
+        </div>
         <Table>
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Sales</th>
-              <th>Revenue</th>
-              <th>Stock</th>
+          <template #header>
+            <tr class="bg-[var(--color-card)] text-[var(--color-icon)]">
+              <th class="py-3 px-6 text-left">Product</th>
+              <th class="py-3 px-6 text-left">Sales</th>
+              <th class="py-3 px-6 text-left">Revenue</th>
+              <th class="py-3 px-6 text-left">Stock</th>
             </tr>
-          </thead>
-          <tbody>
-            <tr v-for="product in topProducts" :key="product.id">
-              <td>
-                <div class="flex items-center">
-                  <img
-                    v-if="product.image"
-                    :src="product.image"
-                    :alt="product.name"
-                    class="w-8 h-8 rounded mr-3 object-cover"
-                  />
-                  <span class="font-medium">{{ product.name }}</span>
+          </template>
+          <template #body>
+            <tr v-for="product in topProducts" :key="product.id" class="hover:bg-[var(--color-card)]">
+              <td class="py-3 px-6">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"/>
+                      <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="font-medium text-white text-sm">{{ product.name }}</p>
+                    <p class="text-xs text-[var(--color-icon)]">{{ product.category }}</p>
+                  </div>
                 </div>
               </td>
-              <td>{{ product.sales }}</td>
-              <td>{{ formatCurrency(product.revenue) }}</td>
-              <td>
+              <td class="py-3 px-6 text-white">{{ product.sales }}</td>
+              <td class="py-3 px-6 text-white">{{ formatCurrency(product.revenue) }}</td>
+              <td class="py-3 px-6">
                 <Badge
-                  :variant="product.stock > 10 ? 'success' : product.stock > 0 ? 'warning' : 'danger'"
+                  :variant="product.stock > 20 ? 'success' : product.stock > 5 ? 'warning' : 'danger'"
                 >
                   {{ product.stock }} left
                 </Badge>
               </td>
             </tr>
-          </tbody>
+          </template>
         </Table>
-        <div class="mt-4 text-right">
+        <div class="border-t border-[var(--color-border)] px-6 py-3 text-right">
           <Button variant="ghost" size="sm" @click="viewAllProducts">
             View All Products
           </Button>
@@ -243,50 +210,731 @@
 
       <!-- Recent Orders -->
       <Card>
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Orders</h3>
-        <div class="gap-4">
+        <div class="border-b border-[var(--color-border)] px-6 py-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-semibold text-white">Recent Orders</h2>
+              <p class="text-sm text-[var(--color-icon)]">Latest customer orders</p>
+            </div>
+            <router-link to="/orders" class="text-sm text-blue-500 hover:text-blue-400 transition-colors">
+              View all
+            </router-link>
+          </div>
+        </div>
+        <div class="divide-y divide-[var(--color-border)]">
           <div
             v-for="order in recentOrders"
             :key="order.id"
-            class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg"
+            class="flex items-center justify-between p-4 hover:bg-[var(--color-card)] transition-colors cursor-pointer"
+            @click="goToOrder(order.id)"
           >
-            <div>
-              <p class="font-medium">Order #{{ order.id }}</p>
-              <p class="text-sm text-gray-600">{{ order.customerName }}</p>
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-medium"
+                :style="{ background: `linear-gradient(135deg, ${stringToColor(order.customerName)}, ${stringToColor(order.customerName + '2')})` }"
+              >
+                {{ getInitials(order.customerName) }}
+              </div>
+              <div>
+                <p class="font-medium text-white text-sm">Order #{{ order.id }}</p>
+                <p class="text-xs text-[var(--color-icon)]">{{ order.customerName }}</p>
+              </div>
             </div>
             <div class="text-right">
-              <p class="font-medium">{{ formatCurrency(order.amount) }}</p>
+              <p class="font-medium text-white text-sm">{{ formatCurrency(order.amount) }}</p>
               <Badge :variant="getOrderStatusVariant(order.status)">
                 {{ order.status }}
               </Badge>
             </div>
           </div>
         </div>
-        <div class="mt-4 text-right">
-          <Button variant="ghost" size="sm" @click="viewAllOrders">
-            View All Orders
-          </Button>
-        </div>
       </Card>
     </div>
 
-    <!-- Geographic Data -->
+    <!-- Geographic Distribution -->
     <Card class="mt-6">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">Geographic Distribution</h3>
-      <div class="h-48 flex items-center justify-center">
-        <div class="text-center text-gray-500">
-          <i class="fas fa-globe-americas text-4xl mb-3"></i>
-          <p>Map visualization of customer locations</p>
+      <div class="border-b border-[var(--color-border)] px-6 py-4">
+        <h2 class="text-lg font-semibold text-white">Geographic Distribution</h2>
+        <p class="text-sm text-[var(--color-icon)]">Customer locations by region</p>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div>
+                <GeoMap :regions="mapRegions" />
+            </div>
+          <div class="space-y-4">
+            <h3 class="text-sm font-medium text-[var(--color-icon)] mb-3">Top Regions</h3>
+            <div v-for="region in topRegions" :key="region.name" class="space-y-1">
+              <div class="flex justify-between text-sm">
+                <span class="text-[var(--color-icon)]">{{ region.name }}</span>
+                <span class="text-white font-medium">{{ region.percentage }}%</span>
+              </div>
+              <div class="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                <div
+                  :style="{ width: region.percentage + '%' }"
+                  class="h-full bg-blue-500 rounded-full transition-all duration-500"
+                ></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </Card>
   </div>
 </template>
+
 <script setup lang="ts">
+import { ref, reactive, computed, onMounted, watch, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 import Button from '@/components/ui/Button.vue';
 import Card from '@/components/ui/Card.vue';
 import Table from '@/components/ui/Table.vue';
 import Badge from '@/components/ui/Badge.vue';
-import { formatCurrency } from '@/utils/formatters';
+import { formatCurrency, getInitials } from '@/utils/formatters';
+import Chart from 'chart.js/auto';
+import GeoMap from './GeoMap.vue';
 
+const router = useRouter();
+
+// Types
+interface Metric {
+  key: string;
+  label: string;
+  value: number;
+  trend: number;
+  subtext: string;
+  icon: string;
+  iconBg: string;
+  iconColor: string;
+  trendBg: string;
+  format?: 'currency' | 'number' | 'percent';
+}
+
+interface CategoryRevenue {
+  category: string;
+  revenue: number;
+  percentage: number;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  category: string;
+  revenue: number;
+  sales: number;
+  stock: number;
+}
+
+interface Order {
+  id: string;
+  customerName: string;
+  date: string;
+  amount: number;
+  status: 'completed' | 'processing' | 'pending' | 'shipped' | 'cancelled';
+}
+
+interface Region {
+  name: string;
+  percentage: number;
+  revenue: number;
+}
+
+// Helper functions for dates (replacing date-fns)
+function formatDateForInput(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getTodayFormatted(): string {
+  return formatDateForInput(new Date());
+}
+
+function getDaysAgoFormatted(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return formatDateForInput(date);
+}
+
+function parseDate(dateString: string): Date {
+  return new Date(dateString + 'T00:00:00');
+}
+
+function isDateAfter(date1: string, date2: string): boolean {
+  return parseDate(date1) > parseDate(date2);
+}
+
+// Time range options
+const timeRanges = [
+  { label: 'Today', value: 'today' },
+  { label: 'This Week', value: 'week' },
+  { label: 'This Month', value: 'month' },
+  { label: 'This Year', value: 'year' }
+] as const;
+
+type TimeRange = 'today' | 'week' | 'month' | 'year' | 'custom';
+
+// State
+const timeRange = ref<TimeRange>('month');
+const salesChartType = ref<'line' | 'bar'>('line');
+const loading = ref(false);
+const customDateRange = reactive({
+  start: getDaysAgoFormatted(30),
+  end: getTodayFormatted()
+});
+
+// Computed
+const today = computed(() => getTodayFormatted());
+const isCustomDateValid = computed(() => {
+  return customDateRange.start && customDateRange.end && customDateRange.start <= customDateRange.end;
+});
+
+// Metrics data
+const metrics = computed<Metric[]>(() => {
+  const multiplier = getTimeMultiplier();
+
+  return [
+    {
+      key: 'totalSales',
+      label: 'Total Sales',
+      value: 152489.67 * multiplier,
+      trend: 12.5,
+      subtext: 'vs previous period',
+      icon: 'fas fa-shopping-cart',
+      iconBg: 'bg-blue-500/10',
+      iconColor: 'text-blue-500',
+      trendBg: 'text-green-500 bg-green-500/10',
+      format: 'currency'
+    },
+    {
+      key: 'totalOrders',
+      label: 'Total Orders',
+      value: 1242 * multiplier,
+      trend: 8.2,
+      subtext: `Avg order: ${formatCurrency(74.53)}`,
+      icon: 'fas fa-box',
+      iconBg: 'bg-green-500/10',
+      iconColor: 'text-green-500',
+      trendBg: 'text-green-500 bg-green-500/10',
+      format: 'number'
+    },
+    {
+      key: 'totalCustomers',
+      label: 'Active Customers',
+      value: 2432 * multiplier,
+      trend: 15.3,
+      subtext: `+${Math.round(128 * multiplier)} new this month`,
+      icon: 'fas fa-users',
+      iconBg: 'bg-purple-500/10',
+      iconColor: 'text-purple-500',
+      trendBg: 'text-green-500 bg-green-500/10',
+      format: 'number'
+    },
+    {
+      key: 'conversionRate',
+      label: 'Conversion Rate',
+      value: 3.2,
+      trend: -2.1,
+      subtext: `From ${Math.round(76025 * multiplier)} visitors`,
+      icon: 'fas fa-eye',
+      iconBg: 'bg-yellow-500/10',
+      iconColor: 'text-yellow-500',
+      trendBg: 'text-red-500 bg-red-500/10',
+      format: 'percent'
+    }
+  ];
+});
+
+// Add to script setup
+const mapRegions = computed(() => [
+  {
+    name: 'North America',
+    coordinates: [40, -100] as [number, number], // Approximate center
+    revenue: 45230 * getTimeMultiplier(),
+    orders: 342,
+    percentage: 45
+  },
+  {
+    name: 'Europe',
+    coordinates: [50, 10] as [number, number],
+    revenue: 28900 * getTimeMultiplier(),
+    orders: 218,
+    percentage: 28
+  },
+  {
+    name: 'Asia Pacific',
+    coordinates: [20, 100] as [number, number],
+    revenue: 18500 * getTimeMultiplier(),
+    orders: 156,
+    percentage: 18
+  },
+  {
+    name: 'Latin America',
+    coordinates: [-15, -60] as [number, number],
+    revenue: 6500 * getTimeMultiplier(),
+    orders: 52,
+    percentage: 6
+  },
+  {
+    name: 'Middle East',
+    coordinates: [25, 45] as [number, number],
+    revenue: 3200 * getTimeMultiplier(),
+    orders: 28,
+    percentage: 3
+  }
+]);
+
+// Category revenue data
+const categoryRevenue = computed<CategoryRevenue[]>(() => {
+  const multiplier = getTimeMultiplier();
+  const data = [
+    { category: 'Electronics', revenue: 45230 * multiplier },
+    { category: 'Furniture', revenue: 32180 * multiplier },
+    { category: 'Clothing', revenue: 28450 * multiplier },
+    { category: 'Food & Drink', revenue: 19890 * multiplier },
+    { category: 'Books', revenue: 12450 * multiplier }
+  ];
+
+  const total = data.reduce((sum, item) => sum + item.revenue, 0);
+
+  return data.map(item => ({
+    ...item,
+    percentage: Math.round((item.revenue / total) * 100)
+  })).sort((a, b) => b.revenue - a.revenue);
+});
+
+// Top products
+const topProducts = computed<Product[]>(() => {
+  const multiplier = getTimeMultiplier();
+  return [
+    { id: 1, name: 'Wireless Earbuds Pro', category: 'Electronics', revenue: 12450 * multiplier, sales: Math.round(89 * multiplier), stock: 45 },
+    { id: 2, name: 'Ergonomic Office Chair', category: 'Furniture', revenue: 8999 * multiplier, sales: Math.round(23 * multiplier), stock: 12 },
+    { id: 3, name: 'Organic Coffee Beans', category: 'Food & Drink', revenue: 7245 * multiplier, sales: Math.round(178 * multiplier), stock: 234 },
+    { id: 4, name: 'Fitness Tracker Watch', category: 'Wearables', revenue: 6120 * multiplier, sales: Math.round(56 * multiplier), stock: 78 },
+    { id: 5, name: 'Designer Backpack', category: 'Accessories', revenue: 4590 * multiplier, sales: Math.round(34 * multiplier), stock: 23 }
+  ].sort((a, b) => b.revenue - a.revenue);
+});
+
+// Recent orders
+const recentOrders = computed<Order[]>(() => {
+  const baseOrders: Order[] = [
+    { id: '7842', customerName: 'Alex Johnson', date: '2024-01-15', amount: 124.99, status: 'completed' },
+    { id: '7841', customerName: 'Maria Garcia', date: '2024-01-15', amount: 89.50, status: 'completed' },
+    { id: '7840', customerName: 'David Chen', date: '2024-01-14', amount: 245.75, status: 'processing' },
+    { id: '7839', customerName: 'Sarah Williams', date: '2024-01-14', amount: 67.25, status: 'completed' },
+    { id: '7838', customerName: 'James Wilson', date: '2024-01-13', amount: 189.99, status: 'pending' },
+    { id: '7837', customerName: 'Lisa Anderson', date: '2024-01-13', amount: 320.50, status: 'shipped' }
+  ];
+
+  if (timeRange.value === 'custom' && customDateRange.start && customDateRange.end) {
+    return baseOrders.filter(order => {
+      return isDateAfter(order.date, customDateRange.start) &&
+             isDateAfter(customDateRange.end, order.date);
+    });
+  }
+
+  return baseOrders;
+});
+
+// Top regions
+const topRegions = computed<Region[]>(() => {
+  const multiplier = getTimeMultiplier();
+  return [
+    { name: 'North America', revenue: 45230 * multiplier, percentage: 45 },
+    { name: 'Europe', revenue: 28900 * multiplier, percentage: 28 },
+    { name: 'Asia Pacific', revenue: 18500 * multiplier, percentage: 18 },
+    { name: 'Latin America', revenue: 6500 * multiplier, percentage: 6 },
+    { name: 'Middle East', revenue: 3200 * multiplier, percentage: 3 }
+  ];
+});
+
+// Chart data
+// Chart data
+const salesChartData = computed(() => {
+  const multiplier = getTimeMultiplier();
+
+  const ranges = {
+    today: {
+      labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+      data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 1000) + 500)
+    },
+    week: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      data: [3200, 4200, 3800, 4500, 5200, 6100, 5800].map(v => v * multiplier)
+    },
+    month: {
+      labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
+      data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 2000) + 1000)
+    },
+    year: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      data: [12500, 14200, 13800, 15400, 16800, 17200, 18900, 19500, 18200, 17600, 19200, 20800].map(v => v * multiplier)
+    }
+  };
+
+  // Handle custom range by using month data as default
+  if (timeRange.value === 'custom') {
+    return {
+      labels: ranges.month.labels,
+      datasets: [{
+        label: 'Revenue',
+        data: ranges.month.data,
+        borderColor: '#3B82F6',
+        backgroundColor: salesChartType.value === 'line'
+          ? 'rgba(59, 130, 246, 0.1)'
+          : 'rgba(59, 130, 246, 0.8)',
+        fill: salesChartType.value === 'line',
+        tension: 0.4,
+        borderWidth: 2,
+        pointBackgroundColor: '#3B82F6',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 3,
+        pointHoverRadius: 5
+      }]
+    };
+  }
+
+  const range = ranges[timeRange.value];
+
+  return {
+    labels: range.labels,
+    datasets: [{
+      label: 'Revenue',
+      data: range.data,
+      borderColor: '#3B82F6',
+      backgroundColor: salesChartType.value === 'line'
+        ? 'rgba(59, 130, 246, 0.1)'
+        : 'rgba(59, 130, 246, 0.8)',
+      fill: salesChartType.value === 'line',
+      tension: 0.4,
+      borderWidth: 2,
+      pointBackgroundColor: '#3B82F6',
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 3,
+      pointHoverRadius: 5
+    }]
+  };
+});
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      display: false
+    },
+    tooltip: {
+      backgroundColor: 'rgba(17, 24, 39, 0.95)',
+      titleColor: '#ffffff',
+      bodyColor: '#D1D5DB',
+      borderColor: '#374151',
+      borderWidth: 1,
+      cornerRadius: 6,
+      displayColors: false,
+      callbacks: {
+        label: (context: any) => `$${context.parsed.y.toLocaleString()}`
+      }
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      grid: {
+        color: 'rgba(255, 255, 255, 0.05)'
+      },
+      ticks: {
+        color: 'rgba(255, 255, 255, 0.6)',
+        callback: (value: any) => '$' + value.toLocaleString()
+      }
+    },
+    x: {
+      grid: {
+        color: 'rgba(255, 255, 255, 0.05)'
+      },
+      ticks: {
+        color: 'rgba(255, 255, 255, 0.6)'
+      }
+    }
+  }
+};
+
+let chart: Chart | null = null;
+
+// Helper functions
+function getTimeMultiplier(): number {
+  const multipliers = {
+    today: 0.1,
+    week: 0.5,
+    month: 1,
+    year: 12,
+    custom: 1
+  };
+  return multipliers[timeRange.value] || 1;
+}
+
+function formatMetricValue(metric: Metric): string {
+  const value = metric.value;
+
+  switch (metric.format) {
+    case 'currency':
+      return formatCurrency(value);
+    case 'percent':
+      return value.toFixed(1) + '%';
+    default:
+      return Math.round(value).toLocaleString();
+  }
+}
+
+function stringToColor(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = hash % 360;
+  return `hsl(${hue}, 70%, 50%)`;
+}
+
+function getOrderStatusVariant(status: string): string {
+  switch (status) {
+    case 'completed': return 'success';
+    case 'processing': return 'secondary';
+    case 'shipped': return 'primary';
+    case 'pending': return 'warning';
+    case 'cancelled': return 'danger';
+    default: return 'secondary';
+  }
+}
+
+// Methods
+function setTimeRange(range: TimeRange) {
+  timeRange.value = range;
+  loading.value = true;
+
+  setTimeout(() => {
+    loading.value = false;
+  }, 500);
+}
+
+function applyCustomDate() {
+  if (isCustomDateValid.value) {
+    timeRange.value = 'custom' as TimeRange;
+    setTimeRange('custom' as TimeRange);
+  }
+}
+
+function handleExport() {
+  const data = {
+    metrics: metrics.value,
+    categories: categoryRevenue.value,
+    products: topProducts.value,
+    orders: recentOrders.value,
+    regions: topRegions.value,
+    timeRange: timeRange.value,
+    exportDate: new Date().toISOString()
+  };
+
+  const dataStr = JSON.stringify(data, null, 2);
+  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+
+  const date = new Date();
+  const fileName = `analytics_export_${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}.json`;
+
+  const linkElement = document.createElement('a');
+  linkElement.setAttribute('href', dataUri);
+  linkElement.setAttribute('download', fileName);
+  linkElement.click();
+}
+
+function handleRefresh() {
+  loading.value = true;
+  setTimeout(() => {
+    loading.value = false;
+  }, 500);
+}
+
+function exportCategories() {
+  const dataStr = JSON.stringify(categoryRevenue.value, null, 2);
+  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+
+  const date = new Date();
+  const fileName = `category_revenue_${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}.json`;
+
+  const linkElement = document.createElement('a');
+  linkElement.setAttribute('href', dataUri);
+  linkElement.setAttribute('download', fileName);
+  linkElement.click();
+}
+
+function viewAllProducts() {
+  router.push('/products');
+}
+
+function goToOrder(orderId: string) {
+  router.push(`/orders/${orderId}`);
+}
+
+function updateChart() {
+  if (chart) {
+    chart.destroy();
+    const ctx = document.getElementById('salesChart') as HTMLCanvasElement;
+    if (ctx) {
+      chart = new Chart(ctx, {
+        type: salesChartType.value,
+        data: salesChartData.value,
+        options: chartOptions
+      });
+    }
+  }
+}
+
+// Lifecycle
+onMounted(() => {
+  const ctx = document.getElementById('salesChart') as HTMLCanvasElement;
+  if (ctx) {
+    chart = new Chart(ctx, {
+      type: salesChartType.value,
+      data: salesChartData.value,
+      options: chartOptions
+    });
+  }
+});
+
+onUnmounted(() => {
+  if (chart) {
+    chart.destroy();
+  }
+});
+
+// Watchers
+watch([timeRange, salesChartType], () => {
+  updateChart();
+});
 </script>
+
+<style scoped>
+.analytics-dashboard {
+  min-height: 100vh;
+}
+
+/* Stats card hover effect */
+.hover\:shadow-lg {
+  transition: box-shadow 0.3s ease;
+}
+
+/* Progress bar animations */
+.h-2 > div, .h-1\.5 > div {
+  transition: width 0.5s ease-in-out;
+}
+
+/* Chart container */
+canvas {
+  max-width: 100%;
+  height: auto;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Date input styling */
+input[type="date"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Table styles from CategoryList */
+th {
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+tbody tr {
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+/* Avatar gradient effect from CategoryList */
+.w-10.h-10 {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.w-10.h-10:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Select dropdown styling from CategoryList */
+select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Loading animation */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .gap-6 {
+    gap: 1rem;
+  }
+
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+
+  .p-6 {
+    padding: 1rem;
+  }
+}
+
+/* Smooth transitions */
+button, a, .cursor-pointer {
+  transition: all 0.15s ease-out;
+}
+
+/* Focus styles */
+button:focus-visible, a:focus-visible {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* Disabled state */
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Icon styling from CategoryList */
+.fas {
+  font-size: 0.875rem;
+}
+</style>
