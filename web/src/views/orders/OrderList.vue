@@ -121,7 +121,7 @@
         <Card class="overflow-hidden">
             <div class="px-5 py-4" style="border-bottom: 1px solid var(--glass-border);">
                 <h2 class="text-lg font-semibold text-[var(--text-primary)]">Order History</h2>
-                <p class="text-sm text-[var(--text-secondary)]">Showing {{ paginatedOrders!.length }} of {{ filteredOrders!.length }} orders</p>
+                <p class="text-sm text-[var(--text-secondary)]">Showing {{ paginatedOrders.length }} of {{ filteredOrders.length }} orders</p>
             </div>
 
             <div class="overflow-x-auto">
@@ -322,7 +322,7 @@
             <Pagination
                 :current-page="currentPage"
                 :total-pages="totalPages!"
-                :total-items="filteredOrders!.length"
+                :total-items="filteredOrders.length"
                 :items-per-page="itemsPerPage"
                 @page-change="onPageChange"
             />
@@ -392,8 +392,8 @@ const dateRangeLabel = computed(() => {
 
 // Stats
 const stats = computed(() => {
-    if (!orders.value) {
-        return;
+    if (!orders.value?.length) {
+        return { total: 0, pending: 0, completed: 0, cancelled: 0, totalRevenue: 0, completionRate: 0, cancellationRate: 0 };
     }
     const total = orders.value.length;
     const pending = orders.value.filter(o => o.status === 'pending').length;
@@ -417,10 +417,8 @@ const stats = computed(() => {
 });
 
 // Filtered orders
-const filteredOrders = computed(() => {
-    if (!orders.value) {
-        return;
-    }
+const filteredOrders = computed((): Order[] => {
+    if (!orders.value?.length) return [];
     let filtered = [...orders.value];
 
     // Apply status filter
@@ -484,13 +482,10 @@ const filteredOrders = computed(() => {
 });
 
 // Pagination
-const totalPages = computed(() => {
-    if (!filteredOrders.value) return;
-    return Math.ceil(filteredOrders.value.length / itemsPerPage)
-});
+const totalPages = computed(() => Math.ceil(filteredOrders.value.length / itemsPerPage));
 
-const paginatedOrders = computed(() => {
-    if (!filteredOrders.value) return;
+const paginatedOrders = computed((): Order[] => {
+    if (!filteredOrders.value.length) return [];
     const start = (currentPage.value - 1) * itemsPerPage;
     return filteredOrders.value.slice(start, start + itemsPerPage);
 });
