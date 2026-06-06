@@ -40,7 +40,7 @@ public class UserService implements IUserService {
         log.info("Creating user with username: {}", request.getUsername());
         
         // Check if user exists
-        if (userRepository.existsByUsername(request.getUsername())) {
+        if (userRepository.existsByUserName(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
         
@@ -50,6 +50,7 @@ public class UserService implements IUserService {
         
         // Create user entity
         User user = userMapper.toEntity(request);
+        // Set fields that mapper intentionally defers to service
         user.setHashedPassword(passwordEncoder.encode(request.getPassword()));
         
         // Save user
@@ -93,7 +94,7 @@ public class UserService implements IUserService {
     
     @Override
     public UserResponse getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUserName(username)
             .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
         
         return userMapper.toResponse(user);
@@ -117,7 +118,7 @@ public class UserService implements IUserService {
             // Search filter
             if (search != null && !search.trim().isEmpty()) {
                 String searchPattern = "%" + search.toLowerCase() + "%";
-                Predicate usernamePredicate = cb.like(cb.lower(root.get("username")), searchPattern);
+                Predicate usernamePredicate = cb.like(cb.lower(root.get("userName")), searchPattern);
                 Predicate emailPredicate = cb.like(cb.lower(root.get("email")), searchPattern);
                 Predicate firstNamePredicate = cb.like(cb.lower(root.get("firstName")), searchPattern);
                 Predicate lastNamePredicate = cb.like(cb.lower(root.get("lastName")), searchPattern);
@@ -151,9 +152,9 @@ public class UserService implements IUserService {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("User not found"));
         // Check if new username/email already exists (if being changed)
-        if (request.getUsername() != null && 
-            !request.getUsername().equals(user.getUserName()) && 
-            userRepository.existsByUsername(request.getUsername())) {
+        if (request.getUsername() != null &&
+            !request.getUsername().equals(user.getUserName()) &&
+            userRepository.existsByUserName(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
         
@@ -364,14 +365,10 @@ public class UserService implements IUserService {
     
     @Override
     public Page<UserResponse> getFollowers(Long userId, Pageable pageable) {
-        User user = userRepository.findById(userId)
+        // Verify user exists
+        userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        // In a real app, you'd have a custom repository method for pagination
-        List<User> followers = new ArrayList<>(user.getFollowers());
-        // This is simplified - you should implement proper pagination in repository
-        
-        // Convert to page (simplified)
+
         return userRepository.findByFollowingId(userId, pageable)
             .map(userMapper::toResponse);
     }

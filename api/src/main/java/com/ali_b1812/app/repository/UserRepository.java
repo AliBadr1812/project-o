@@ -14,33 +14,33 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
-    
-    // Basic finders
-    Optional<User> findByUsername(String username);
-    
+
+    // Basic finders — field is 'userName' so derived method is findByUserName
+    Optional<User> findByUserName(String userName);
+
     Optional<User> findByEmail(String email);
-    
-    boolean existsByUsername(String username);
-    
+
+    boolean existsByUserName(String userName);
+
     boolean existsByEmail(String email);
-    
+
     // Count methods
     long countByIsActiveTrue();
-    
+
     long countByRole(UserRole role);
-    
+
     long countByCreatedAtAfter(LocalDateTime date);
-    
+
     // Followers/Following
     @Query("SELECT u FROM User u JOIN u.followers f WHERE f.id = :followerId")
     Page<User> findUsersFollowedBy(@Param("followerId") Long followerId, Pageable pageable);
-    
+
     @Query("SELECT u FROM User u JOIN u.following f WHERE f.id = :followingId")
     Page<User> findByFollowingId(@Param("followingId") Long followingId, Pageable pageable);
-    
+
     // Search
     @Query("SELECT u FROM User u WHERE " +
-           "LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(u.userName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :search, '%'))")
