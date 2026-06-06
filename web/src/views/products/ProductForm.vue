@@ -50,7 +50,7 @@
                 <select
                   v-model="product.categoryId"
                   required
-                  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="appearance-none text-[var(--color-icon)] border border-[var(--color-border)] rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                 >
                   <option value="">Select a category</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id">

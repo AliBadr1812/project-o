@@ -1,9 +1,5 @@
 <template>
   <div class="product-detail">
-    <Breadcrumb
-      :items="breadcrumbs"
-      class="mb-6"
-    />
 
     <div v-if="loading" class="py-12">
       <LoadingSpinner />
@@ -412,32 +408,194 @@
   </div>
 </template>
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import Modal from '@/components/ui/Modal.vue';
 import Button from '@/components/ui/Button.vue';
 import Card from '@/components/ui/Card.vue';
 import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
-import Breadcrumb from '@/components/layout/Breadcrumb.vue';
 import { formatCurrency, formatDate } from '@/utils/formatters';
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
 
-const route = useRoute();
+const router = useRouter();
 
-const breadcrumbs = computed(() => {
-  const items = [
-    { path: '/dashboard', name: 'Dashboard' }
-  ];
+// State
+const loading = ref(true);
+const product = ref<any>(null);
+const mainImage = ref('');
+const activeTab = ref('overview');
+const showReviewModal = ref(false);
+const showCategoryModal = ref(false);
+const reviews = ref<any[]>([]);
 
-  // Add route segments
-  if (route.meta.breadcrumb) {
-    items.push({
-      path: route.path,
-      name: route.meta.breadcrumb as string
-    });
+// Tabs
+const tabs = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'specifications', label: 'Specifications' },
+  { id: 'reviews', label: 'Reviews' },
+  { id: 'sales', label: 'Sales' }
+];
+
+// Mock product data
+const mockProduct = {
+  id: 1,
+  name: 'Premium Wireless Headphones',
+  sku: 'PHONES-001',
+  status: 'active',
+  description: 'Experience premium sound quality with our noise-cancelling wireless headphones. Perfect for music lovers, gamers, and professionals who demand the best audio experience.',
+
+  images: [
+    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800&h=800&fit=crop'
+  ],
+
+  price: 149.99,
+  cost: 89.99,
+  compareAtPrice: 199.99,
+
+  stock: 25,
+  lowStockThreshold: 10,
+  trackInventory: true,
+  inStock: true,
+
+  categories: [
+    { id: 1, name: 'Electronics', icon: 'fas fa-tv', productCount: 42 },
+    { id: 2, name: 'Audio', icon: 'fas fa-headphones', productCount: 18 }
+  ],
+
+  specifications: [
+    { name: 'Brand', value: 'AudioTech' },
+    { name: 'Model', value: 'ATH-M50xBT2' },
+    { name: 'Connectivity', value: 'Bluetooth 5.0' },
+    { name: 'Battery Life', value: '40 hours' },
+    { name: 'Charging Time', value: '2 hours' },
+    { name: 'Driver Size', value: '45mm' },
+    { name: 'Impedance', value: '38 ohms' },
+    { name: 'Frequency Response', value: '15Hz - 28kHz' }
+  ],
+
+  averageRating: 4.5,
+  reviewCount: 128,
+
+  salesData: {
+    totalSales: 342,
+    totalRevenue: 51285.58,
+    monthlySales: 28
+  },
+
+  isVisible: true,
+  isFeatured: true,
+
+  createdAt: '2024-01-15T10:30:00Z',
+  updatedAt: '2024-02-20T14:45:00Z',
+
+  weight: 285,
+  weightUnit: 'g',
+
+  dimensions: {
+    length: 20.5,
+    width: 18.7,
+    height: 9.3,
+    unit: 'cm'
   }
+};
 
-  return items;
+// Mock reviews
+const mockReviews = [
+  {
+    id: 1,
+    customerName: 'Michael Johnson',
+    rating: 5,
+    date: '2024-02-15T10:30:00Z',
+    comment: 'Excellent sound quality and very comfortable for long listening sessions. Battery life is amazing!'
+  },
+  {
+    id: 2,
+    customerName: 'Sarah Williams',
+    rating: 4,
+    date: '2024-02-10T14:20:00Z',
+    comment: 'Great headphones, but the ear cushions could be more breathable. Sound is fantastic though!'
+  },
+  {
+    id: 3,
+    customerName: 'David Chen',
+    rating: 5,
+    date: '2024-02-05T09:15:00Z',
+    comment: 'Best purchase I\'ve made this year. The noise cancellation works perfectly on my commute.'
+  }
+];
+
+// Methods
+const calculateProfitMargin = (prod: any) => {
+  if (!prod || prod.price === 0) return 0;
+  return (((prod.price - prod.cost) / prod.price) * 100).toFixed(1);
+};
+
+const handleEdit = () => {
+  router.push(`/products/edit/${product.value.id}`);
+};
+
+const handleDuplicate = () => {
+  if (confirm('Duplicate this product?')) {
+    // In real app, make API call
+    alert('Product duplicated! You will be redirected to edit the new product.');
+    router.push('/products/create');
+  }
+};
+
+const handleDelete = () => {
+  if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+    // In real app, make API call
+    alert('Product deleted!');
+    router.push('/products');
+  }
+};
+
+const toggleVisibility = () => {
+  product.value.isVisible = !product.value.isVisible;
+  // In real app, make API call
+  alert(`Product is now ${product.value.isVisible ? 'visible' : 'hidden'}`);
+};
+
+const handleViewOrders = () => {
+  router.push(`/orders?product=${product.value.id}`);
+};
+
+const handleUpdateStock = () => {
+  const newStock = prompt(`Enter new stock quantity for "${product.value.name}":`, product.value.stock.toString());
+  if (newStock !== null && !isNaN(Number(newStock))) {
+    product.value.stock = parseInt(newStock);
+    product.value.inStock = product.value.stock > 0;
+    // In real app, make API call
+    alert('Stock updated successfully!');
+  }
+};
+
+const handleCopyLink = () => {
+  const link = `${window.location.origin}/product/${product.value.sku}`;
+  navigator.clipboard.writeText(link).then(() => {
+    alert('Product link copied to clipboard!');
+  });
+};
+
+const handleViewAnalytics = () => {
+  router.push(`/analytics/products/${product.value.id}`);
+};
+
+const goBack = () => {
+  router.push('/products');
+};
+
+// Lifecycle
+onMounted(() => {
+  // Simulate API call
+  setTimeout(() => {
+    product.value = mockProduct;
+    reviews.value = mockReviews;
+    mainImage.value = mockProduct.images[0]!;
+    loading.value = false;
+  }, 800);
 });
 </script>
