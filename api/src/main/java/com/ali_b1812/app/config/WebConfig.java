@@ -33,11 +33,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         // Configure CORS for frontend applications
-        registry.addMapping("/api/**")
+        registry.addMapping("/**")
                 .allowedOrigins(
-                    "http://localhost:3000",    // React dev server
-                    "http://localhost:8081",     // Vue dev server
-                    "http://localhost:4200"      // Angular dev server
+                    "http://localhost:5173",    // Vue/Vite dev server
+                    "http://localhost:3000",    // Alternative frontend port
+                    "http://localhost:4200"     // Angular dev server
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
