@@ -1,11 +1,11 @@
 <template>
-  <div class="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6">
+  <div class="flex items-center justify-between border-t border-[var(--color-border)] px-4 py-3 sm:px-6">
     <!-- Mobile -->
     <div class="flex flex-1 justify-between sm:hidden">
       <button
         @click="previousPage"
         :disabled="currentPage === 1"
-        class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        class="relative inline-flex items-center rounded-md border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-icon)] hover:bg-gray-50"
         :class="{ 'opacity-50 cursor-not-allowed': currentPage === 1 }"
       >
         Previous
@@ -13,7 +13,7 @@
       <button
         @click="nextPage"
         :disabled="currentPage === totalPages"
-        class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        class="relative ml-3 inline-flex items-center rounded-md border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-icon)] hover:bg-gray-50"
         :class="{ 'opacity-50 cursor-not-allowed': currentPage === totalPages }"
       >
         Next
@@ -23,7 +23,7 @@
     <!-- Desktop -->
     <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
       <div>
-        <p class="text-sm text-gray-700">
+        <p class="text-sm text-var[--color-icon]">
           Showing
           <span class="font-medium">{{ startItem }}</span>
           to
@@ -35,12 +35,12 @@
       </div>
 
       <div>
-        <nav class="isolate inline-flex -gap-px rounded-md shadow-sm">
+        <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm">
           <!-- Previous -->
           <button
             @click="previousPage"
             :disabled="currentPage === 1"
-            class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+            class="relative inline-flex items-center rounded-l-md px-2 py-2 text-[var(--color-icon)] ring-1 ring-inset ring-gray-300 hover:bg-[var(--color-hover)] focus:z-20 focus:outline-offset-0"
             :class="{ 'cursor-not-allowed opacity-50': currentPage === 1 }"
           >
             <span class="sr-only">Previous</span>
@@ -50,25 +50,33 @@
           </button>
 
           <!-- Page Numbers -->
-          <button
-            v-for="page in visiblePages"
-            :key="page.key"
-            @click="goToPage(page)"
-            :class="[
-              'relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0',
-              currentPage === page
-                ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                : 'text-gray-900 hover:bg-gray-50'
-            ]"
-          >
-            {{ page }}
-          </button>
+          <template v-for="page in visiblePages" :key="typeof page === 'string' ? `ellipsis-${Math.random()}` : `page-${page}`">
+            <button
+              v-if="typeof page === 'string'"
+              disabled
+              class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-[var(--color-icon)] ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0"
+            >
+              {{ page }}
+            </button>
+            <button
+              v-else
+              @click="goToPage(page)"
+              :class="[
+                'relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0',
+                currentPage === page
+                  ? 'z-10 bg-[var(--color-hover)] text-[var(--color-icon)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                  : 'text-[var(--color-icon)] hover:bg-[var(--color-hover)]'
+              ]"
+            >
+              {{ page }}
+            </button>
+          </template>
 
           <!-- Next -->
           <button
             @click="nextPage"
             :disabled="currentPage === totalPages"
-            class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+            class="relative inline-flex items-center rounded-r-md px-2 py-2 text-[var(--color-icon)] ring-1 ring-inset ring-gray-300 hover:bg-[var(--color-hover)] focus:z-20 focus:outline-offset-0"
             :class="{ 'cursor-not-allowed opacity-50': currentPage === totalPages }"
           >
             <span class="sr-only">Next</span>
@@ -81,8 +89,102 @@
     </div>
   </div>
 </template>
-<script setup lang="ts">
-import type { PaginationParams } from '@/utils/constants';
-const visiblePages: PaginationParams[] = []
 
+<script setup lang="ts">
+import { computed } from 'vue';
+
+// Props
+const props = defineProps<{
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage?: number;
+  maxVisiblePages?: number;
+}>();
+
+// Emits
+const emit = defineEmits<{
+  'page-change': [page: number];
+}>();
+
+// Default values
+const itemsPerPage = computed(() => props.itemsPerPage || 10);
+const maxVisiblePages = computed(() => props.maxVisiblePages || 5);
+
+// Computed values
+const startItem = computed(() => {
+  return ((props.currentPage - 1) * itemsPerPage.value) + 1;
+});
+
+const endItem = computed(() => {
+  const end = props.currentPage * itemsPerPage.value;
+  return end > props.totalItems ? props.totalItems : end;
+});
+
+// Generate visible page numbers
+const visiblePages = computed(() => {
+  const pages: (number | string)[] = [];
+  const half = Math.floor(maxVisiblePages.value / 2);
+  let start = props.currentPage - half;
+  let end = props.currentPage + half;
+
+  // Adjust start and end if out of bounds
+  if (start < 1) {
+    start = 1;
+    end = Math.min(maxVisiblePages.value, props.totalPages);
+  }
+
+  if (end > props.totalPages) {
+    end = props.totalPages;
+    start = Math.max(1, end - maxVisiblePages.value + 1);
+  }
+
+  // Generate page numbers
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+
+  // Add ellipsis if needed
+  if (start > 1) {
+    if (start > 2) {
+      // Add first page and ellipsis
+      return [1, '...', ...pages];
+    } else {
+      // Just add first page
+      return [1, ...pages];
+    }
+  }
+
+  if (end < props.totalPages) {
+    if (end < props.totalPages - 1) {
+      // Add ellipsis and last page
+      return [...pages, '...', props.totalPages];
+    } else {
+      // Just add last page
+      return [...pages, props.totalPages];
+    }
+  }
+
+  return pages;
+});
+
+// Methods
+const goToPage = (page: number | string) => {
+  if (typeof page === 'string' || page < 1 || page > props.totalPages || page === props.currentPage) {
+    return;
+  }
+  emit('page-change', page);
+};
+
+const previousPage = () => {
+  if (props.currentPage > 1) {
+    emit('page-change', props.currentPage - 1);
+  }
+};
+
+const nextPage = () => {
+  if (props.currentPage < props.totalPages) {
+    emit('page-change', props.currentPage + 1);
+  }
+};
 </script>
