@@ -4,7 +4,6 @@ import com.ali_b1812.app.dto.mapper.UserMapper;
 import com.ali_b1812.app.dto.request.CreateUserRequest;
 import com.ali_b1812.app.dto.request.UpdateUserRequest;
 import com.ali_b1812.app.dto.response.UserResponse;
-import com.ali_b1812.app.exception.ResourceNotFoundException;
 import com.ali_b1812.app.model.entity.User;
 import com.ali_b1812.app.model.enums.UserRole;
 import com.ali_b1812.app.repository.UserRepository;
@@ -34,6 +33,7 @@ public class UserService implements IUserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLoggerService auditLogger;
     
     @Override
     public UserResponse createUser(CreateUserRequest request) {
@@ -55,6 +55,15 @@ public class UserService implements IUserService {
         // Save user
         User savedUser = userRepository.save(user);
         log.info("User created with ID: {}", savedUser.getId());
+
+        auditLogger.logUserActivity(
+            "CREATE_USER",
+            savedUser.getId(),
+            savedUser.getUserName(),
+            "User account created",
+            null,
+            savedUser
+        );
         
         return userMapper.toResponse(savedUser);
     }
@@ -65,7 +74,7 @@ public class UserService implements IUserService {
         
         // Update role
         User userEntity = userRepository.findById(user.getId())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found"));
         userEntity.setRole(role);
         
         User updatedUser = userRepository.save(userEntity);
@@ -77,7 +86,7 @@ public class UserService implements IUserService {
         log.debug("Getting user by ID: {}", id);
         
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+            .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         
         return userMapper.toResponse(user);
     }
@@ -85,7 +94,7 @@ public class UserService implements IUserService {
     @Override
     public UserResponse getUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+            .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
         
         return userMapper.toResponse(user);
     }
@@ -93,7 +102,7 @@ public class UserService implements IUserService {
     @Override
     public UserResponse getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
         
         return userMapper.toResponse(user);
     }
@@ -140,8 +149,7 @@ public class UserService implements IUserService {
         log.info("Updating user ID: {}", id);
         
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
+            .orElseThrow(() -> new RuntimeException("User not found"));
         // Check if new username/email already exists (if being changed)
         if (request.getUsername() != null && 
             !request.getUsername().equals(user.getUserName()) && 
@@ -158,6 +166,15 @@ public class UserService implements IUserService {
         // Update user
         userMapper.updateEntityFromRequest(request, user);
         User updatedUser = userRepository.save(user);
+
+        auditLogger.logUserActivity(
+            "UPDATE_USER",
+            updatedUser.getId(),
+            updatedUser.getUserName(),
+            "User profile updated",
+            user,
+            updatedUser
+        );
         
         return userMapper.toResponse(updatedUser);
     }
@@ -165,7 +182,7 @@ public class UserService implements IUserService {
     @Override
     public UserResponse updateUserRole(Long id, UserRole role) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found"));
         
         user.setRole(role);
         User updatedUser = userRepository.save(user);
@@ -176,7 +193,7 @@ public class UserService implements IUserService {
     @Override
     public UserResponse updateUserStatus(Long id, Boolean isActive) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found"));
         
         user.setIsActive(isActive);
         User updatedUser = userRepository.save(user);
@@ -189,11 +206,20 @@ public class UserService implements IUserService {
         log.info("Soft deleting user ID: {}", id);
         
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found"));
         
         user.setDeletedAt(LocalDateTime.now());
         user.setIsActive(false);
         userRepository.save(user);
+
+        auditLogger.logUserActivity(
+            "DELETE_USER",
+            user.getId(),
+            user.getUserName(),
+            "User soft deleted",
+            user,
+            null
+        );
     }
     
     @Override
@@ -207,7 +233,7 @@ public class UserService implements IUserService {
         log.info("Uploading profile picture for user ID: {}", userId);
         
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found"));
         
         // In a real app, you would upload to S3/Cloudinary/local storage
         // This is a simplified example
@@ -305,10 +331,10 @@ public class UserService implements IUserService {
         }
         
         User follower = userRepository.findById(followerId)
-            .orElseThrow(() -> new ResourceNotFoundException("Follower not found"));
+            .orElseThrow(() -> new RuntimeException("Follower not found"));
         
         User following = userRepository.findById(followingId)
-            .orElseThrow(() -> new ResourceNotFoundException("User to follow not found"));
+            .orElseThrow(() -> new RuntimeException("User to follow not found"));
         
         follower.getFollowing().add(following);
         following.getFollowers().add(follower);
@@ -322,10 +348,10 @@ public class UserService implements IUserService {
     @Override
     public void unfollowUser(Long followerId, Long followingId) {
         User follower = userRepository.findById(followerId)
-            .orElseThrow(() -> new ResourceNotFoundException("Follower not found"));
+            .orElseThrow(() -> new RuntimeException("Follower not found"));
         
         User following = userRepository.findById(followingId)
-            .orElseThrow(() -> new ResourceNotFoundException("User to unfollow not found"));
+            .orElseThrow(() -> new RuntimeException("User to unfollow not found"));
         
         follower.getFollowing().remove(following);
         following.getFollowers().remove(follower);
@@ -339,7 +365,7 @@ public class UserService implements IUserService {
     @Override
     public Page<UserResponse> getFollowers(Long userId, Pageable pageable) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found"));
         
         // In a real app, you'd have a custom repository method for pagination
         List<User> followers = new ArrayList<>(user.getFollowers());
@@ -349,11 +375,11 @@ public class UserService implements IUserService {
         return userRepository.findByFollowingId(userId, pageable)
             .map(userMapper::toResponse);
     }
-    
+     
     @Override
     public Page<UserResponse> getFollowing(Long userId, Pageable pageable) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found"));
         
         return userRepository.findUsersFollowedBy(userId, pageable)
             .map(userMapper::toResponse);

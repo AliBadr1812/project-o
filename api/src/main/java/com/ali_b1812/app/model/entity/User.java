@@ -99,6 +99,21 @@ public class User {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreRemove
+    protected void onDelete() {
+        deletedAt = LocalDateTime.now();
+    }
+
     // Business methods
     public String getFullName() {
         if (firstName == null && lastName == null) return userName;

@@ -39,15 +39,4 @@ public interface UserMapper {
     // Update Entity from Request
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromRequest(UpdateUserRequest request, @MappingTarget User entity);
-    
-    // Calculate followers/following counts
-    @AfterMapping
-    default void calculateCounts(@MappingTarget UserResponse response, User user) {
-        if (user.getFollowers() != null) {
-            response.setFollowersCount(user.getFollowers().size());
-        }
-        if (user.getFollowing() != null) {
-            response.setFollowingCount(user.getFollowing().size());
-        }
-    }
 }

@@ -6,6 +6,8 @@ import com.ali_b1812.app.dto.response.ApiResponse;
 import com.ali_b1812.app.dto.response.UserResponse;
 import com.ali_b1812.app.model.enums.UserRole;
 import com.ali_b1812.app.service.UserService;
+import com.ali_b1812.app.util.UserPrincipal;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,12 +27,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,11 +42,11 @@ import java.util.Map;
  * Includes role-based access control and comprehensive validation.
  */
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Users", description = "User management endpoints")
-@SecurityRequirement(name = "bearerAuth")  // For Swagger/OpenAPI
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
     private final UserService userService;
@@ -92,11 +94,11 @@ public class UserController {
             .path("/{id}")
             .buildAndExpand(createdUser.getId())
             .toUri();
-        
-        ApiResponse<UserResponse> response = ApiResponse.success(
-            "User registered successfully",
-            createdUser
-        );
+
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+            .success(true)
+            .data(createdUser)
+            .build();
         
         return ResponseEntity
             .created(location)
@@ -119,10 +121,13 @@ public class UserController {
         log.debug("Getting profile for current user: {}", currentUser.getUsername());
         
         UserResponse user = userService.getUserById(currentUser.getId());
+
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+            .success(true)
+            .data(user)
+            .build();
         
-        return ResponseEntity.ok(
-            ApiResponse.success("User profile retrieved", user)
-        );
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -138,10 +143,13 @@ public class UserController {
         log.info("Updating profile for user ID: {}", currentUser.getId());
         
         UserResponse updatedUser = userService.updateUser(currentUser.getId(), request);
+
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+            .success(true)
+            .data(updatedUser)
+            .build();
         
-        return ResponseEntity.ok(
-            ApiResponse.success("Profile updated successfully", updatedUser)
-        );
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -157,10 +165,13 @@ public class UserController {
         log.info("Uploading profile picture for user ID: {}", currentUser.getId());
         
         String imageUrl = userService.uploadProfilePicture(currentUser.getId(), file);
+
+        ApiResponse<String> response = ApiResponse.<String>builder()
+            .success(true)
+            .data(imageUrl)
+            .build();
         
-        return ResponseEntity.ok(
-            ApiResponse.success("Profile picture uploaded successfully", imageUrl)
-        );
+        return ResponseEntity.ok(response);
     }
     
     // ============ ADMIN ENDPOINTS ============
@@ -188,10 +199,13 @@ public class UserController {
         log.debug("Getting all users - page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
         
         Page<UserResponse> users = userService.getAllUsers(pageable, search, role, isActive);
+
+        ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
+            .success(true)
+            .data(users)
+            .build();
         
-        return ResponseEntity.ok(
-            ApiResponse.success("Users retrieved successfully", users)
-        );
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -207,10 +221,13 @@ public class UserController {
         log.debug("Getting user by ID: {}", id);
         
         UserResponse user = userService.getUserById(id);
+
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+            .success(true)
+            .data(user)
+            .build();
         
-        return ResponseEntity.ok(
-            ApiResponse.success("User retrieved successfully", user)
-        );
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -235,10 +252,15 @@ public class UserController {
             .path("/{id}")
             .buildAndExpand(createdUser.getId())
             .toUri();
+
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+            .success(true)
+            .data(createdUser)
+            .build();
         
         return ResponseEntity
             .created(location)
-            .body(ApiResponse.success("User created successfully", createdUser));
+            .body(response);
     }
     
     /**
@@ -254,10 +276,13 @@ public class UserController {
         log.info("Updating user ID: {}", id);
         
         UserResponse updatedUser = userService.updateUser(id, request);
+
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+            .success(true)
+            .data(updatedUser)
+            .build();
         
-        return ResponseEntity.ok(
-            ApiResponse.success("User updated successfully", updatedUser)
-        );
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -273,10 +298,13 @@ public class UserController {
         log.info("Updating role for user ID: {} to {}", id, role);
         
         UserResponse updatedUser = userService.updateUserRole(id, role);
+
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+            .success(true)
+            .data(updatedUser)
+            .build();
         
-        return ResponseEntity.ok(
-            ApiResponse.success("User role updated successfully", updatedUser)
-        );
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -292,13 +320,13 @@ public class UserController {
         log.info("Updating status for user ID: {} to {}", id, isActive);
         
         UserResponse updatedUser = userService.updateUserStatus(id, isActive);
+
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+            .success(true)
+            .data(updatedUser)
+            .build();
         
-        return ResponseEntity.ok(
-            ApiResponse.success(
-                isActive ? "User activated successfully" : "User deactivated successfully",
-                updatedUser
-            )
-        );
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -318,14 +346,18 @@ public class UserController {
         
         if (permanent) {
             userService.deleteUserPermanently(id);
-            return ResponseEntity.ok(
-                ApiResponse.success("User permanently deleted", null)
-            );
+            ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .message("User permanently deleted")
+                .build();
+            return ResponseEntity.ok(response);
         } else {
             userService.deleteUser(id);
-            return ResponseEntity.ok(
-                ApiResponse.success("User deactivated (soft delete)", null)
-            );
+            ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .message("User deactivated (soft delete)")
+                .build();
+            return ResponseEntity.ok(response);
         }
     }
     
@@ -340,10 +372,13 @@ public class UserController {
         log.debug("Getting user statistics");
         
         Map<String, Object> stats = userService.getUserStatistics();
+
+        ApiResponse<Map<String, Object>> response = ApiResponse.<Map<String, Object>>builder()
+            .success(true)
+            .data(stats)
+            .build();
         
-        return ResponseEntity.ok(
-            ApiResponse.success("Statistics retrieved successfully", stats)
-        );
+        return ResponseEntity.ok(response);
     }
     
     /**

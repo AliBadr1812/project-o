@@ -51,10 +51,4 @@ public class UserResponse {
     
     @Schema(description = "Email verification timestamp")
     private LocalDateTime emailVerifiedAt;
-    
-    @Schema(description = "Number of followers", example = "150")
-    private Integer followersCount;
-    
-    @Schema(description = "Number of following", example = "75")
-    private Integer followingCount;
 }
