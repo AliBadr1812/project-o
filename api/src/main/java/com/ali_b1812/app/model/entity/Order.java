@@ -49,10 +49,11 @@ public class Order {
     @Column(name = "customer_phone", length = 20)
     private String customerPhone;
 
-    // Relationship to User (optional)
+    // Relationship to Customer (optional)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
-    private User customer;
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Customer customer;
 
     // Order items - stored as JSON in database or in separate table
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -64,19 +65,19 @@ public class Order {
     private ShippingAddress shippingAddress;
 
     // Financials
-    @Column(name = "subtotal", precision = 10, scale = 2)
+    @Column(name = "subtotal")
     private Double subtotal;
 
-    @Column(name = "shipping_cost", precision = 10, scale = 2)
+    @Column(name = "shipping_cost")
     private Double shippingCost;
 
-    @Column(name = "tax", precision = 10, scale = 2)
+    @Column(name = "tax")
     private Double tax;
 
-    @Column(name = "total", precision = 10, scale = 2)
+    @Column(name = "total")
     private Double total;
 
-    @Column(name = "discount", precision = 10, scale = 2)
+    @Column(name = "discount")
     @Builder.Default
     private Double discount = 0.0;
 

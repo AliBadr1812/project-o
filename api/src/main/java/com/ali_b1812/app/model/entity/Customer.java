@@ -40,7 +40,7 @@ public class Customer {
     @Builder.Default
     private Integer orderCount = 0;
 
-    @Column(name = "total_spent", precision = 10, scale = 2)
+    @Column(name = "total_spent")
     @Builder.Default
     private Double totalSpent = 0.0;
 

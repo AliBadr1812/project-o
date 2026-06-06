@@ -24,10 +24,12 @@ public class Product {
     @Column(name = "sku", unique = true, length = 50)
     private String sku;
 
-    @Column(name = "category", length = 100)
-    private String category;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Category category;
 
-    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    @Column(name = "price", nullable = false)
     private Double price;
 
     @Column(name = "stock", nullable = false)
@@ -42,10 +44,10 @@ public class Product {
     @Column(name = "description", length = 2000)
     private String description;
 
-    @Column(name = "cost", precision = 10, scale = 2)
+    @Column(name = "cost")
     private Double cost;
 
-    @Column(name = "compare_at_price", precision = 10, scale = 2)
+    @Column(name = "compare_at_price")
     private Double compareAtPrice;
 
     @Column(name = "low_stock_threshold")

@@ -46,9 +46,11 @@ public class Review {
 
     @Transient
     public Double getRating() {
-        int total = likes.size() + dislikes.size();
+        int likeCount = (likes != null) ? likes.size() : 0;
+        int dislikeCount = (dislikes != null) ? dislikes.size() : 0;
+        int total = likeCount + dislikeCount;
         if (total == 0) return 0.0;
-        return (double) likes.size() / total * 5;
+        return (double) likeCount / total * 5;
     }
 
     @Column(length = 2000)
@@ -63,6 +65,7 @@ public class Review {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate

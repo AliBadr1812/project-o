@@ -26,7 +26,7 @@ public class OrderItem {
     @Column(name = "sku", length = 50)
     private String sku;
 
-    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    @Column(name = "price", nullable = false)
     private Double price;
 
     @Column(name = "quantity", nullable = false)
@@ -35,6 +35,6 @@ public class OrderItem {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
-    @Column(name = "total", precision = 10, scale = 2)
+    @Column(name = "total")
     private Double total;
 }
