@@ -6,33 +6,21 @@
         <img
           :src="customer.avatar || 'https://freesvg.org/img/abstract-user-flat-4.png'"
           :alt="customer.name"
-          class="w-16 h-16 rounded-full border-2 border-[var(--color-border)]"
+          class="w-16 h-16 rounded-full border-2 border-[var(--glass-border)]"
         >
         <div>
-          <h1 class="text-2xl font-bold text-white">{{ customer.name }}</h1>
-          <p class="text-[var(--color-icon)]">{{ customer.email }} • {{ customer.phone }}</p>
+          <h1 class="page-title">{{ customer.name }}</h1>
+          <p class="text-[var(--text-secondary)]">{{ customer.email }} • {{ customer.phone }}</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
-        <button
-          @click="sendMessage"
-          class="flex items-center gap-2 border border-[var(--color-border)] rounded-lg px-4 py-2 text-[var(--color-icon)] hover:bg-[var(--color-hover)] transition-colors duration-150"
-        >
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-          </svg>
+        <button @click="sendMessage" class="btn-glass">
+          <i class="fas fa-envelope text-xs"></i>
           <span>Send Message</span>
         </button>
-
-        <button
-          @click="editCustomer"
-          class="flex items-center gap-2 bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors duration-150"
-        >
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-          </svg>
+        <button @click="editCustomer" class="btn-accent">
+          <i class="fas fa-pen text-xs"></i>
           <span>Edit Profile</span>
         </button>
       </div>
@@ -40,24 +28,24 @@
 
     <!-- Customer Stats -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-colors duration-200">
-        <p class="text-sm text-[var(--color-icon)] font-medium">Total Orders</p>
-        <p class="text-2xl font-bold text-white mt-2">{{ customer.stats.totalOrders }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-200">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">Total Orders</p>
+        <p class="text-2xl font-bold text-[var(--text-primary)] mt-2">{{ customer.stats.totalOrders }}</p>
       </Card>
 
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-colors duration-200">
-        <p class="text-sm text-[var(--color-icon)] font-medium">Total Spent</p>
-        <p class="text-2xl font-bold text-white mt-2">{{ formatCurrency(customer.stats.totalSpent) }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-200">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">Total Spent</p>
+        <p class="text-2xl font-bold text-[var(--text-primary)] mt-2">{{ formatCurrency(customer.stats.totalSpent) }}</p>
       </Card>
 
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-colors duration-200">
-        <p class="text-sm text-[var(--color-icon)] font-medium">Average Order</p>
-        <p class="text-2xl font-bold text-white mt-2">{{ formatCurrency(customer.stats.averageOrderValue) }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-200">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">Average Order</p>
+        <p class="text-2xl font-bold text-[var(--text-primary)] mt-2">{{ formatCurrency(customer.stats.averageOrderValue) }}</p>
       </Card>
 
-      <Card class="p-4 hover:bg-[var(--color-hover)] transition-colors duration-200">
-        <p class="text-sm text-[var(--color-icon)] font-medium">Last Order</p>
-        <p class="text-lg font-bold text-white mt-2">{{ formatDate(customer.stats.lastOrderDate) }}</p>
+      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-200">
+        <p class="text-sm text-[var(--text-secondary)] font-medium">Last Order</p>
+        <p class="text-lg font-bold text-[var(--text-primary)] mt-2">{{ formatDate(customer.stats.lastOrderDate) }}</p>
       </Card>
     </div>
 
@@ -68,10 +56,11 @@
         <!-- Recent Orders -->
         <Card>
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold text-white">Recent Orders</h2>
+            <h2 class="text-lg font-semibold text-[var(--text-primary)]">Recent Orders</h2>
             <router-link
               :to="`/customers/${customer.id}/orders`"
-              class="text-sm text-blue-500 hover:text-blue-400 transition-colors duration-150"
+              class="text-sm font-medium transition-opacity hover:opacity-70"
+              style="color:var(--text-accent)"
             >
               View all orders →
             </router-link>
@@ -81,14 +70,14 @@
             <div
               v-for="order in customer.recentOrders"
               :key="order.id"
-              class="flex items-center justify-between p-3 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-hover)] transition-colors duration-150"
+              class="flex items-center justify-between p-3 border border-[var(--glass-border)] rounded-lg hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-150"
             >
               <div>
-                <p class="font-medium text-white">Order #{{ order.orderNumber }}</p>
-                <p class="text-sm text-[var(--color-icon)]">{{ formatDate(order.createdAt) }}</p>
+                <p class="font-medium text-[var(--text-primary)]">Order #{{ order.orderNumber }}</p>
+                <p class="text-sm text-[var(--text-secondary)]">{{ formatDate(order.createdAt) }}</p>
               </div>
               <div class="text-right">
-                <p class="font-medium text-white">{{ formatCurrency(order.total) }}</p>
+                <p class="font-medium text-[var(--text-primary)]">{{ formatCurrency(order.total) }}</p>
                 <Badge :variant="getStatusVariant(order.status)" class="mt-1">
                   {{ order.status }}
                 </Badge>
@@ -100,11 +89,8 @@
         <!-- Customer Notes -->
         <Card>
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold text-white">Customer Notes</h2>
-            <button
-              @click="addNote"
-              class="text-blue-500 hover:text-blue-400 text-sm font-medium transition-colors duration-150"
-            >
+            <h2 class="text-lg font-semibold text-[var(--text-primary)]">Customer Notes</h2>
+            <button @click="addNote" class="text-sm font-medium hover:opacity-70 transition-opacity" style="color:var(--text-accent)">
               + Add Note
             </button>
           </div>
@@ -113,27 +99,28 @@
             <div
               v-for="note in customer.notes"
               :key="note.id"
-              class="p-4 bg-[var(--color-hover)] rounded-lg"
+              class="p-4 rounded-xl"
+              style="background:var(--glass-bg); border:1px solid var(--glass-border);"
             >
               <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                   <div
-                    class="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium"
+                    class="w-6 h-6 rounded-full flex items-center justify-center text-[var(--text-primary)] text-xs font-medium"
                     :style="{
                       background: `linear-gradient(135deg, ${stringToColor(note.author)}, ${stringToColor(note.author + '2')})`
                     }"
                   >
                     {{ getInitials(note.author) }}
                   </div>
-                  <span class="text-sm font-medium text-white">{{ note.author }}</span>
+                  <span class="text-sm font-medium text-[var(--text-primary)]">{{ note.author }}</span>
                 </div>
-                <span class="text-xs text-[var(--color-icon)]">{{ formatDate(note.createdAt) }}</span>
+                <span class="text-xs text-[var(--text-secondary)]">{{ formatDate(note.createdAt) }}</span>
               </div>
-              <p class="text-sm text-[var(--color-icon)]">{{ note.content }}</p>
+              <p class="text-sm text-[var(--text-secondary)]">{{ note.content }}</p>
             </div>
           </div>
 
-          <div v-else class="text-center py-8 text-[var(--color-icon)]">
+          <div v-else class="text-center py-8 text-[var(--text-secondary)]">
             <p>No notes added for this customer yet.</p>
           </div>
         </Card>
@@ -143,40 +130,40 @@
       <div class="gap-6">
         <!-- Customer Information -->
         <Card>
-          <h2 class="text-lg font-semibold mb-4 text-white">Customer Information</h2>
+          <h2 class="text-lg font-semibold mb-4 text-[var(--text-primary)]">Customer Information</h2>
 
           <div class="gap-4">
             <div>
-              <p class="text-sm text-[var(--color-icon)]">Customer Since</p>
-              <p class="font-medium text-white">{{ formatDate(customer.createdAt) }}</p>
+              <p class="text-sm text-[var(--text-secondary)]">Customer Since</p>
+              <p class="font-medium text-[var(--text-primary)]">{{ formatDate(customer.createdAt) }}</p>
             </div>
 
             <div>
-              <p class="text-sm text-[var(--color-icon)]">Account Status</p>
+              <p class="text-sm text-[var(--text-secondary)]">Account Status</p>
               <Badge :variant="customer.status === 'active' ? 'success' : 'secondary'" class="mt-1">
                 {{ customer.status }}
               </Badge>
             </div>
 
             <div>
-              <p class="text-sm text-[var(--color-icon)]">Customer Type</p>
-              <p class="font-medium text-white">{{ customer.type }}</p>
+              <p class="text-sm text-[var(--text-secondary)]">Customer Type</p>
+              <p class="font-medium text-[var(--text-primary)]">{{ customer.type }}</p>
             </div>
 
             <div>
-              <p class="text-sm text-[var(--color-icon)]">Email Verified</p>
+              <p class="text-sm text-[var(--text-secondary)]">Email Verified</p>
               <div class="flex items-center mt-1">
                 <div
                   class="w-3 h-3 rounded-full mr-2 animate-pulse"
                   :class="customer.emailVerified ? 'bg-green-500' : 'bg-red-500'"
                 ></div>
-                <span class="text-white">{{ customer.emailVerified ? 'Verified' : 'Not Verified' }}</span>
+                <span class="text-[var(--text-primary)]">{{ customer.emailVerified ? 'Verified' : 'Not Verified' }}</span>
               </div>
             </div>
 
             <div>
-              <p class="text-sm text-[var(--color-icon)]">Preferred Language</p>
-              <p class="font-medium text-white">{{ customer.preferredLanguage }}</p>
+              <p class="text-sm text-[var(--text-secondary)]">Preferred Language</p>
+              <p class="font-medium text-[var(--text-primary)]">{{ customer.preferredLanguage }}</p>
             </div>
           </div>
         </Card>
@@ -184,10 +171,10 @@
         <!-- Shipping Addresses -->
         <Card>
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold text-white">Shipping Addresses</h2>
+            <h2 class="text-lg font-semibold text-[var(--text-primary)]">Shipping Addresses</h2>
             <button
               @click="addAddress"
-              class="text-blue-500 hover:text-blue-400 text-sm font-medium transition-colors duration-150"
+              class="text-[var(--accent)] hover:text-[var(--text-accent)] text-sm font-medium transition-colors duration-150"
             >
               + Add
             </button>
@@ -197,21 +184,21 @@
             <div
               v-for="address in customer.addresses"
               :key="address.id"
-              class="p-3 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-hover)] transition-colors duration-150"
+              class="p-3 border border-[var(--glass-border)] rounded-lg hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-150"
             >
               <div class="flex items-start justify-between">
                 <div>
-                  <p class="font-medium text-white">{{ address.name }}</p>
-                  <p class="text-sm text-[var(--color-icon)]">{{ address.street }}</p>
-                  <p class="text-sm text-[var(--color-icon)]">{{ address.city }}, {{ address.state }} {{ address.zipCode }}</p>
-                  <p class="text-sm text-[var(--color-icon)]">{{ address.country }}</p>
+                  <p class="font-medium text-[var(--text-primary)]">{{ address.name }}</p>
+                  <p class="text-sm text-[var(--text-secondary)]">{{ address.street }}</p>
+                  <p class="text-sm text-[var(--text-secondary)]">{{ address.city }}, {{ address.state }} {{ address.zipCode }}</p>
+                  <p class="text-sm text-[var(--text-secondary)]">{{ address.country }}</p>
                 </div>
                 <Badge v-if="address.isDefault" variant="primary">Default</Badge>
               </div>
               <div class="mt-3 flex gap-2">
                 <button
                   @click="editAddress(address.id)"
-                  class="text-sm text-blue-500 hover:text-blue-400 transition-colors duration-150"
+                  class="text-sm text-[var(--accent)] hover:text-[var(--text-accent)] transition-colors duration-150"
                 >
                   Edit
                 </button>
@@ -229,10 +216,10 @@
         <!-- Customer Tags -->
         <Card>
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold text-white">Tags</h2>
+            <h2 class="text-lg font-semibold text-[var(--text-primary)]">Tags</h2>
             <button
               @click="addTag"
-              class="text-blue-500 hover:text-blue-400 text-sm font-medium transition-colors duration-150"
+              class="text-[var(--accent)] hover:text-[var(--text-accent)] text-sm font-medium transition-colors duration-150"
             >
               + Add Tag
             </button>
@@ -248,7 +235,7 @@
               {{ tag }}
               <button
                 @click="removeTag(tag)"
-                class="ml-1 text-[var(--color-icon)] hover:text-white transition-colors duration-150"
+                class="ml-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors duration-150"
               >
                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
@@ -383,7 +370,7 @@ button, a {
 }
 
 button:focus {
-  outline: 2px solid var(--primary-color);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 

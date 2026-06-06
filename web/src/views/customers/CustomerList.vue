@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between pb-5">
       <div>
-        <h1 class="text-2xl font-bold text-white">Customers</h1>
-        <p class="text-[var(--color-icon)]">Manage your customer database</p>
+        <h1 class="page-title">Customers</h1>
+        <p class="text-[var(--text-secondary)]">Manage your customer database</p>
       </div>
 
       <div class="flex items-center gap-3">
@@ -14,31 +14,28 @@
             type="search"
             v-model="searchQuery"
             placeholder="Search customers..."
-            class="border border-[var(--color-border)] rounded-lg pl-10 pr-4 py-2 w-64 bg-[var(--color-card)] text-[var(--color-icon)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500"
+            class="border border-[var(--glass-border)] rounded-lg pl-10 pr-4 py-2 w-64 bg-[var(--glass-bg)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)]"
           >
-          <i class="fas fa-search fa-1x absolute left-4 top-3.5 text-[var(--color-icon)]"></i>
+          <i class="fas fa-search fa-1x absolute left-4 top-3.5 text-[var(--text-secondary)]"></i>
         </div>
 
         <!-- Filter -->
         <div class="relative">
           <select
             v-model="customerType"
-            class="appearance-none text-[var(--color-icon)] border border-[var(--color-border)] rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer bg-[var(--color-card)]"
+            class="glass-select"
           >
             <option value="">All Customers</option>
             <option value="new">New Customers</option>
             <option value="returning">Returning Customers</option>
             <option value="vip">VIP Customers</option>
           </select>
-          <i class="fas fa-angle-down absolute right-4 top-3.5 text-[var(--color-icon)]"></i>
+          <i class="fas fa-angle-down absolute right-4 top-3.5 text-[var(--text-secondary)]"></i>
         </div>
 
         <!-- Import Button -->
-        <button
-          @click="showImportModal = true"
-          class="flex items-center gap-2 rounded-lg px-4 py-2 text-white bg-[var(--primary-color)] hover:bg-blue-700 transition-colors duration-150"
-        >
-          <i class="fas fa-download fa-1x"></i>
+        <button @click="showImportModal = true" class="btn-accent">
+          <i class="fas fa-download text-xs"></i>
           <span>Import</span>
         </button>
       </div>
@@ -46,35 +43,47 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-4 gap-4 pb-6">
-      <div class="bg-blue-900/20 p-4 rounded-lg border border-blue-800/30 hover:bg-blue-900/30 transition-colors duration-200">
-        <p class="text-sm text-blue-400 font-medium">Total Customers</p>
-        <p class="text-2xl font-bold text-white">{{ stats.total }}</p>
+      <div class="glass-card p-4">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="stat-icon ni-b"><i class="fas fa-users text-sm"></i></div>
+          <p class="text-sm font-medium" style="color:var(--ni-blue)">Total Customers</p>
+        </div>
+        <p class="text-2xl font-bold" style="color:var(--text-primary)">{{ stats.total }}</p>
       </div>
-      <div class="bg-green-900/20 p-4 rounded-lg border border-green-800/30 hover:bg-green-900/30 transition-colors duration-200">
-        <p class="text-sm text-green-400 font-medium">Active</p>
-        <p class="text-2xl font-bold text-white">{{ stats.active }}</p>
+      <div class="glass-card p-4">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="stat-icon ni-g"><i class="fas fa-circle-check text-sm"></i></div>
+          <p class="text-sm font-medium" style="color:var(--ni-green)">Active</p>
+        </div>
+        <p class="text-2xl font-bold" style="color:var(--text-primary)">{{ stats.active }}</p>
       </div>
-      <div class="bg-yellow-900/20 p-4 rounded-lg border border-yellow-800/30 hover:bg-yellow-900/30 transition-colors duration-200">
-        <p class="text-sm text-yellow-400 font-medium">New This Month</p>
-        <p class="text-2xl font-bold text-white">{{ stats.newThisMonth }}</p>
+      <div class="glass-card p-4">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="stat-icon ni-o"><i class="fas fa-star text-sm"></i></div>
+          <p class="text-sm font-medium" style="color:var(--ni-orange)">New This Month</p>
+        </div>
+        <p class="text-2xl font-bold" style="color:var(--text-primary)">{{ stats.newThisMonth }}</p>
       </div>
-      <div class="bg-purple-900/20 p-4 rounded-lg border border-purple-800/30 hover:bg-purple-900/30 transition-colors duration-200">
-        <p class="text-sm text-purple-400 font-medium">Avg. Order Value</p>
-        <p class="text-2xl font-bold text-white">{{ formatCurrency(stats.avgOrderValue) }}</p>
+      <div class="glass-card p-4">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="stat-icon ni-p"><i class="fas fa-dollar-sign text-sm"></i></div>
+          <p class="text-sm font-medium" style="color:var(--ni-purple)">Avg. Order Value</p>
+        </div>
+        <p class="text-2xl font-bold" style="color:var(--text-primary)">{{ formatCurrency(stats.avgOrderValue) }}</p>
       </div>
     </div>
 
     <!-- Customers Table -->
     <Card class="overflow-hidden">
-      <div class="border-b border-[var(--color-border)] px-4 py-3 bg-[var(--color-card)]">
-        <h2 class="text-lg font-semibold text-white">Customer List</h2>
-        <p class="text-sm text-[var(--color-icon)]">Showing {{ paginatedCustomers.length }} of {{ filteredCustomers.length }} customers</p>
+      <div class="px-5 py-4" style="border-bottom: 1px solid var(--glass-border);">
+        <h2 class="text-lg font-semibold text-[var(--text-primary)]">Customer List</h2>
+        <p class="text-sm text-[var(--text-secondary)]">Showing {{ paginatedCustomers.length }} of {{ filteredCustomers.length }} customers</p>
       </div>
 
       <div class="overflow-x-auto">
         <Table>
           <template #header>
-            <tr class="bg-[var(--color-card)] text-[var(--color-icon)]">
+            <tr class="bg-[var(--glass-bg)] text-[var(--text-secondary)]">
               <th class="py-3 px-4 text-left font-semibold text-sm">Customer</th>
               <th class="py-3 px-4 text-left font-semibold text-sm">Email</th>
               <th class="py-3 px-4 text-left font-semibold text-sm">Orders</th>
@@ -89,12 +98,12 @@
             <tr
               v-for="customer in paginatedCustomers"
               :key="customer.id"
-              class="hover:bg-[var(--color-hover)] transition-colors duration-150 border-b border-[var(--color-border)] last:border-b-0"
+              class="hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-150 border-b border-[var(--glass-border)] last:border-b-0"
             >
               <td class="py-4 px-4">
                 <div class="flex items-center gap-3">
                   <div
-                    class="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm border-2 border-[var(--color-border)]"
+                    class="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-primary)] font-medium text-sm border-2 border-[var(--glass-border)]"
                     :style="{
                       background: `linear-gradient(135deg, ${stringToColor(customer.name)}, ${stringToColor(customer.name + '2')})`
                     }"
@@ -102,30 +111,31 @@
                     {{ getInitials(customer.name) }}
                   </div>
                   <div>
-                    <p class="font-medium text-white">{{ customer.name }}</p>
-                    <p class="text-sm text-gray-400">{{ customer.phone }}</p>
+                    <p class="font-medium text-[var(--text-primary)]">{{ customer.name }}</p>
+                    <p class="text-sm text-[var(--text-muted)]">{{ customer.phone }}</p>
                   </div>
                 </div>
               </td>
               <td class="py-4 px-4">
-                <p class="text-[var(--color-icon)]">{{ customer.email }}</p>
+                <p class="text-[var(--text-secondary)]">{{ customer.email }}</p>
               </td>
               <td class="py-4 px-4">
                 <div class="flex items-center">
-                  <span class="font-medium text-white mr-2">{{ customer.orderCount }}</span>
-                  <div class="w-16 h-2 bg-gray-800 rounded-full overflow-hidden">
+                  <span class="font-medium text-[var(--text-primary)] mr-2">{{ customer.orderCount }}</span>
+                  <div class="w-16 h-2 bg-[var(--glass-bg)] rounded-full overflow-hidden">
                     <div
-                      class="h-full bg-blue-500 transition-all duration-500"
+                      class="h-full transition-all duration-500 rounded-full"
+                      style="background: var(--accent);"
                       :style="{ width: Math.min((customer.orderCount / maxOrders) * 100, 100) + '%' }"
                     ></div>
                   </div>
                 </div>
               </td>
-              <td class="py-4 px-4 font-medium text-white">
+              <td class="py-4 px-4 font-medium text-[var(--text-primary)]">
                 {{ formatCurrency(customer.totalSpent) }}
               </td>
               <td class="py-4 px-4">
-                <p class="text-sm text-[var(--color-icon)]">{{ formatDate(customer.lastOrderDate) }}</p>
+                <p class="text-sm text-[var(--text-secondary)]">{{ formatDate(customer.lastOrderDate) }}</p>
               </td>
               <td class="py-4 px-4">
                 <Badge :variant="customer.status === 'active' ? 'success' : 'secondary'">
@@ -146,32 +156,24 @@
                 <div class="flex items-center gap-1">
                   <button
                     @click="viewCustomer(customer.id)"
-                    class="p-2 text-[var(--color-icon)] hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-all duration-150"
+                    class="btn-glass-icon"
                     title="View customer"
                   >
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                      <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                    </svg>
+                    <i class="fas fa-eye w-4 h-4 text-xs"></i>
                   </button>
                   <button
                     @click="editCustomer(customer.id)"
-                    class="p-2 text-[var(--color-icon)] hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-all duration-150"
+                    class="btn-glass-icon"
                     title="Edit customer"
                   >
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                    </svg>
+                    <i class="fas fa-pen w-4 h-4 text-xs"></i>
                   </button>
                   <button
                     @click="sendEmailToCustomer(customer.email)"
-                    class="p-2 text-[var(--color-icon)] hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-all duration-150"
+                    class="btn-glass-icon"
                     title="Send email"
                   >
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-                    </svg>
+                    <i class="fas fa-envelope w-4 h-4 text-xs"></i>
                   </button>
                 </div>
               </td>
@@ -441,72 +443,11 @@ watch([searchQuery, customerType], () => {
 </script>
 
 <style scoped>
-/* Custom scrollbar */
 .overflow-x-auto {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  scrollbar-color: var(--glass-border) transparent;
 }
-
-.overflow-x-auto::-webkit-scrollbar {
-  height: 6px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
-  border-radius: 3px;
-}
-
-/* Customer avatar hover effect */
-.w-10.h-10 {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.w-10.h-10:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* Table row hover effect */
-tr {
-  transition: all 0.15s ease-out;
-}
-
-/* Status indicator animation */
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* Progress bar animation */
-.bg-blue-500 {
-  transition: width 0.5s ease-in-out;
-}
-
-/* Clickable elements */
-button:focus {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
-}
-
-/* Stats cards hover effect */
-.bg-blue-900\/20, .bg-green-900\/20, .bg-yellow-900\/20, .bg-purple-900\/20 {
-  transition: all 0.2s ease;
-}
-
-.bg-blue-900\/20:hover, .bg-green-900\/20:hover, .bg-yellow-900\/20:hover, .bg-purple-900\/20:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
+.overflow-x-auto::-webkit-scrollbar { height: 6px; }
+.overflow-x-auto::-webkit-scrollbar-track { background: transparent; }
+.overflow-x-auto::-webkit-scrollbar-thumb { background-color: var(--glass-border); border-radius: 3px; }
 </style>
