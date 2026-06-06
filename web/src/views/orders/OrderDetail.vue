@@ -286,11 +286,11 @@ const fetchOrderDetails = async () => {
     }
 };
 
-const updateStatus = async (newStatus: Order['status']) => {
+const updateStatus = async () => {
     if (!order.value?.id) return;
 
     try {
-        order.value = await orderService.updateOrderStatus(order.value.id, newStatus);
+        order.value = await orderService.updateOrderStatus(order.value.id, order.value.status);
     } catch (err) {
         console.error('Error updating status:', err);
         alert('Failed to update order status');

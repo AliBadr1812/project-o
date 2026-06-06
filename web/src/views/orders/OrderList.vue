@@ -451,8 +451,10 @@ const filteredOrders = computed(() => {
     }
 
     filtered.sort((a, b) => {
-        let aValue = a[sortField.value];
-        let bValue = b[sortField.value];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let aValue: any = (a as any)[sortField.value];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let bValue: any = (b as any)[sortField.value];
 
         // Handle special cases
         if (sortField.value === 'date') {
