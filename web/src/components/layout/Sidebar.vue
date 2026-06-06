@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="glass-panel w-[270px] min-h-screen flex-shrink-0 relative z-10 flex flex-col py-7 px-3.5"
+    class="glass-panel w-[270px] h-screen flex-shrink-0 relative z-10 flex flex-col py-7 px-3.5 overflow-hidden"
     style="border-right: 1px solid var(--glass-border);
            box-shadow: inset -1px 0 0 rgba(255,255,255,0.35), 1px 0 20px rgba(140,100,200,0.06);"
   >

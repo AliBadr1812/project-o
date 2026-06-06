@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="min-h-screen flex relative">
+  <div id="app" class="h-screen flex relative overflow-hidden">
     <!-- Fixed wallpaper behind everything -->
     <div class="wallpaper fixed inset-0 -z-10"></div>
 
@@ -7,8 +7,8 @@
     <Sidebar :dark="isDark" @toggle-dark="toggleDark" />
 
     <!-- Main content -->
-    <div class="flex-1 flex flex-col min-h-screen overflow-hidden">
-      <main class="flex-1 p-7 overflow-auto">
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+      <main class="flex-1 p-7 overflow-y-auto">
         <Breadcrumb v-if="!isDashboardRoute" :items="breadcrumbs" class="mb-5" />
 
         <router-view v-slot="{ Component }">
