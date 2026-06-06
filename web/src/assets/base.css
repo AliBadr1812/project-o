@@ -1,69 +1,207 @@
-/* color palette from <https://github.com/vuejs/theme> */
+/* ── Design Tokens — Light mode ──────────────────────────── */
 :root {
-  --vt-c-white: #ffffff;
-  --vt-c-white-soft: #f8f8f8;
-  --vt-c-white-mute: #f2f2f2;
+  /* Accent */
+  --accent:        #7c3aed;
+  --accent-light:  #b97fff;
+  --accent-dark:   #5e5ce6;
+  --accent-hover:  rgba(124, 58, 237, 0.12);
 
-  --vt-c-black: #181818;
-  --vt-c-black-soft: #222222;
-  --vt-c-black-mute: #282828;
+  /* Wallpaper color blobs */
+  --blob-1: rgba(200, 160, 255, 0.55);
+  --blob-2: rgba(120, 180, 255, 0.45);
+  --blob-3: rgba(255, 180, 220, 0.40);
+  --blob-4: rgba(100, 220, 200, 0.40);
+  --blob-5: rgba(255, 240, 200, 0.35);
+  --wallpaper-base: linear-gradient(160deg, #f0e8ff 0%, #e0f0ff 40%, #e8fff8 80%, #fff8f0 100%);
 
-  --vt-c-indigo: #2c3e50;
+  /* Glass surfaces */
+  --glass-bg:           rgba(255, 255, 255, 0.48);
+  --glass-bg-strong:    rgba(255, 255, 255, 0.60);
+  --glass-bg-sidebar:   rgba(255, 255, 255, 0.30);
+  --glass-bg-header:    rgba(255, 255, 255, 0.38);
+  --glass-border:       rgba(255, 255, 255, 0.78);
+  --glass-border-s:     rgba(255, 255, 255, 0.95);
+  --glass-blur:         blur(24px) saturate(180%);
+  --glass-blur-sidebar: blur(50px) saturate(200%) brightness(1.1);
+  --glass-blur-header:  blur(32px) saturate(190%) brightness(1.06);
+  --glass-specular:     inset 0 1.5px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow:       0 8px 28px rgba(100, 80, 160, 0.08), 0 2px 8px rgba(100, 80, 160, 0.05);
+  --glass-shadow-hover: 0 20px 50px rgba(100, 80, 160, 0.15), 0 6px 18px rgba(100, 80, 160, 0.10);
+  --glass-radius:       22px;
+  --glass-radius-sm:    13px;
 
-  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
+  /* Typography */
+  --text-primary:   #1e0a3c;
+  --text-secondary: rgba(60, 30, 100, 0.60);
+  --text-muted:     rgba(60, 30, 100, 0.38);
+  --text-accent:    #7c3aed;
+  --text-on-accent: #ffffff;
 
-  --vt-c-text-light-1: var(--vt-c-indigo);
-  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
-  --vt-c-text-dark-1: var(--vt-c-white);
-  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+  /* Nav icon tints */
+  --ni-purple-bg:   rgba(124, 58, 237, 0.09);
+  --ni-purple:      #7c3aed;
+  --ni-blue-bg:     rgba(37,  99, 235, 0.09);
+  --ni-blue:        #2563eb;
+  --ni-green-bg:    rgba(22, 163,  74, 0.09);
+  --ni-green:       #16a34a;
+  --ni-orange-bg:   rgba(234, 88,  12, 0.09);
+  --ni-orange:      #ea580c;
+  --ni-red-bg:      rgba(220, 38,  38, 0.09);
+  --ni-red:         #dc2626;
+  --ni-teal-bg:     rgba(5,  150, 105, 0.09);
+  --ni-teal:        #059669;
+  --ni-neutral-bg:  rgba(100, 80, 140, 0.07);
+  --ni-neutral:     rgba(90,  60, 140, 0.45);
+
+  /* Status badges */
+  --badge-success-bg:     rgba(48,  209,  88, 0.15);
+  --badge-success-color:  #15803d;
+  --badge-success-border: rgba(48,  209,  88, 0.22);
+  --badge-warning-bg:     rgba(251, 159,  10, 0.15);
+  --badge-warning-color:  #b45309;
+  --badge-warning-border: rgba(251, 159,  10, 0.22);
+  --badge-danger-bg:      rgba(220,  38,  38, 0.10);
+  --badge-danger-color:   #b91c1c;
+  --badge-danger-border:  rgba(220,  38,  38, 0.16);
+  --badge-info-bg:        rgba(124,  58, 237, 0.12);
+  --badge-info-color:     #6d28d9;
+  --badge-info-border:    rgba(124,  58, 237, 0.20);
+  --badge-neutral-bg:     rgba(100,  80, 140, 0.10);
+  --badge-neutral-color:  rgba(50,   30,  90, 0.65);
+  --badge-neutral-border: rgba(100,  80, 140, 0.18);
+  --badge-primary-bg:     rgba(37,   99, 235, 0.12);
+  --badge-primary-color:  #1d4ed8;
+  --badge-primary-border: rgba(37,   99, 235, 0.20);
+
+  /* Form inputs */
+  --input-bg:          rgba(255, 255, 255, 0.58);
+  --input-border:      rgba(255, 255, 255, 0.82);
+  --input-focus-ring:  rgba(124, 58, 237, 0.28);
+  --input-text:        var(--text-primary);
+  --input-placeholder: var(--text-muted);
+
+  /* Table */
+  --table-header-text:  rgba(60, 30, 100, 0.40);
+  --table-border:       rgba(255, 255, 255, 0.55);
+  --table-row-hover:    rgba(255, 255, 255, 0.32);
+
+  /* Progress bars */
+  --progress-track:   rgba(255, 255, 255, 0.50);
+  --progress-success: linear-gradient(90deg, #34d399, #059669);
+  --progress-primary: linear-gradient(90deg, var(--accent-light), var(--accent));
+  --progress-warning: linear-gradient(90deg, #fbbf24, #f59e0b);
+  --progress-danger:  linear-gradient(90deg, #f87171, #dc2626);
+
+  /* Divider */
+  --divider: rgba(255, 255, 255, 0.55);
+
+  /* Scrollbar */
+  --scrollbar-thumb: rgba(124, 58, 237, 0.22);
+  --scrollbar-track: transparent;
+
+  /* Online status dot */
+  --online-dot: #30d158;
 }
 
-/* semantic color variables for this project */
-:root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
+/* ── Design Tokens — Dark mode ───────────────────────────── */
+.dark {
+  /* Accent unchanged */
 
-  --color-border: var(--vt-c-divider-light-2);
-  --color-border-hover: var(--vt-c-divider-light-1);
+  /* Wallpaper blobs */
+  --blob-1: rgba(120,  60, 200, 0.42);
+  --blob-2: rgba( 20,  40, 160, 0.38);
+  --blob-3: rgba(150,  20, 100, 0.30);
+  --blob-4: rgba( 10, 100, 100, 0.28);
+  --blob-5: rgba( 80,  30, 140, 0.22);
+  --wallpaper-base: linear-gradient(160deg, #0d0320 0%, #090e28 40%, #061818 80%, #110420 100%);
 
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
+  /* Glass surfaces */
+  --glass-bg:           rgba(20,  10, 45, 0.55);
+  --glass-bg-strong:    rgba(28,  14, 58, 0.68);
+  --glass-bg-sidebar:   rgba(12,   6, 28, 0.68);
+  --glass-bg-header:    rgba(16,   8, 36, 0.62);
+  --glass-border:       rgba(255, 255, 255, 0.10);
+  --glass-border-s:     rgba(255, 255, 255, 0.20);
+  --glass-specular:     inset 0 1.5px 0 rgba(255, 255, 255, 0.10);
+  --glass-shadow:       0 8px 28px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.22);
+  --glass-shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.50), 0 6px 18px rgba(0, 0, 0, 0.32);
 
-  --section-gap: 160px;
+  /* Typography */
+  --text-primary:   rgba(240, 228, 255, 0.96);
+  --text-secondary: rgba(200, 178, 240, 0.66);
+  --text-muted:     rgba(180, 158, 220, 0.42);
+  --text-accent:    #c084fc;
+
+  /* Nav icon tints */
+  --ni-purple-bg:   rgba(124,  58, 237, 0.22);
+  --ni-blue-bg:     rgba( 37,  99, 235, 0.20);
+  --ni-green-bg:    rgba( 22, 163,  74, 0.20);
+  --ni-orange-bg:   rgba(234,  88,  12, 0.20);
+  --ni-red-bg:      rgba(220,  38,  38, 0.20);
+  --ni-teal-bg:     rgba(  5, 150, 105, 0.20);
+  --ni-neutral-bg:  rgba(100,  80, 140, 0.18);
+  --ni-neutral:     rgba(200, 180, 240, 0.50);
+
+  /* Status badges */
+  --badge-success-bg:     rgba(48,  209,  88, 0.12);
+  --badge-success-color:  #4ade80;
+  --badge-success-border: rgba(48,  209,  88, 0.18);
+  --badge-warning-bg:     rgba(251, 159,  10, 0.12);
+  --badge-warning-color:  #fbbf24;
+  --badge-warning-border: rgba(251, 159,  10, 0.18);
+  --badge-danger-bg:      rgba(220,  38,  38, 0.12);
+  --badge-danger-color:   #f87171;
+  --badge-danger-border:  rgba(220,  38,  38, 0.18);
+  --badge-info-bg:        rgba(124,  58, 237, 0.18);
+  --badge-info-color:     #a78bfa;
+  --badge-info-border:    rgba(124,  58, 237, 0.26);
+  --badge-neutral-bg:     rgba(100,  80, 140, 0.18);
+  --badge-neutral-color:  rgba(200, 180, 240, 0.72);
+  --badge-neutral-border: rgba(100,  80, 140, 0.26);
+  --badge-primary-bg:     rgba(37,   99, 235, 0.18);
+  --badge-primary-color:  #60a5fa;
+  --badge-primary-border: rgba(37,   99, 235, 0.26);
+
+  /* Form inputs */
+  --input-bg:          rgba(20, 10, 45, 0.65);
+  --input-border:      rgba(255, 255, 255, 0.12);
+  --input-focus-ring:  rgba(124, 58, 237, 0.35);
+
+  /* Table */
+  --table-header-text: rgba(200, 178, 240, 0.46);
+  --table-border:      rgba(255, 255, 255, 0.08);
+  --table-row-hover:   rgba(255, 255, 255, 0.05);
+
+  /* Progress */
+  --progress-track: rgba(255, 255, 255, 0.08);
+
+  /* Divider */
+  --divider: rgba(255, 255, 255, 0.08);
+
+  /* Scrollbar */
+  --scrollbar-thumb: rgba(124, 58, 237, 0.35);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
+/* ── Base element styles ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
-    --color-border: var(--vt-c-divider-dark-2);
-    --color-border-hover: var(--vt-c-divider-dark-1);
-
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
-  }
-}
-
-/* In base.css, fix line 53: */
 body {
-  min-height: 100vh;
-  color: var(--color-text);
-  background: var(--color-background);
-  transition:
-    color 0.5s,
-    background-color 0.5s;
-  line-height: 1.6;
-
-  /* Fix the missing comma after "Roboto" */
-  font-family: "SF Pro Display", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Rounded', 'SF Pro Display',
+               'Segoe UI', system-ui, sans-serif;
   font-size: 15px;
-  text-rendering: optimizeLegibility;
+  line-height: 1.6;
+  color: var(--text-primary);
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
+
+/* Custom scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+*::-webkit-scrollbar        { width: 5px; height: 5px; }
+*::-webkit-scrollbar-track  { background: var(--scrollbar-track); }
+*::-webkit-scrollbar-thumb  { background-color: var(--scrollbar-thumb); border-radius: 3px; }
