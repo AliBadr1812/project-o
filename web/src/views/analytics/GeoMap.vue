@@ -1,8 +1,8 @@
 <!-- components/analytics/GeoMap.vue -->
 <template>
   <div class="geo-map">
-    <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-[var(--color-card)]/80 z-10 rounded-lg">
-      <i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i>
+    <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-[var(--glass-bg)]/80 z-10 rounded-lg">
+      <i class="fas fa-spinner fa-spin text-3xl text-[var(--accent)]"></i>
     </div>
     <div class="relative" style="height: 200px; width: 100%;">
       <l-map
@@ -29,7 +29,7 @@
               <h3 class="font-bold">{{ region.name }}</h3>
               <p class="text-sm">Revenue: {{ formatCurrency(region.revenue) }}</p>
               <p class="text-sm">Orders: {{ region.orders }}</p>
-              <p class="text-xs text-gray-600 mt-1">{{ region.percentage }}% of total</p>
+              <p class="text-xs text-[var(--text-secondary)] mt-1">{{ region.percentage }}% of total</p>
             </div>
           </l-popup>
 
@@ -57,7 +57,7 @@
               ></div>
               <!-- Inner circle -->
               <div
-                class="absolute rounded-full flex items-center justify-center text-white text-xs font-bold"
+                class="absolute rounded-full flex items-center justify-center text-[var(--text-primary)] text-xs font-bold"
                 :style="{
                   width: '30px',
                   height: '30px',
@@ -73,10 +73,10 @@
 
         <!-- Heatmap layer (optional, requires additional plugin) -->
         <l-control position="topright">
-          <div class="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg shadow-lg p-2">
+          <div class="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg shadow-lg p-2">
             <button
               @click="toggleHeatmap"
-              class="px-3 py-1.5 text-sm text-[var(--color-icon)] hover:bg-[var(--color-hover)] rounded transition-colors"
+              class="px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.35)] rounded transition-colors"
             >
               <i class="fas fa-fire mr-2" :class="{ 'text-red-500': showHeatmap }"></i>
               {{ showHeatmap ? 'Hide' : 'Show' }} Heatmap
@@ -87,17 +87,17 @@
     </div>
 
     <!-- Legend -->
-    <div class="mt-4 p-4 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg">
+    <div class="mt-4 p-4 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg">
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-medium text-[var(--color-icon)]">Market Distribution</h3>
+        <h3 class="text-sm font-medium text-[var(--text-secondary)]">Market Distribution</h3>
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
-            <span class="text-xs text-[var(--color-icon)]">Revenue centers</span>
+            <span class="text-xs text-[var(--text-secondary)]">Revenue centers</span>
           </div>
           <div class="flex items-center gap-2">
-            <div class="w-3 h-3 border-2 border-blue-500 rounded-full animate-pulse"></div>
-            <span class="text-xs text-[var(--color-icon)]">Active regions</span>
+            <div class="w-3 h-3 border-2 border-[var(--accent)] rounded-full animate-pulse"></div>
+            <span class="text-xs text-[var(--text-secondary)]">Active regions</span>
           </div>
         </div>
       </div>
@@ -185,7 +185,7 @@ watch(() => props.regions, (newRegions) => {
 
 /* Fix Leaflet popup styling to match your theme */
 :deep(.leaflet-popup-content-wrapper) {
-  background: var(--color-card);
+  background: var(--glass-bg);
   color: white;
   border-radius: 0.5rem;
   border: 1px solid var(--color-border);
@@ -193,7 +193,7 @@ watch(() => props.regions, (newRegions) => {
 }
 
 :deep(.leaflet-popup-tip) {
-  background: var(--color-card);
+  background: var(--glass-bg);
   border: 1px solid var(--color-border);
 }
 

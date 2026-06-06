@@ -3,15 +3,15 @@
     <!-- Header -->
     <div class="flex items-center justify-between pb-5">
       <div>
-        <h1 class="text-2xl font-bold text-white">Analytics Dashboard</h1>
-        <p class="text-[var(--color-icon)]">Track your business performance and metrics</p>
+        <h1 class="page-title">Analytics Dashboard</h1>
+        <p class="text-[var(--text-secondary)]">Track your business performance and metrics</p>
       </div>
       <div class="flex items-center gap-3">
         <Button class="text-[var(--color-gray-400)] active:text-[var(--color-white)]" variant="outline" size="sm" @click="handleRefresh">
             <i class="fas fa-sync-alt fa-1x mr-1"></i>
             Refresh
         </Button>
-        <Button class="flex items-center gap-2 px-4 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200" variant="outline" size="sm" @click="handleExport">
+        <Button class="btn-accent" variant="outline" size="sm" @click="handleExport">
             <i class="fas fa-arrow-up-from-bracket fa-1x mr-1"></i>
             Export
         </Button>
@@ -37,20 +37,20 @@
           <input
             type="date"
             v-model="customDateRange.start"
-            class="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-icon)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent"
             :max="customDateRange.end"
           />
-          <span class="text-[var(--color-icon)]">to</span>
+          <span class="text-[var(--text-secondary)]">to</span>
           <input
             type="date"
             v-model="customDateRange.end"
-            class="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-icon)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent"
             :min="customDateRange.start"
             :max="today"
           />
           <Button
             variant="outline"
-            class="flex items-center px-3 py-1.5 bg-[var(--primary-color)] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            class="flex items-center px-3 py-1.5 bg-[var(--accent)] text-[var(--text-primary)] rounded-lg hover:bg-blue-700 transition-colors duration-200"
             size="sm"
             @click="applyCustomDate"
             :disabled="!isCustomDateValid"
@@ -63,7 +63,7 @@
 
     <!-- Stats Bar -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <Card v-for="metric in metrics" :key="metric.key" class="p-5 cursor-pointer hover:bg-[var(--color-hover)] transition-all duration-200 hover:translate-y-[-2px]">
+      <Card v-for="metric in metrics" :key="metric.key" class="p-5 cursor-pointer hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
         <div class="flex items-center justify-between mb-4">
           <div :class="['w-12 h-12 rounded-lg flex items-center justify-center', metric.iconBg]">
             <i :class="[metric.icon, metric.iconColor, 'text-xl']"></i>
@@ -74,9 +74,9 @@
             {{ Math.abs(metric.trend) }}%
           </div>
         </div>
-        <p class="text-sm font-medium text-[var(--color-icon)] mb-1">{{ metric.label }}</p>
-        <p class="text-2xl font-bold text-white mb-2">{{ formatMetricValue(metric) }}</p>
-        <p class="text-xs text-[var(--color-icon)]">{{ metric.subtext }}</p>
+        <p class="text-sm font-medium text-[var(--text-secondary)] mb-1">{{ metric.label }}</p>
+        <p class="text-2xl font-bold text-[var(--text-primary)] mb-2">{{ formatMetricValue(metric) }}</p>
+        <p class="text-xs text-[var(--text-secondary)]">{{ metric.subtext }}</p>
       </Card>
     </div>
 
@@ -84,16 +84,16 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
       <!-- Sales Chart -->
       <Card class="lg:col-span-2">
-        <div class="border-b border-[var(--color-border)] px-6 py-4">
+        <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-white">Sales Trend</h2>
-              <p class="text-sm text-[var(--color-icon)]">Revenue over time</p>
+              <h2 class="text-lg font-semibold text-[var(--text-primary)]">Sales Trend</h2>
+              <p class="text-sm text-[var(--text-secondary)]">Revenue over time</p>
             </div>
             <div class="flex items-center gap-2">
               <select
                 v-model="salesChartType"
-                class="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-icon)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 <option value="line">Line Chart</option>
                 <option value="bar">Bar Chart</option>
@@ -110,11 +110,11 @@
 
       <!-- Revenue by Category -->
       <Card>
-        <div class="border-b border-[var(--color-border)] px-6 py-4">
+        <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-white">Revenue by Category</h2>
-              <p class="text-sm text-[var(--color-icon)]">Distribution across categories</p>
+              <h2 class="text-lg font-semibold text-[var(--text-primary)]">Revenue by Category</h2>
+              <p class="text-sm text-[var(--text-secondary)]">Distribution across categories</p>
             </div>
             <Button variant="ghost" size="sm" @click="exportCategories">
               <i class="fas fa-download"></i>
@@ -123,7 +123,7 @@
         </div>
         <div class="p-4">
           <div v-if="categoryRevenue.length === 0" class="h-64 flex items-center justify-center">
-            <div class="text-center text-[var(--color-icon)]">
+            <div class="text-center text-[var(--text-secondary)]">
               <svg class="w-12 h-12 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/>
                 <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/>
@@ -134,10 +134,10 @@
           <div v-else class="space-y-4">
             <div v-for="item in categoryRevenue" :key="item.category" class="space-y-1">
               <div class="flex justify-between text-sm">
-                <span class="text-[var(--color-icon)]">{{ item.category }}</span>
-                <span class="text-white font-medium">{{ formatCurrency(item.revenue) }}</span>
+                <span class="text-[var(--text-secondary)]">{{ item.category }}</span>
+                <span class="text-[var(--text-primary)] font-medium">{{ formatCurrency(item.revenue) }}</span>
               </div>
-              <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+              <div class="h-2 bg-[var(--glass-bg)] rounded-full overflow-hidden">
                 <div
                   :style="{ width: item.percentage + '%' }"
                   class="h-full bg-blue-500 rounded-full transition-all duration-500"
@@ -153,20 +153,20 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Top Products -->
       <Card>
-        <div class="border-b border-[var(--color-border)] px-6 py-4">
+        <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-white">Top Products</h2>
-              <p class="text-sm text-[var(--color-icon)]">Best selling products</p>
+              <h2 class="text-lg font-semibold text-[var(--text-primary)]">Top Products</h2>
+              <p class="text-sm text-[var(--text-secondary)]">Best selling products</p>
             </div>
-            <router-link to="/products" class="text-sm text-blue-500 hover:text-blue-400 transition-colors">
+            <router-link to="/products" class="text-sm text-[var(--accent)] hover:text-[var(--text-accent)] transition-colors">
               View all
             </router-link>
           </div>
         </div>
         <Table>
           <template #header>
-            <tr class="bg-[var(--color-card)] text-[var(--color-icon)]">
+            <tr class="bg-[var(--glass-bg)] text-[var(--text-secondary)]">
               <th class="py-3 px-6 text-left">Product</th>
               <th class="py-3 px-6 text-left">Sales</th>
               <th class="py-3 px-6 text-left">Revenue</th>
@@ -174,23 +174,23 @@
             </tr>
           </template>
           <template #body>
-            <tr v-for="product in topProducts" :key="product.id" class="hover:bg-[var(--color-card)]">
+            <tr v-for="product in topProducts" :key="product.id" class="hover:bg-[var(--glass-bg)]">
               <td class="py-3 px-6">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <div class="w-10 h-10 bg-[var(--glass-bg)] rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-[var(--text-muted)]" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"/>
                       <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"/>
                     </svg>
                   </div>
                   <div>
-                    <p class="font-medium text-white text-sm">{{ product.name }}</p>
-                    <p class="text-xs text-[var(--color-icon)]">{{ product.category }}</p>
+                    <p class="font-medium text-[var(--text-primary)] text-sm">{{ product.name }}</p>
+                    <p class="text-xs text-[var(--text-secondary)]">{{ product.category }}</p>
                   </div>
                 </div>
               </td>
-              <td class="py-3 px-6 text-white">{{ product.sales }}</td>
-              <td class="py-3 px-6 text-white">{{ formatCurrency(product.revenue) }}</td>
+              <td class="py-3 px-6 text-[var(--text-primary)]">{{ product.sales }}</td>
+              <td class="py-3 px-6 text-[var(--text-primary)]">{{ formatCurrency(product.revenue) }}</td>
               <td class="py-3 px-6">
                 <Badge
                   :variant="product.stock > 20 ? 'success' : product.stock > 5 ? 'warning' : 'danger'"
@@ -201,7 +201,7 @@
             </tr>
           </template>
         </Table>
-        <div class="border-t border-[var(--color-border)] px-6 py-3 text-right">
+        <div class="border-t border-[var(--glass-border)] px-6 py-3 text-right">
           <Button variant="ghost" size="sm" @click="viewAllProducts">
             View All Products
           </Button>
@@ -210,13 +210,13 @@
 
       <!-- Recent Orders -->
       <Card>
-        <div class="border-b border-[var(--color-border)] px-6 py-4">
+        <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-white">Recent Orders</h2>
-              <p class="text-sm text-[var(--color-icon)]">Latest customer orders</p>
+              <h2 class="text-lg font-semibold text-[var(--text-primary)]">Recent Orders</h2>
+              <p class="text-sm text-[var(--text-secondary)]">Latest customer orders</p>
             </div>
-            <router-link to="/orders" class="text-sm text-blue-500 hover:text-blue-400 transition-colors">
+            <router-link to="/orders" class="text-sm text-[var(--accent)] hover:text-[var(--text-accent)] transition-colors">
               View all
             </router-link>
           </div>
@@ -225,23 +225,23 @@
           <div
             v-for="order in recentOrders"
             :key="order.id"
-            class="flex items-center justify-between p-4 hover:bg-[var(--color-card)] transition-colors cursor-pointer"
+            class="flex items-center justify-between p-4 hover:bg-[var(--glass-bg)] transition-colors cursor-pointer"
             @click="goToOrder(order.id)"
           >
             <div class="flex items-center gap-3">
               <div
-                class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-medium"
+                class="w-10 h-10 rounded-lg flex items-center justify-center text-[var(--text-primary)] text-sm font-medium"
                 :style="{ background: `linear-gradient(135deg, ${stringToColor(order.customerName)}, ${stringToColor(order.customerName + '2')})` }"
               >
                 {{ getInitials(order.customerName) }}
               </div>
               <div>
-                <p class="font-medium text-white text-sm">Order #{{ order.id }}</p>
-                <p class="text-xs text-[var(--color-icon)]">{{ order.customerName }}</p>
+                <p class="font-medium text-[var(--text-primary)] text-sm">Order #{{ order.id }}</p>
+                <p class="text-xs text-[var(--text-secondary)]">{{ order.customerName }}</p>
               </div>
             </div>
             <div class="text-right">
-              <p class="font-medium text-white text-sm">{{ formatCurrency(order.amount) }}</p>
+              <p class="font-medium text-[var(--text-primary)] text-sm">{{ formatCurrency(order.amount) }}</p>
               <Badge :variant="getOrderStatusVariant(order.status)">
                 {{ order.status }}
               </Badge>
@@ -253,9 +253,9 @@
 
     <!-- Geographic Distribution -->
     <Card class="mt-6">
-      <div class="border-b border-[var(--color-border)] px-6 py-4">
-        <h2 class="text-lg font-semibold text-white">Geographic Distribution</h2>
-        <p class="text-sm text-[var(--color-icon)]">Customer locations by region</p>
+      <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+        <h2 class="text-lg font-semibold text-[var(--text-primary)]">Geographic Distribution</h2>
+        <p class="text-sm text-[var(--text-secondary)]">Customer locations by region</p>
       </div>
       <div class="p-6">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -263,13 +263,13 @@
                 <GeoMap :regions="mapRegions" />
             </div>
           <div class="space-y-4">
-            <h3 class="text-sm font-medium text-[var(--color-icon)] mb-3">Top Regions</h3>
+            <h3 class="text-sm font-medium text-[var(--text-secondary)] mb-3">Top Regions</h3>
             <div v-for="region in topRegions" :key="region.name" class="space-y-1">
               <div class="flex justify-between text-sm">
-                <span class="text-[var(--color-icon)]">{{ region.name }}</span>
-                <span class="text-white font-medium">{{ region.percentage }}%</span>
+                <span class="text-[var(--text-secondary)]">{{ region.name }}</span>
+                <span class="text-[var(--text-primary)] font-medium">{{ region.percentage }}%</span>
               </div>
-              <div class="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+              <div class="h-1.5 bg-[var(--glass-bg)] rounded-full overflow-hidden">
                 <div
                   :style="{ width: region.percentage + '%' }"
                   class="h-full bg-blue-500 rounded-full transition-all duration-500"
@@ -403,7 +403,7 @@ const metrics = computed<Metric[]>(() => {
       subtext: 'vs previous period',
       icon: 'fas fa-shopping-cart',
       iconBg: 'bg-blue-500/10',
-      iconColor: 'text-blue-500',
+      iconColor: 'text-[var(--accent)]',
       trendBg: 'text-green-500 bg-green-500/10',
       format: 'currency'
     },
