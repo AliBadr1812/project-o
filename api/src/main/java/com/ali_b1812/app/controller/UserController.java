@@ -42,7 +42,7 @@ import java.util.Map;
  * Includes role-based access control and comprehensive validation.
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Users", description = "User management endpoints")

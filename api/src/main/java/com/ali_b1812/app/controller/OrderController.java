@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import com.ali_b1812.app.dto.request.CreateOrderRequest;
 import com.ali_b1812.app.dto.response.ApiResponse;
 import com.ali_b1812.app.dto.response.OrderResponse;
-import com.ali_b1812.app.service.OrderService;
+import com.ali_b1812.app.service.interfaces.IOrderService;
 import com.ali_b1812.app.util.UserPrincipal;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,14 +23,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/orders")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Orders", description = "Order management endpoints")
 @SecurityRequirement(name = "bearerAuth")
 public class OrderController {
     
-    private final OrderService orderService;
+    private final IOrderService orderService;
 
     @Operation(summary = "Get order by ID", description = "Retrieve an order by its ID")
     @ApiResponses(value = {

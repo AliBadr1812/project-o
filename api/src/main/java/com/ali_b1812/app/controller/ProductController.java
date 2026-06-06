@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
  * All endpoints are secured and require authentication.
  */
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/products")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Products", description = "Product management endpoints")
