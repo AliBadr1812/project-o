@@ -1,147 +1,140 @@
 <template>
-  <Card>
-    <h2 class="text-base font-semibold mb-6" style="color:var(--text-primary)">Order Analytics</h2>
-
-    <!-- Time Period Selector -->
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex gap-1.5">
-        <button
-          v-for="period in timePeriods"
-          :key="period.value"
-          @click="selectedPeriod = period.value"
-          :class="selectedPeriod === period.value ? 'btn-accent' : 'btn-glass'"
-          class="px-3 py-1 text-sm"
-        >
-          {{ period.label }}
+  <div class="gap-6">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Order Analytics</h1>
+        <p class="page-subtitle">Track order performance and trends</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="flex gap-1">
+          <button v-for="period in timePeriods" :key="period.value" @click="selectedPeriod = period.value"
+            :class="selectedPeriod === period.value ? 'btn-accent' : 'btn-glass'" class="text-sm">
+            {{ period.label }}
+          </button>
+        </div>
+        <button @click="exportData" class="btn-glass text-sm">
+          <i class="fas fa-download text-xs mr-1"></i>Export
         </button>
       </div>
-
-      <button @click="exportData" class="btn-glass flex items-center gap-2">
-        <i class="fas fa-download text-xs"></i>
-        <span class="text-sm">Export</span>
-      </button>
     </div>
 
     <!-- Key Metrics -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-2 mb-2">
-          <div class="stat-icon ni-p"><i class="fas fa-dollar-sign text-xs"></i></div>
-          <p class="text-xs font-medium" style="color:var(--ni-purple)">Total Revenue</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-p"><i class="fas fa-dollar-sign"></i></div>
+            <span class="badge badge-success"><i class="fas fa-arrow-up text-[9px] mr-1"></i>{{ stats.revenueChange }}%</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Total Revenue</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ formatCurrency(stats.totalRevenue) }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">From previous period</p>
         </div>
-        <p class="text-xl font-bold" style="color:var(--text-primary)">{{ formatCurrency(stats.totalRevenue) }}</p>
-        <p class="text-xs mt-1 flex items-center gap-1" style="color:var(--ni-green)">
-          <i class="fas fa-arrow-up"></i>
-          {{ stats.revenueChange }}% from previous period
-        </p>
-      </div>
-
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-2 mb-2">
-          <div class="stat-icon ni-g"><i class="fas fa-bag-shopping text-xs"></i></div>
-          <p class="text-xs font-medium" style="color:var(--ni-green)">Avg. Order Value</p>
+      </Card>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-g"><i class="fas fa-bag-shopping"></i></div>
+            <span class="badge badge-info">Per order</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Avg. Order Value</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ formatCurrency(stats.averageOrderValue) }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Average per transaction</p>
         </div>
-        <p class="text-xl font-bold" style="color:var(--text-primary)">{{ formatCurrency(stats.averageOrderValue) }}</p>
-        <p class="text-xs mt-1" style="color:var(--text-muted)">Per order</p>
-      </div>
-
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-2 mb-2">
-          <div class="stat-icon ni-b"><i class="fas fa-chart-line text-xs"></i></div>
-          <p class="text-xs font-medium" style="color:var(--ni-blue)">Conversion Rate</p>
+      </Card>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-b"><i class="fas fa-chart-line"></i></div>
+            <span class="badge badge-success"><i class="fas fa-arrow-up text-[9px] mr-1"></i>{{ stats.conversionChange }}%</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Conversion Rate</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.conversionRate }}%</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">vs. previous period</p>
         </div>
-        <p class="text-xl font-bold" style="color:var(--text-primary)">{{ stats.conversionRate }}%</p>
-        <p class="text-xs mt-1 flex items-center gap-1" style="color:var(--ni-green)">
-          <i class="fas fa-arrow-up"></i>
-          {{ stats.conversionChange }}% change
-        </p>
-      </div>
-
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-2 mb-2">
-          <div class="stat-icon ni-o"><i class="fas fa-users text-xs"></i></div>
-          <p class="text-xs font-medium" style="color:var(--ni-orange)">Returning Customers</p>
+      </Card>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-o"><i class="fas fa-users"></i></div>
+            <span class="badge badge-warning">{{ stats.returningRate }}% of total</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Returning Customers</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.returningCustomers }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Repeat buyers this period</p>
         </div>
-        <p class="text-xl font-bold" style="color:var(--text-primary)">{{ stats.returningCustomers }}</p>
-        <p class="text-xs mt-1" style="color:var(--text-muted)">{{ stats.returningRate }}% of total</p>
-      </div>
+      </Card>
     </div>
 
     <!-- Charts Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Revenue Chart -->
-      <div class="glass-card p-6">
-        <h3 class="text-sm font-medium mb-4" style="color:var(--text-primary)">Revenue Over Time</h3>
-        <div class="h-64 flex items-center justify-center rounded-xl" style="border: 2px dashed var(--glass-border);">
-          <p class="text-sm" style="color:var(--text-muted)">Revenue chart</p>
+      <Card>
+        <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+          <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Revenue Over Time</h2>
         </div>
-      </div>
-
-      <!-- Orders by Status -->
-      <div class="glass-card p-6">
-        <h3 class="text-sm font-medium mb-4" style="color:var(--text-primary)">Orders by Status</h3>
-        <div class="h-64 flex items-center justify-center rounded-xl" style="border: 2px dashed var(--glass-border);">
-          <p class="text-sm" style="color:var(--text-muted)">Status chart</p>
+        <div class="p-5">
+          <div class="h-64 flex items-center justify-center rounded-xl" style="border: 2px dashed var(--glass-border);">
+            <p class="text-sm" style="color: var(--text-muted);">Revenue chart placeholder</p>
+          </div>
         </div>
-      </div>
-
-      <!-- Top Products -->
-      <div class="glass-card p-6 lg:col-span-2">
-        <h3 class="text-sm font-medium mb-4" style="color:var(--text-primary)">Top Selling Products</h3>
-        <div class="overflow-x-auto">
-          <table class="min-w-full">
-            <thead>
-              <tr>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color:var(--table-header-text)">Product</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color:var(--table-header-text)">Units Sold</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color:var(--table-header-text)">Revenue</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color:var(--table-header-text)">Conversion</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="product in topProducts"
-                :key="product.id"
-                class="transition-colors"
-                style="border-top: 1px solid var(--table-border);"
-              >
-                <td class="px-4 py-3">
-                  <div class="flex items-center gap-3">
-                    <img
-                      :src="product.imageUrl || 'https://freesvg.org/img/abstract-user-flat-4.png'"
-                      :alt="product.name"
-                      class="w-10 h-10 rounded-lg object-cover"
-                    >
-                    <div>
-                      <p class="font-medium text-sm" style="color:var(--text-primary)">{{ product.name }}</p>
-                      <p class="text-xs" style="color:var(--text-muted)">{{ product.category }}</p>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-4 py-3">
-                  <div class="flex items-center gap-3">
-                    <span class="font-medium text-sm" style="color:var(--text-primary)">{{ product.unitsSold }}</span>
-                    <div class="progress-track w-24">
-                      <div
-                        class="progress-fill"
-                        :style="{ width: Math.min((product.unitsSold / maxUnits) * 100, 100) + '%', background: 'var(--progress-primary)' }"
-                      ></div>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-4 py-3 font-medium text-sm" style="color:var(--text-primary)">
-                  {{ formatCurrency(product.revenue) }}
-                </td>
-                <td class="px-4 py-3">
-                  <span class="badge badge-success">{{ product.conversionRate }}%</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      </Card>
+      <Card>
+        <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+          <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Orders by Status</h2>
         </div>
-      </div>
+        <div class="p-5">
+          <div class="h-64 flex items-center justify-center rounded-xl" style="border: 2px dashed var(--glass-border);">
+            <p class="text-sm" style="color: var(--text-muted);">Status chart placeholder</p>
+          </div>
+        </div>
+      </Card>
     </div>
-  </Card>
+
+    <!-- Top Products Table -->
+    <Card class="overflow-hidden">
+      <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+        <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Top Selling Products</h2>
+        <p class="text-xs mt-0.5" style="color: var(--text-muted);">Best performers this period</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="glass-table w-full">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Units Sold</th>
+              <th>Revenue</th>
+              <th>Conversion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="product in topProducts" :key="product.id">
+              <td>
+                <div class="flex items-center gap-3">
+                  <img :src="product.imageUrl || 'https://freesvg.org/img/abstract-user-flat-4.png'"
+                    :alt="product.name" class="w-10 h-10 rounded-lg object-cover">
+                  <div>
+                    <p class="td-primary">{{ product.name }}</p>
+                    <p class="text-xs" style="color: var(--text-muted);">{{ product.category }}</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center gap-3">
+                  <span class="font-medium text-sm" style="color: var(--text-primary);">{{ product.unitsSold }}</span>
+                  <div class="progress-track w-24">
+                    <div class="progress-fill" :style="{ width: Math.min((product.unitsSold / maxUnits) * 100, 100) + '%', background: 'var(--progress-primary)' }"></div>
+                  </div>
+                </div>
+              </td>
+              <td class="td-accent">{{ formatCurrency(product.revenue) }}</td>
+              <td><span class="badge badge-success">{{ product.conversionRate }}%</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  </div>
 </template>
 
 <script setup lang="ts">

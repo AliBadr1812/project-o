@@ -1,19 +1,83 @@
 <template>
     <div class="gap-6">
-        <!-- Header -->
-        <div class="flex items-center justify-between pb-5">
+        <!-- Page Header -->
+        <div class="page-header">
             <div>
                 <h1 class="page-title">Orders</h1>
-                <p class="text-[var(--text-secondary)]">Manage customer orders</p>
+                <p class="page-subtitle">Manage customer orders</p>
             </div>
-
             <div class="flex items-center gap-3">
-                <!-- Filter -->
-                <div class="relative text-[var(--text-secondary)]">
-                    <select
-                        v-model="statusFilter"
-                        class="appearance-none border border-[var(--glass-border)] rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent cursor-pointer bg-[var(--glass-bg)]"
-                    >
+                <button @click="exportOrders" class="btn-accent text-sm">
+                    <i class="fas fa-download text-xs mr-1"></i>
+                    Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon ni-b"><i class="fas fa-bag-shopping"></i></div>
+                        <span class="badge badge-info"><i class="fas fa-arrow-up text-[9px] mr-1"></i>All</span>
+                    </div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Total Orders</p>
+                    <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats ? stats.total : 0 }}</p>
+                    <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">{{ stats ? formatCurrency(stats.totalRevenue) : '$0' }} revenue</p>
+                </div>
+            </Card>
+            <Card>
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon ni-o"><i class="fas fa-clock"></i></div>
+                        <span class="badge badge-warning">Action needed</span>
+                    </div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Pending</p>
+                    <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats ? stats.pending : 0 }}</p>
+                    <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Requires attention</p>
+                </div>
+            </Card>
+            <Card>
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon ni-g"><i class="fas fa-circle-check"></i></div>
+                        <span class="badge badge-success"><i class="fas fa-arrow-up text-[9px] mr-1"></i>{{ stats ? stats.completionRate : 0 }}%</span>
+                    </div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Completed</p>
+                    <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats ? stats.completed : 0 }}</p>
+                    <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Completion rate</p>
+                </div>
+            </Card>
+            <Card>
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon ni-r"><i class="fas fa-xmark"></i></div>
+                        <span class="badge badge-danger"><i class="fas fa-arrow-down text-[9px] mr-1"></i>{{ stats ? stats.cancellationRate : 0 }}%</span>
+                    </div>
+                    <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Cancelled</p>
+                    <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats ? stats.cancelled : 0 }}</p>
+                    <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Cancellation rate</p>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Orders Table -->
+        <Card class="overflow-hidden">
+            <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Order History</h2>
+                        <p class="text-xs mt-0.5" style="color: var(--text-muted);">Showing {{ paginatedOrders.length }} of {{ filteredOrders.length }} orders</p>
+                    </div>
+                </div>
+                <!-- Filter/Search Row -->
+                <div class="flex items-center gap-3 flex-wrap">
+                    <div class="relative flex-1 min-w-[200px]">
+                        <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color: var(--text-muted)"></i>
+                        <input v-model="searchQuery" type="text" placeholder="Search orders..." class="glass-input w-full pl-9 text-sm">
+                    </div>
+                    <select v-model="statusFilter" class="glass-select text-sm">
                         <option value="">All Status</option>
                         <option value="pending">Pending</option>
                         <option value="processing">Processing</option>
@@ -22,291 +86,112 @@
                         <option value="cancelled">Cancelled</option>
                         <option value="refunded">Refunded</option>
                     </select>
-                    <i class="fas fa-angle-down fa-1x absolute right-4 top-4"></i>
-                </div>
-
-                <!-- Date Range -->
-                <div class="relative">
-                    <button
-                        @click="toggleDatePicker"
-                        class="flex items-center gap-2 border border-[var(--glass-border)] rounded-lg px-4 py-2 pr-10 bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-150"
-                    >
-                        <i class="fas fa-calendar fa-1x"></i>
-                        <span>{{ dateRangeLabel }}</span>
-                        <i class="fas fa-angle-down fa-1x absolute right-4 top-4"></i>
-                    </button>
-
-                    <!-- Date Picker Dropdown -->
-                    <div v-if="showDatePicker" class="absolute top-full mt-1 right-0 z-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg shadow-xl p-4 w-64">
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-[var(--text-secondary)] mb-1">From Date</label>
-                            <input
-                                type="date"
-                                v-model="dateRange.start"
-                                class="w-full border border-[var(--glass-border)] rounded px-3 py-2 bg-transparent text-[var(--text-secondary)]"
-                            />
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-[var(--text-secondary)] mb-1">To Date</label>
-                            <input
-                                type="date"
-                                v-model="dateRange.end"
-                                class="w-full border border-[var(--glass-border)] rounded px-3 py-2 bg-transparent text-[var(--text-secondary)]"
-                            />
-                        </div>
-                        <div class="flex justify-end gap-2">
-                            <button
-                                @click="resetDateRange"
-                                class="px-3 py-1.5 text-sm border border-[var(--glass-border)] rounded text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.35)]"
-                            >
-                                Reset
-                            </button>
-                            <button
-                                @click="applyDateRange"
-                                class="px-3 py-1.5 text-sm bg-[var(--glass-bg)] text-[var(--text-primary)] rounded hover:bg-blue-700"
-                            >
-                                Apply
-                            </button>
+                    <div class="relative">
+                        <button @click="toggleDatePicker" class="btn-glass text-sm flex items-center gap-2">
+                            <i class="fas fa-calendar text-xs"></i>
+                            <span>{{ dateRangeLabel }}</span>
+                        </button>
+                        <div v-if="showDatePicker" class="absolute top-full mt-1 right-0 z-10 rounded-lg shadow-xl p-4 w-64" style="background: var(--glass-bg); border: 1px solid var(--glass-border);">
+                            <div class="mb-3">
+                                <label class="block text-xs font-medium mb-1" style="color: var(--text-secondary);">From Date</label>
+                                <input type="date" v-model="dateRange.start" class="glass-input w-full text-sm" />
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-xs font-medium mb-1" style="color: var(--text-secondary);">To Date</label>
+                                <input type="date" v-model="dateRange.end" class="glass-input w-full text-sm" />
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <button @click="resetDateRange" class="btn-glass text-sm">Reset</button>
+                                <button @click="applyDateRange" class="btn-accent text-sm">Apply</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Search -->
-                <div class="relative">
-                    <input
-                        type="search"
-                        v-model="searchQuery"
-                        placeholder="Search orders..."
-                        class="border border-[var(--glass-border)] rounded-lg pl-10 pr-4 py-2 w-64 bg-[var(--glass-bg)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)]"
-                    >
-                    <i class="fas fa-search fa-1x absolute left-4 top-3.5 text-[var(--text-secondary)]"></i>
-                </div>
-
-                <!-- Export Button -->
-                <button
-                @click="exportOrders"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg text-[var(--text-primary)] bg-[var(--accent)] hover:bg-blue-700 transition-colors duration-150"
-                >
-                    <i class="fas fa-download fa-1x"></i>
-                    <span>Export</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pb-4">
-            <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
-                <p class="text-sm text-[var(--text-secondary)] font-medium">Total Orders</p>
-                <p class="page-title">{{ stats ? stats.total : 0 }}</p>
-                <p class="text-xs text-[var(--text-accent)] mt-1">{{ stats ? formatCurrency(stats.totalRevenue) : 0 }} revenue</p>
-            </Card>
-            <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
-                <p class="text-sm text-[var(--text-secondary)] font-medium">Pending</p>
-                <p class="page-title">{{ stats ? stats.pending : 0 }}</p>
-                <p class="text-xs text-yellow-500 mt-1">Requires action</p>
-            </Card>
-            <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
-                <p class="text-sm text-[var(--text-secondary)] font-medium">Completed</p>
-                <p class="page-title">{{ stats ? stats.completed : 0 }}</p>
-                <p class="text-xs text-green-500 mt-1">{{ stats ? stats.completionRate : 0 }}% rate</p>
-            </Card>
-            <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
-                <p class="text-sm text-[var(--text-secondary)] font-medium">Cancelled</p>
-                <p class="page-title">{{ stats ? stats.cancelled : 0 }}</p>
-                <p class="text-xs text-red-500 mt-1">{{ stats ? stats.cancellationRate : 0 }}% rate</p>
-            </Card>
-        </div>
-
-        <!-- Orders Table -->
-        <Card class="overflow-hidden">
-            <div class="px-5 py-4" style="border-bottom: 1px solid var(--glass-border);">
-                <h2 class="text-lg font-semibold text-[var(--text-primary)]">Order History</h2>
-                <p class="text-sm text-[var(--text-secondary)]">Showing {{ paginatedOrders.length }} of {{ filteredOrders.length }} orders</p>
             </div>
 
             <div class="overflow-x-auto">
-                <Table>
-                    <template #header>
-                        <tr class="bg-[var(--glass-bg)] text-[var(--text-secondary)]">
-                            <th class="py-3 px-4 text-left font-semibold text-sm cursor-pointer hover:text-[var(--text-primary)] transition-colors duration-150" @click="sortBy('order')">
+                <table class="glass-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="cursor-pointer" @click="sortBy('order')">
                                 Order
-                                <i
-                                    v-if="sortField === 'order'"
-                                    :class="sortDirection === 'asc' ? 'fas fa-arrow-up ml-2' : 'fas fa-arrow-down ml-2'">
-                                </i>
+                                <i v-if="sortField === 'order'" :class="sortDirection === 'asc' ? 'fas fa-arrow-up ml-1' : 'fas fa-arrow-down ml-1'" class="text-[10px]"></i>
                             </th>
-                            <th class="py-3 px-4 text-left font-semibold text-sm cursor-pointer hover:text-[var(--text-primary)] transition-colors duration-150" @click="sortBy('customer')">
+                            <th class="cursor-pointer" @click="sortBy('customer')">
                                 Customer
-                                <i
-                                    v-if="sortField === 'customer'"
-                                    :class="sortDirection === 'asc' ? 'fas fa-arrow-up ml-2' : 'fas fa-arrow-down ml-2'">
-                                </i>
+                                <i v-if="sortField === 'customer'" :class="sortDirection === 'asc' ? 'fas fa-arrow-up ml-1' : 'fas fa-arrow-down ml-1'" class="text-[10px]"></i>
                             </th>
-                            <th class="py-3 px-4 text-left font-semibold text-sm cursor-pointer hover:text-[var(--text-primary)] transition-colors duration-150" @click="sortBy('date')">
+                            <th class="cursor-pointer" @click="sortBy('date')">
                                 Date
-                                <i
-                                    v-if="sortField === 'date'"
-                                    :class="sortDirection === 'asc' ? 'fas fa-arrow-up ml-2' : 'fas fa-arrow-down ml-2'">
-                                </i>
+                                <i v-if="sortField === 'date'" :class="sortDirection === 'asc' ? 'fas fa-arrow-up ml-1' : 'fas fa-arrow-down ml-1'" class="text-[10px]"></i>
                             </th>
-                            <th class="py-3 px-4 text-left font-semibold text-sm cursor-pointer hover:text-[var(--text-primary)] transition-colors duration-150" @click="sortBy('total')">
+                            <th class="cursor-pointer" @click="sortBy('total')">
                                 Total
-                                <i
-                                    v-if="sortField === 'total'"
-                                    :class="sortDirection === 'asc' ? 'fas fa-arrow-up ml-2' : 'fas fa-arrow-down ml-2'">
-                                </i>
+                                <i v-if="sortField === 'total'" :class="sortDirection === 'asc' ? 'fas fa-arrow-up ml-1' : 'fas fa-arrow-down ml-1'" class="text-[10px]"></i>
                             </th>
-                            <th class="py-3 px-4 text-left font-semibold text-sm cursor-pointer hover:text-[var(--text-primary)] transition-colors duration-150" @click="sortBy('status')">
-                                Status
-                                <i
-                                    v-if="sortField === 'status'"
-                                    :class="sortDirection === 'asc' ? 'fas fa-arrow-up ml-2' : 'fas fa-arrow-down ml-2'">
-                                </i>
-                            </th>
-                            <th class="py-3 px-4 text-left font-semibold text-sm">
-                                Actions
-                            </th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
-                    </template>
-
-                    <template #body>
-                        <tr
-                        v-for="order in paginatedOrders"
-                        :key="order.id"
-                        class="hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-150 border-b border-[var(--glass-border)] last:border-b-0"
-                        >
-                            <td v-if="!order">
-
-                            </td>
-                            <td v-else class="py-4 px-4">
+                    </thead>
+                    <tbody>
+                        <tr v-for="order in paginatedOrders" :key="order.id">
+                            <td v-if="!order"></td>
+                            <td v-else>
                                 <div class="flex flex-col">
-                                    <a
-                                        href="#"
-                                        @click.prevent="viewOrder(order.id!)"
-                                        class="font-medium text-[var(--text-primary)] hover:text-[var(--text-accent)] transition-colors duration-150"
-                                    >
+                                    <a href="#" @click.prevent="viewOrder(order.id!)" class="td-primary hover:opacity-80 transition-opacity">
                                         #{{ formatOrderNumber(order.orderNumber) }}
                                     </a>
                                     <div class="flex items-center gap-2 mt-1">
-                                        <span class="text-xs text-[var(--text-muted)] bg-[rgba(255,255,255,0.25)] px-2 py-0.5 rounded">{{ order.items.length }} items</span>
-                                        <span
-                                        v-if="order.paymentMethod"
-                                        class="text-xs text-[var(--text-muted)] capitalize"
-                                        >
-                                        {{ order.paymentMethod }}
-                                        </span>
+                                        <span class="text-xs px-2 py-0.5 rounded" style="color: var(--text-muted); background: var(--glass-bg);">{{ order.items.length }} items</span>
+                                        <span v-if="order.paymentMethod" class="text-xs capitalize" style="color: var(--text-muted);">{{ order.paymentMethod }}</span>
                                     </div>
                                 </div>
                             </td>
-                            <td class="py-4 px-4">
+                            <td>
                                 <div class="flex items-center gap-3">
-                                    <div
-                                        class="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-primary)] font-medium text-sm"
-                                        :style="{
-                                        background: `linear-gradient(135deg, ${stringToColor(order.customerName)}, ${stringToColor(order.customerName + '2')})`,
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                                        }"
-                                    >
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium" style="color: var(--text-primary);"
+                                        :style="{ background: `linear-gradient(135deg, ${stringToColor(order.customerName)}, ${stringToColor(order.customerName + '2')})` }">
                                         {{ getInitials(order.customerName) }}
                                     </div>
                                     <div>
-                                        <p class="font-medium text-[var(--text-primary)]">{{ order.customerName }}</p>
-                                        <p class="text-sm text-[var(--text-muted)]">{{ order.customerEmail }}</p>
+                                        <p class="text-sm font-medium" style="color: var(--text-primary);">{{ order.customerName }}</p>
+                                        <p class="text-xs" style="color: var(--text-muted);">{{ order.customerEmail }}</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="py-4 px-4">
-                                <div class="flex flex-col">
-                                    <span class="text-[var(--text-secondary)]">{{ formatDate(order.createdAt) }}</span>
-                                    <span class="text-xs text-[var(--text-muted)]">{{ formatTime(order.createdAt!) }}</span>
-                                </div>
+                            <td>
+                                <span class="text-sm" style="color: var(--text-secondary);">{{ formatDate(order.createdAt) }}</span>
+                                <p class="text-xs" style="color: var(--text-muted);">{{ formatTime(order.createdAt!) }}</p>
                             </td>
-                            <td class="py-4 px-4">
-                                <div class="flex flex-col">
-                                    <span class="font-medium text-[var(--text-primary)]">{{ formatCurrency(order.total) }}</span>
-                                    <span
-                                        v-if="order.discount && order.discount > 0"
-                                        class="text-xs text-green-500 mt-1"
-                                    >
-                                        Saved {{ formatCurrency(order.discount) }}
-                                    </span>
-                                </div>
+                            <td>
+                                <span class="td-accent">{{ formatCurrency(order.total) }}</span>
+                                <p v-if="order.discount && order.discount > 0" class="text-xs mt-0.5" style="color: var(--ni-green);">Saved {{ formatCurrency(order.discount) }}</p>
                             </td>
-                            <td class="py-4 px-4">
+                            <td>
                                 <div class="flex items-center gap-2">
-                                    <Badge
-                                        :variant="getStatusVariant(order.status)"
-                                        class="px-3 py-1.5"
-                                    >
-                                        <span class="flex items-center gap-1.5">
-                                        <span
-                                            class="w-2 h-2 rounded-full animate-pulse"
-                                            :class="{
-                                            'bg-yellow-500': order.status === 'pending',
-                                            'bg-blue-500': order.status === 'processing',
-                                            'bg-purple-500': order.status === 'shipped',
-                                            'bg-green-500': order.status === 'delivered',
-                                            'bg-red-500': order.status === 'cancelled' || order.status === 'refunded',
-                                            'animate-none': order.status === 'delivered' || order.status === 'cancelled' || order.status === 'refunded'
-                                            }"
-                                        ></span>
-                                        {{ order.status }}
-                                        </span>
-                                    </Badge>
-                                    <button
-                                        v-if="order.status === 'pending'"
-                                        @click="processOrder(order.id!)"
-                                        class="text-xs text-[var(--accent)] hover:text-[var(--text-accent)] transition-colors duration-150"
-                                    >
-                                        Process
-                                    </button>
+                                    <Badge :variant="getStatusVariant(order.status)">{{ order.status }}</Badge>
+                                    <button v-if="order.status === 'pending'" @click="processOrder(order.id!)" class="text-xs" style="color: var(--text-accent);">Process</button>
                                 </div>
                             </td>
-                            <td class="py-4 px-4">
+                            <td>
                                 <div class="flex items-center gap-1">
-                                    <button
-                                        @click="viewOrder(order.id!)"
-                                        class="btn-glass-icon"
-                                        title="View order"
-                                    >
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                                        </svg>
+                                    <button @click="viewOrder(order.id!)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="View order">
+                                        <i class="fas fa-eye"></i>
                                     </button>
-                                    <button
-                                        @click="editOrder(order.id!)"
-                                        class="p-2 text-[var(--text-secondary)] hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-all duration-150"
-                                        title="Edit order"
-                                    >
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                                        </svg>
+                                    <button @click="editOrder(order.id!)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Edit order">
+                                        <i class="fas fa-pen"></i>
                                     </button>
-                                    <button
-                                        @click="printInvoice(order.id!)"
-                                        class="p-2 text-[var(--text-secondary)] hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-all duration-150"
-                                        title="Print invoice"
-                                    >
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd"/>
-                                        </svg>
+                                    <button @click="printInvoice(order.id!)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Print invoice">
+                                        <i class="fas fa-print"></i>
                                     </button>
-                                    <button
-                                        v-if="order.status === 'pending' || order.status === 'processing'"
-                                        @click="cancelOrder(order.id!)"
-                                        class="p-2 text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-150"
-                                        title="Cancel order"
-                                    >
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                        </svg>
+                                    <button v-if="order.status === 'pending' || order.status === 'processing'" @click="cancelOrder(order.id!)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Cancel order">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
-                    </template>
-                </Table>
+                    </tbody>
+                </table>
             </div>
 
             <!-- Empty State -->
@@ -334,7 +219,6 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
-import Table from '@/components/ui/Table.vue';
 import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
@@ -624,88 +508,3 @@ watch([statusFilter, searchQuery, dateRange], () => {
 }, { deep: true });
 </script>
 
-<style scoped>
-/* Custom scrollbar */
-.overflow-x-auto {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
-}
-
-.overflow-x-auto::-webkit-scrollbar {
-  height: 6px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
-  border-radius: 3px;
-}
-
-/* Date picker positioning */
-.relative > .absolute {
-  animation: slideDown 0.2s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Status indicator animation */
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* Clickable elements */
-a, button {
-  cursor: pointer;
-}
-
-button:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Customer avatar gradient */
-.w-10.h-10 {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.w-10.h-10:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* Table row hover effect */
-tr {
-  transition: all 0.15s ease-out;
-}
-
-/* Date picker inputs */
-input[type="date"] {
-  color-scheme: dark;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  cursor: pointer;
-}
-</style>
