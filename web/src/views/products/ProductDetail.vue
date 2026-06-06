@@ -1,279 +1,192 @@
 <template>
-  <div class="product-detail">
-
-    <div v-if="loading" class="py-12">
+  <div class="gap-6">
+    <div v-if="loading" class="py-12 flex items-center justify-center">
       <LoadingSpinner />
     </div>
 
     <div v-else-if="!product" class="py-12">
-      <EmptyState
-        title="Product not found"
+      <EmptyState title="Product not found"
         description="The product you're looking for doesn't exist or has been removed."
-        icon="box-open"
-      >
-        <Button variant="primary" @click="goBack">
-          <i class="fas fa-arrow-left mr-2"></i> Back to Products
-        </Button>
+        icon="box-open">
+        <button class="btn-accent text-sm" @click="goBack">
+          <i class="fas fa-arrow-left text-xs mr-1"></i> Back to Products
+        </button>
       </EmptyState>
     </div>
 
     <div v-else>
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">{{ product.name }}</h1>
+          <p class="page-subtitle">SKU: {{ product.sku }} &bull; ID: {{ product.id }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <Badge :variant="product.status === 'active' ? 'success' : 'warning'">{{ product.status }}</Badge>
+          <button @click="handleEdit" class="btn-glass text-sm"><i class="fas fa-pen text-xs mr-1"></i>Edit</button>
+          <button @click="handleDuplicate" class="btn-glass text-sm"><i class="fas fa-copy text-xs mr-1"></i>Duplicate</button>
+          <button @click="handleDelete" class="btn-glass text-sm" style="color: var(--ni-red);"><i class="fas fa-trash text-xs mr-1"></i>Delete</button>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left Column - Product Info -->
-        <div class="lg:col-span-2">
+        <!-- Left Column -->
+        <div class="lg:col-span-2 flex flex-col gap-6">
+          <!-- Images + Tabs Card -->
           <Card>
-            <div class="flex justify-between items-start mb-6">
-              <div>
-                <h1 class="text-2xl font-bold text-[var(--text-primary)]">{{ product.name }}</h1>
-                <div class="flex items-center gap-4 mt-2">
-                  <Badge :variant="product.status === 'active' ? 'success' : 'warning'">
-                    {{ product.status }}
-                  </Badge>
-                  <span class="text-[var(--text-secondary)]">SKU: {{ product.sku }}</span>
-                  <span class="text-[var(--text-secondary)]">ID: {{ product.id }}</span>
-                </div>
-              </div>
-              <div class="flex gap-2">
-                <Button variant="outline" size="sm" @click="handleEdit">
-                  <i class="fas fa-edit mr-2"></i> Edit
-                </Button>
-                <Button variant="outline" size="sm" @click="handleDuplicate">
-                  <i class="fas fa-copy mr-2"></i> Duplicate
-                </Button>
-                <Button variant="danger" size="sm" @click="handleDelete">
-                  <i class="fas fa-trash mr-2"></i> Delete
-                </Button>
-              </div>
+            <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+              <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Product Details</h2>
             </div>
-
-            <!-- Product Images -->
-            <div class="mb-8">
-              <div class="flex gap-4 mb-4">
-                <div
-                  class="w-24 h-24 rounded-lg border-2 border-[var(--accent)] overflow-hidden"
-                >
-                  <img
-                    :src="mainImage"
-                    :alt="product.name"
-                    class="w-full h-full object-cover"
-                  />
+            <div class="p-5">
+              <!-- Images -->
+              <div class="flex gap-3 mb-6">
+                <div class="w-24 h-24 rounded-xl overflow-hidden" style="border: 2px solid var(--accent);">
+                  <img :src="mainImage" :alt="product.name" class="w-full h-full object-cover" />
                 </div>
-                <div
-                  v-for="image in product.images"
-                  :key="image"
-                  class="w-24 h-24 rounded-lg border border-[var(--glass-border)] overflow-hidden cursor-pointer hover:border-[var(--accent)]"
-                  @click="mainImage = image"
-                >
-                  <img
-                    :src="image"
-                    :alt="product.name"
-                    class="w-full h-full object-cover"
-                  />
+                <div v-for="image in product.images" :key="image"
+                  class="w-24 h-24 rounded-xl overflow-hidden cursor-pointer transition-all"
+                  style="border: 1px solid var(--glass-border);"
+                  @click="mainImage = image">
+                  <img :src="image" :alt="product.name" class="w-full h-full object-cover" />
                 </div>
-                <div
-                  class="w-24 h-24 rounded-lg border-2 border-dashed border-[var(--glass-border)] flex items-center justify-center cursor-pointer hover:border-[var(--accent)]"
-                >
-                  <i class="fas fa-plus text-2xl text-[var(--text-muted)]"></i>
+                <div class="w-24 h-24 rounded-xl flex items-center justify-center cursor-pointer"
+                  style="border: 2px dashed var(--glass-border);">
+                  <i class="fas fa-plus text-xl" style="color: var(--text-muted);"></i>
                 </div>
               </div>
-            </div>
 
-            <!-- Product Details Tabs -->
-            <div class="border-b border-[var(--glass-border)] mb-6">
-              <div class="flex gap-6">
-                <button
-                  v-for="tab in tabs"
-                  :key="tab.id"
-                  @click="activeTab = tab.id"
-                  class="pb-3 px-1 border-b-2 transition-colors"
-                  :class="activeTab === tab.id
-                    ? 'border-[var(--accent)] text-[var(--accent)] font-medium'
-                    : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'"
-                >
+              <!-- Tabs -->
+              <div class="flex gap-4 mb-5" style="border-bottom: 1px solid var(--glass-border);">
+                <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
+                  class="pb-3 px-1 text-sm border-b-2 transition-colors"
+                  :style="activeTab === tab.id ? 'border-color: var(--accent); color: var(--accent); font-weight: 500;' : 'border-color: transparent; color: var(--text-secondary);'">
                   {{ tab.label }}
                 </button>
               </div>
-            </div>
 
-            <!-- Tab Content -->
-            <div>
-              <!-- Overview Tab -->
-              <div v-if="activeTab === 'overview'" class="gap-6">
+              <!-- Overview -->
+              <div v-if="activeTab === 'overview'" class="flex flex-col gap-5">
                 <div>
-                  <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-3">Description</h3>
-                  <div class="prose max-w-none">
-                    {{ product.description }}
-                  </div>
+                  <h3 class="text-sm font-semibold mb-2" style="color: var(--text-primary);">Description</h3>
+                  <p class="text-sm" style="color: var(--text-secondary);">{{ product.description }}</p>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-3">Pricing</h3>
-                    <div class="gap-2">
-                      <div class="flex justify-between">
-                        <span class="text-[var(--text-secondary)]">Price</span>
-                        <span class="font-medium">{{ formatCurrency(product.price) }}</span>
+                    <h3 class="text-sm font-semibold mb-3" style="color: var(--text-primary);">Pricing</h3>
+                    <div class="flex flex-col gap-2">
+                      <div class="flex justify-between text-sm">
+                        <span style="color: var(--text-secondary);">Price</span>
+                        <span class="td-accent">{{ formatCurrency(product.price) }}</span>
                       </div>
-                      <div class="flex justify-between">
-                        <span class="text-[var(--text-secondary)]">Cost</span>
-                        <span class="font-medium">{{ formatCurrency(product.cost) }}</span>
+                      <div class="flex justify-between text-sm">
+                        <span style="color: var(--text-secondary);">Cost</span>
+                        <span style="color: var(--text-primary);">{{ formatCurrency(product.cost) }}</span>
                       </div>
-                      <div class="flex justify-between">
-                        <span class="text-[var(--text-secondary)]">Profit Margin</span>
-                        <span class="font-medium text-green-600">
-                          {{ calculateProfitMargin(product) }}%
-                        </span>
+                      <div class="flex justify-between text-sm">
+                        <span style="color: var(--text-secondary);">Profit Margin</span>
+                        <span style="color: var(--ni-green);">{{ calculateProfitMargin(product) }}%</span>
                       </div>
-                      <div v-if="product.compareAtPrice" class="flex justify-between">
-                        <span class="text-[var(--text-secondary)]">Compare at Price</span>
-                        <span class="font-medium line-through text-red-600">
-                          {{ formatCurrency(product.compareAtPrice) }}
-                        </span>
+                      <div v-if="product.compareAtPrice" class="flex justify-between text-sm">
+                        <span style="color: var(--text-secondary);">Compare at</span>
+                        <span class="line-through" style="color: var(--ni-red);">{{ formatCurrency(product.compareAtPrice) }}</span>
                       </div>
                     </div>
                   </div>
-
                   <div>
-                    <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-3">Inventory</h3>
-                    <div class="gap-2">
-                      <div class="flex justify-between">
-                        <span class="text-[var(--text-secondary)]">Stock Quantity</span>
-                        <Badge
-                          :variant="product.stock > 10 ? 'success' : product.stock > 0 ? 'warning' : 'danger'"
-                        >
-                          {{ product.stock }}
-                        </Badge>
+                    <h3 class="text-sm font-semibold mb-3" style="color: var(--text-primary);">Inventory</h3>
+                    <div class="flex flex-col gap-2">
+                      <div class="flex justify-between items-center text-sm">
+                        <span style="color: var(--text-secondary);">Stock</span>
+                        <Badge :variant="product.stock > 10 ? 'success' : product.stock > 0 ? 'warning' : 'danger'">{{ product.stock }}</Badge>
                       </div>
-                      <div class="flex justify-between">
-                        <span class="text-[var(--text-secondary)]">Low Stock Threshold</span>
-                        <span>{{ product.lowStockThreshold }}</span>
+                      <div class="flex justify-between text-sm">
+                        <span style="color: var(--text-secondary);">Low Threshold</span>
+                        <span style="color: var(--text-primary);">{{ product.lowStockThreshold }}</span>
                       </div>
-                      <div class="flex justify-between">
-                        <span class="text-[var(--text-secondary)]">Track Inventory</span>
-                        <span>{{ product.trackInventory ? 'Yes' : 'No' }}</span>
+                      <div class="flex justify-between text-sm">
+                        <span style="color: var(--text-secondary);">Track Inventory</span>
+                        <span style="color: var(--text-primary);">{{ product.trackInventory ? 'Yes' : 'No' }}</span>
                       </div>
                     </div>
                   </div>
                 </div>
-
                 <div>
-                  <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-3">Categories</h3>
+                  <h3 class="text-sm font-semibold mb-2" style="color: var(--text-primary);">Categories</h3>
                   <div class="flex flex-wrap gap-2">
-                    <Badge
-                      v-for="category in product.categories"
-                      :key="category.id"
-                      variant="info"
-                    >
-                      {{ category.name }}
-                    </Badge>
+                    <Badge v-for="category in product.categories" :key="category.id" variant="info">{{ category.name }}</Badge>
                   </div>
                 </div>
               </div>
 
-              <!-- Specifications Tab -->
-              <div v-if="activeTab === 'specifications'" class="gap-4">
-                <div v-for="spec in product.specifications" :key="spec.name" class="flex">
-                  <div class="w-1/3 font-medium text-[var(--text-secondary)]">{{ spec.name }}</div>
-                  <div class="w-2/3 text-[var(--text-secondary)]">{{ spec.value }}</div>
+              <!-- Specifications -->
+              <div v-if="activeTab === 'specifications'" class="flex flex-col gap-3">
+                <div v-for="spec in product.specifications" :key="spec.name" class="flex text-sm">
+                  <div class="w-1/3 font-medium" style="color: var(--text-secondary);">{{ spec.name }}</div>
+                  <div class="w-2/3" style="color: var(--text-primary);">{{ spec.value }}</div>
                 </div>
               </div>
 
-              <!-- Reviews Tab -->
+              <!-- Reviews -->
               <div v-if="activeTab === 'reviews'">
-                <div class="flex items-center justify-between mb-6">
-                  <div>
-                    <div class="flex items-center">
-                      <div class="text-2xl font-bold mr-3">{{ product.averageRating }}</div>
-                      <div class="mr-4">
-                        <div class="flex">
-                          <i
-                            v-for="star in 5"
-                            :key="star"
-                            :class="star <= Math.floor(product.averageRating)
-                              ? 'fas fa-star text-yellow-400'
-                              : star <= product.averageRating
-                                ? 'fas fa-star-half-alt text-yellow-400'
-                                : 'far fa-star text-[var(--text-secondary)]'"
-                          ></i>
-                        </div>
-                      </div>
-                      <span class="text-[var(--text-secondary)]">Based on {{ product.reviewCount }} reviews</span>
+                <div class="flex items-center justify-between mb-5">
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl font-bold" style="color: var(--text-primary);">{{ product.averageRating }}</span>
+                    <div class="flex">
+                      <i v-for="star in 5" :key="star" class="text-sm"
+                        :class="star <= Math.floor(product.averageRating) ? 'fas fa-star text-yellow-400' : star <= product.averageRating ? 'fas fa-star-half-alt text-yellow-400' : 'far fa-star'" style="color: var(--text-secondary);"></i>
                     </div>
+                    <span class="text-sm" style="color: var(--text-secondary);">{{ product.reviewCount }} reviews</span>
                   </div>
-                  <Button variant="outline" size="sm" @click="showReviewModal = true">
-                    <i class="fas fa-plus mr-2"></i> Add Review
-                  </Button>
+                  <button class="btn-glass text-sm" @click="showReviewModal = true">
+                    <i class="fas fa-plus text-xs mr-1"></i> Add Review
+                  </button>
                 </div>
-
-                <div v-if="reviews.length === 0" class="text-center py-8 text-[var(--text-muted)]">
-                  <i class="fas fa-comments text-4xl mb-3"></i>
-                  <p>No reviews yet</p>
+                <div v-if="reviews.length === 0" class="text-center py-8">
+                  <i class="fas fa-comments text-3xl mb-3" style="color: var(--text-muted);"></i>
+                  <p class="text-sm" style="color: var(--text-muted);">No reviews yet</p>
                 </div>
-
-                <div v-else class="gap-6">
-                  <div
-                    v-for="review in reviews"
-                    :key="review.id"
-                    class="border border-[var(--glass-border)] rounded-lg p-4"
-                  >
+                <div v-else class="flex flex-col gap-4">
+                  <div v-for="review in reviews" :key="review.id" class="p-4 rounded-xl" style="border: 1px solid var(--glass-border);">
                     <div class="flex justify-between mb-2">
-                      <div class="font-medium">{{ review.customerName }}</div>
-                      <div class="text-sm text-[var(--text-secondary)]">{{ formatDate(review.date) }}</div>
+                      <span class="font-medium text-sm" style="color: var(--text-primary);">{{ review.customerName }}</span>
+                      <span class="text-xs" style="color: var(--text-muted);">{{ formatDate(review.date) }}</span>
                     </div>
-                    <div class="flex items-center mb-3">
-                      <div class="flex mr-3">
-                        <i
-                          v-for="star in 5"
-                          :key="star"
-                          :class="star <= review.rating
-                            ? 'fas fa-star text-yellow-400'
-                            : 'far fa-star text-[var(--text-secondary)]'"
-                          class="text-sm"
-                        ></i>
-                      </div>
-                      <span class="font-medium">{{ review.rating }}/5</span>
+                    <div class="flex items-center gap-2 mb-2">
+                      <i v-for="star in 5" :key="star" class="text-xs"
+                        :class="star <= review.rating ? 'fas fa-star text-yellow-400' : 'far fa-star'" style="color: var(--text-secondary);"></i>
+                      <span class="text-xs font-medium" style="color: var(--text-primary);">{{ review.rating }}/5</span>
                     </div>
-                    <p class="text-[var(--text-secondary)]">{{ review.comment }}</p>
+                    <p class="text-sm" style="color: var(--text-secondary);">{{ review.comment }}</p>
                   </div>
                 </div>
               </div>
 
-              <!-- Sales Tab -->
-              <div v-if="activeTab === 'sales'" class="gap-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Sales -->
+              <div v-if="activeTab === 'sales'" class="flex flex-col gap-5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Card>
-                    <div class="text-center">
-                      <div class="text-3xl font-bold text-[var(--text-primary)] mb-2">
-                        {{ product.salesData.totalSales }}
-                      </div>
-                      <div class="text-[var(--text-secondary)]">Total Sold</div>
+                    <div class="p-4 text-center">
+                      <p class="text-2xl font-bold" style="color: var(--text-primary);">{{ product.salesData.totalSales }}</p>
+                      <p class="text-xs mt-1" style="color: var(--text-secondary);">Total Sold</p>
                     </div>
                   </Card>
                   <Card>
-                    <div class="text-center">
-                      <div class="text-3xl font-bold text-[var(--text-primary)] mb-2">
-                        {{ formatCurrency(product.salesData.totalRevenue) }}
-                      </div>
-                      <div class="text-[var(--text-secondary)]">Total Revenue</div>
+                    <div class="p-4 text-center">
+                      <p class="text-2xl font-bold td-accent">{{ formatCurrency(product.salesData.totalRevenue) }}</p>
+                      <p class="text-xs mt-1" style="color: var(--text-secondary);">Total Revenue</p>
                     </div>
                   </Card>
                   <Card>
-                    <div class="text-center">
-                      <div class="text-3xl font-bold text-[var(--text-primary)] mb-2">
-                        {{ product.salesData.monthlySales }}
-                      </div>
-                      <div class="text-[var(--text-secondary)]">This Month</div>
+                    <div class="p-4 text-center">
+                      <p class="text-2xl font-bold" style="color: var(--text-primary);">{{ product.salesData.monthlySales }}</p>
+                      <p class="text-xs mt-1" style="color: var(--text-secondary);">This Month</p>
                     </div>
                   </Card>
                 </div>
-
-                <div>
-                  <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">Sales Trend</h3>
-                  <div class="h-48 border border-[var(--glass-border)] rounded-lg flex items-center justify-center">
-                    <div class="text-center text-[var(--text-muted)]">
-                      <i class="fas fa-chart-line text-3xl mb-2"></i>
-                      <p>Sales trend chart</p>
-                    </div>
+                <div class="h-48 rounded-xl flex items-center justify-center" style="border: 1px solid var(--glass-border);">
+                  <div class="text-center">
+                    <i class="fas fa-chart-line text-3xl mb-2" style="color: var(--text-muted);"></i>
+                    <p class="text-sm" style="color: var(--text-muted);">Sales trend chart</p>
                   </div>
                 </div>
               </div>
@@ -281,107 +194,100 @@
           </Card>
         </div>
 
-        <!-- Right Column - Sidebar -->
-        <div>
-          <!-- Status Card -->
-          <Card class="mb-6">
-            <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">Product Status</h3>
-            <div class="gap-4">
-              <div class="flex items-center justify-between">
-                <span class="text-[var(--text-secondary)]">Visibility</span>
-                <Badge :variant="product.isVisible ? 'success' : 'warning'">
-                  {{ product.isVisible ? 'Visible' : 'Hidden' }}
-                </Badge>
+        <!-- Right Column Sidebar -->
+        <div class="flex flex-col gap-4">
+          <!-- Status -->
+          <Card>
+            <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+              <h3 class="text-[15px] font-semibold" style="color: var(--text-primary);">Product Status</h3>
+            </div>
+            <div class="p-5 flex flex-col gap-3">
+              <div class="flex items-center justify-between text-sm">
+                <span style="color: var(--text-secondary);">Visibility</span>
+                <Badge :variant="product.isVisible ? 'success' : 'warning'">{{ product.isVisible ? 'Visible' : 'Hidden' }}</Badge>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-[var(--text-secondary)]">Featured</span>
-                <Badge :variant="product.isFeatured ? 'success' : 'default'">
-                  {{ product.isFeatured ? 'Yes' : 'No' }}
-                </Badge>
+              <div class="flex items-center justify-between text-sm">
+                <span style="color: var(--text-secondary);">Featured</span>
+                <Badge :variant="product.isFeatured ? 'success' : 'secondary'">{{ product.isFeatured ? 'Yes' : 'No' }}</Badge>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-[var(--text-secondary)]">In Stock</span>
-                <Badge :variant="product.inStock ? 'success' : 'danger'">
-                  {{ product.inStock ? 'Yes' : 'No' }}
-                </Badge>
+              <div class="flex items-center justify-between text-sm">
+                <span style="color: var(--text-secondary);">In Stock</span>
+                <Badge :variant="product.inStock ? 'success' : 'danger'">{{ product.inStock ? 'Yes' : 'No' }}</Badge>
               </div>
-              <div class="pt-4 border-t border-[var(--glass-border)]">
-                <Button
-                  variant="primary"
-                  class="w-full"
-                  @click="toggleVisibility"
-                >
+              <div class="pt-3" style="border-top: 1px solid var(--glass-border);">
+                <button class="btn-accent w-full text-sm" @click="toggleVisibility">
                   {{ product.isVisible ? 'Hide Product' : 'Make Visible' }}
-                </Button>
+                </button>
               </div>
             </div>
           </Card>
 
-          <!-- Categories Card -->
-          <Card class="mb-6">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-lg font-semibold text-[var(--text-primary)]">Categories</h3>
-              <Button variant="ghost" size="sm" @click="showCategoryModal = true">
-                <i class="fas fa-edit"></i>
-              </Button>
+          <!-- Categories -->
+          <Card>
+            <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+              <div class="flex items-center justify-between">
+                <h3 class="text-[15px] font-semibold" style="color: var(--text-primary);">Categories</h3>
+                <button class="btn-glass-icon w-7 h-7 rounded-lg text-xs" @click="showCategoryModal = true">
+                  <i class="fas fa-pen"></i>
+                </button>
+              </div>
             </div>
-            <div class="gap-2">
-              <div
-                v-for="category in product.categories"
-                :key="category.id"
-                class="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
-              >
-                <div class="flex items-center">
-                  <i :class="category.icon || 'fas fa-folder'" class="text-[var(--text-muted)] mr-2"></i>
-                  <span>{{ category.name }}</span>
+            <div class="p-5 flex flex-col gap-2">
+              <div v-for="category in product.categories" :key="category.id"
+                class="flex items-center justify-between p-2 rounded-lg transition-colors"
+                style="border: 1px solid var(--glass-border);">
+                <div class="flex items-center gap-2 text-sm">
+                  <i :class="category.icon || 'fas fa-folder'" style="color: var(--text-muted);"></i>
+                  <span style="color: var(--text-primary);">{{ category.name }}</span>
                 </div>
                 <Badge variant="info">{{ category.productCount }}</Badge>
               </div>
             </div>
           </Card>
 
-          <!-- Product Meta -->
-          <Card class="mb-6">
-            <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">Product Info</h3>
-            <div class="gap-3">
+          <!-- Product Info -->
+          <Card>
+            <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+              <h3 class="text-[15px] font-semibold" style="color: var(--text-primary);">Product Info</h3>
+            </div>
+            <div class="p-5 flex flex-col gap-3 text-sm">
               <div>
-                <div class="text-sm text-[var(--text-secondary)] mb-1">Created</div>
-                <div>{{ formatDate(product.createdAt) }}</div>
+                <p class="text-xs mb-0.5" style="color: var(--text-secondary);">Created</p>
+                <p style="color: var(--text-primary);">{{ formatDate(product.createdAt) }}</p>
               </div>
               <div>
-                <div class="text-sm text-[var(--text-secondary)] mb-1">Last Updated</div>
-                <div>{{ formatDate(product.updatedAt) }}</div>
+                <p class="text-xs mb-0.5" style="color: var(--text-secondary);">Last Updated</p>
+                <p style="color: var(--text-primary);">{{ formatDate(product.updatedAt) }}</p>
               </div>
               <div>
-                <div class="text-sm text-[var(--text-secondary)] mb-1">Weight</div>
-                <div>{{ product.weight }} {{ product.weightUnit }}</div>
+                <p class="text-xs mb-0.5" style="color: var(--text-secondary);">Weight</p>
+                <p style="color: var(--text-primary);">{{ product.weight }} {{ product.weightUnit }}</p>
               </div>
               <div>
-                <div class="text-sm text-[var(--text-secondary)] mb-1">Dimensions</div>
-                <div>
-                  {{ product.dimensions?.length }} × {{ product.dimensions?.width }} ×
-                  {{ product.dimensions?.height }} {{ product.dimensions?.unit }}
-                </div>
+                <p class="text-xs mb-0.5" style="color: var(--text-secondary);">Dimensions</p>
+                <p style="color: var(--text-primary);">{{ product.dimensions?.length }} × {{ product.dimensions?.width }} × {{ product.dimensions?.height }} {{ product.dimensions?.unit }}</p>
               </div>
             </div>
           </Card>
 
           <!-- Quick Actions -->
           <Card>
-            <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">Quick Actions</h3>
-            <div class="gap-2">
-              <Button variant="outline" class="w-full justify-start" @click="handleViewOrders">
-                <i class="fas fa-shopping-cart mr-2"></i> View Orders
-              </Button>
-              <Button variant="outline" class="w-full justify-start" @click="handleUpdateStock">
-                <i class="fas fa-boxes mr-2"></i> Update Stock
-              </Button>
-              <Button variant="outline" class="w-full justify-start" @click="handleCopyLink">
-                <i class="fas fa-link mr-2"></i> Copy Product Link
-              </Button>
-              <Button variant="outline" class="w-full justify-start" @click="handleViewAnalytics">
-                <i class="fas fa-chart-bar mr-2"></i> View Analytics
-              </Button>
+            <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+              <h3 class="text-[15px] font-semibold" style="color: var(--text-primary);">Quick Actions</h3>
+            </div>
+            <div class="p-5 flex flex-col gap-2">
+              <button class="btn-glass text-sm justify-start" @click="handleViewOrders">
+                <i class="fas fa-shopping-cart text-xs mr-2"></i> View Orders
+              </button>
+              <button class="btn-glass text-sm justify-start" @click="handleUpdateStock">
+                <i class="fas fa-boxes text-xs mr-2"></i> Update Stock
+              </button>
+              <button class="btn-glass text-sm justify-start" @click="handleCopyLink">
+                <i class="fas fa-link text-xs mr-2"></i> Copy Product Link
+              </button>
+              <button class="btn-glass text-sm justify-start" @click="handleViewAnalytics">
+                <i class="fas fa-chart-bar text-xs mr-2"></i> View Analytics
+              </button>
             </div>
           </Card>
         </div>
@@ -389,22 +295,8 @@
     </div>
 
     <!-- Modals -->
-    <Modal
-      v-if="showReviewModal"
-      :title="'Add Review'"
-      @close="showReviewModal = false"
-    >
-      <!-- Review form content -->
-    </Modal>
-
-    <Modal
-      v-if="showCategoryModal"
-      :title="'Edit Categories'"
-      size="lg"
-      @close="showCategoryModal = false"
-    >
-      <!-- Category edit form -->
-    </Modal>
+    <Modal v-if="showReviewModal" title="Add Review" @close="showReviewModal = false" />
+    <Modal v-if="showCategoryModal" title="Edit Categories" size="lg" @close="showCategoryModal = false" />
   </div>
 </template>
 <script setup lang="ts">

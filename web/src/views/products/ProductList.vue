@@ -1,279 +1,179 @@
 <template>
   <div class="gap-6">
-    <!-- Header with actions -->
-    <div class="flex items-center justify-between pb-5">
+    <!-- Page Header -->
+    <div class="page-header">
       <div>
         <h1 class="page-title">Products</h1>
-        <p class="text-[var(--text-secondary)]">Manage your product inventory</p>
+        <p class="page-subtitle">Manage your product inventory</p>
       </div>
       <div class="flex items-center gap-3">
-        <!-- Filter/Sort -->
-        <div class="relative">
-          <select
-            v-model="sortBy"
-            class="glass-select"
-          >
-            <option value="createdAt:desc">Newest first</option>
-            <option value="price:asc">Price: Low to High</option>
-            <option value="price:desc">Price: High to Low</option>
-            <option value="name:asc">Name: A to Z</option>
-          </select>
-          <svg class="absolute right-3 top-3 w-5 h-5 text-[var(--text-secondary)] pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-          </svg>
-        </div>
-
-        <!-- Search -->
-        <div class="relative">
-          <input
-            type="search"
-            v-model="searchQuery"
-            placeholder="Search products..."
-            class="border border-[var(--glass-border)] rounded-lg pl-10 pr-4 py-2 w-64 bg-[var(--glass-bg)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-[var(--text-muted)]"
-          >
-          <svg class="absolute left-3 top-2.5 w-5 h-5 text-[var(--text-secondary)]" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-          </svg>
-        </div>
-
-        <!-- New Product Button -->
-        <router-link
-          to="/products/create"
-          class="btn-accent"
-        >
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z" clip-rule="evenodd"/>
-          </svg>
-          <span>New Product</span>
+        <router-link to="/products/create" class="btn-accent text-sm">
+          <i class="fas fa-plus text-xs mr-1"></i>
+          New Product
         </router-link>
       </div>
     </div>
 
-    <!-- Stats Bar -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-4">
-      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-all duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--text-secondary)] font-medium">Total Products</p>
-        <p class="page-title">{{ stats.total }}</p>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-b"><i class="fas fa-box"></i></div>
+            <span class="badge badge-info">All</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Total Products</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.total }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">In your catalog</p>
+        </div>
       </Card>
-      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--text-secondary)] font-medium">In Stock</p>
-        <p class="page-title">{{ stats.inStock }}</p>
-        <p class="text-xs text-green-500 mt-1">{{ Math.round((stats.inStock / stats.total) * 100) || 0 }}% of total</p>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-g"><i class="fas fa-circle-check"></i></div>
+            <span class="badge badge-success">{{ Math.round((stats.inStock / stats.total) * 100) || 0 }}%</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">In Stock</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.inStock }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Of total catalog</p>
+        </div>
       </Card>
-      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--text-secondary)] font-medium">Low Stock</p>
-        <p class="page-title">{{ stats.lowStock }}</p>
-        <p class="text-xs text-yellow-500 mt-1">Needs attention</p>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-o"><i class="fas fa-triangle-exclamation"></i></div>
+            <span class="badge badge-warning">Needs attention</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Low Stock</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.lowStock }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Below threshold</p>
+        </div>
       </Card>
-      <Card class="p-4 hover:bg-[rgba(255,255,255,0.35)] transition-colors duration-200 hover:translate-y-[-2px]">
-        <p class="text-sm text-[var(--text-secondary)] font-medium">Out of Stock</p>
-        <p class="page-title">{{ stats.outOfStock }}</p>
-        <p class="text-xs text-red-500 mt-1">Requires restocking</p>
+      <Card>
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="stat-icon ni-r"><i class="fas fa-xmark"></i></div>
+            <span class="badge badge-danger">Restock needed</span>
+          </div>
+          <p class="text-sm font-medium mb-1" style="color: var(--text-secondary);">Out of Stock</p>
+          <p class="text-2xl font-bold tracking-tight" style="color: var(--text-primary);">{{ stats.outOfStock }}</p>
+          <p class="text-xs mt-2 pt-2" style="color: var(--text-muted); border-top: 1px solid var(--glass-border);">Requires restocking</p>
+        </div>
       </Card>
     </div>
 
     <!-- Products Table -->
     <Card class="overflow-hidden">
-      <div class="px-5 py-4" style="border-bottom: 1px solid var(--glass-border);">
-        <h2 class="text-lg font-semibold text-[var(--text-primary)]">Product Inventory</h2>
-        <p class="text-sm text-[var(--text-secondary)]">Showing {{ paginatedProducts.length }} of {{ filteredProducts.length }} products</p>
+      <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Product Inventory</h2>
+            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Showing {{ paginatedProducts.length }} of {{ filteredProducts.length }} products</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="relative flex-1 min-w-[200px]">
+            <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color: var(--text-muted)"></i>
+            <input v-model="searchQuery" type="text" placeholder="Search products..." class="glass-input w-full pl-9 text-sm">
+          </div>
+          <select v-model="sortBy" class="glass-select text-sm">
+            <option value="createdAt:desc">Newest first</option>
+            <option value="price:asc">Price: Low to High</option>
+            <option value="price:desc">Price: High to Low</option>
+            <option value="name:asc">Name: A to Z</option>
+          </select>
+        </div>
       </div>
 
       <div class="overflow-x-auto">
-        <Table>
-          <template #header>
-            <tr class="bg-[var(--glass-bg)] text-[var(--text-secondary)]">
-              <th class="py-3 px-4 text-left font-semibold text-sm">Product</th>
-              <th class="py-3 px-4 text-left font-semibold text-sm">Category</th>
-              <th class="py-3 px-4 text-left font-semibold text-sm">Price</th>
-              <th class="py-3 px-4 text-left font-semibold text-sm">Stock</th>
-              <th class="py-3 px-4 text-left font-semibold text-sm">Status</th>
-              <th class="py-3 px-4 text-left font-semibold text-sm">Actions</th>
+        <table class="glass-table w-full">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          </template>
-          <template #body>
-            <tr
-              v-for="product in paginatedProducts"
-              :key="product.id"
-              class="hover:bg-[var(--glass-bg)] transition-colors duration-150 border-b border-[var(--glass-border)] last:border-b-0"
-            >
-              <td class="py-4 px-4">
+          </thead>
+          <tbody>
+            <tr v-for="product in paginatedProducts" :key="product.id">
+              <td>
                 <div class="flex items-center gap-3">
                   <div class="relative">
-                    <img
-                      :src="product.imageUrl || 'https://freesvg.org/img/abstract-user-flat-4.png'"
-                      :alt="product.name"
-                      class="w-12 h-12 rounded-lg object-cover border border-[var(--glass-border)]"
-                    >
-                    <div
-                      v-if="product.stock === 0"
-                      class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
-                    >
-                      <svg class="w-3 h-3 text-[var(--text-primary)]" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                      </svg>
+                    <img :src="product.imageUrl || 'https://freesvg.org/img/abstract-user-flat-4.png'"
+                      :alt="product.name" class="w-11 h-11 rounded-lg object-cover"
+                      style="border: 1px solid var(--glass-border);">
+                    <div v-if="product.stock === 0"
+                      class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                      <i class="fas fa-xmark text-[8px]" style="color: var(--text-primary);"></i>
                     </div>
-                    <div
-                      v-else-if="product.stock <= 10"
-                      class="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center"
-                    >
-                      <span class="text-xs font-bold text-[var(--text-primary)]">!</span>
+                    <div v-else-if="product.stock <= 10"
+                      class="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                      <span class="text-[8px] font-bold" style="color: var(--text-primary);">!</span>
                     </div>
                   </div>
                   <div>
-                    <p class="font-medium text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors duration-150 cursor-pointer" @click="viewProduct(product.id)">
-                      {{ product.name }}
-                    </p>
-                    <div class="flex items-center gap-2 mt-1">
-                      <span class="text-xs text-[var(--text-muted)] bg-[rgba(255,255,255,0.25)] px-2 py-0.5 rounded">{{ formatSku(product.sku) }}</span>
-                      <span class="text-xs text-[var(--text-muted)]">{{ formatDate(product.createdAt) }}</span>
+                    <p class="td-primary cursor-pointer" @click="viewProduct(product.id)">{{ product.name }}</p>
+                    <div class="flex items-center gap-2 mt-0.5">
+                      <span class="text-xs px-2 py-0.5 rounded" style="color: var(--text-muted); background: var(--glass-bg);">{{ formatSku(product.sku) }}</span>
+                      <span class="text-xs" style="color: var(--text-muted);">{{ formatDate(product.createdAt) }}</span>
                     </div>
                   </div>
                 </div>
               </td>
-              <td class="py-4 px-2">
-                <Badge
-                  class="hover:bg-opacity-80 transition-colors duration-150 cursor-default px-3 py-1"
-                  :class="{
-                    'bg-blue-500/20 text-[var(--text-accent)] border-[var(--accent)]/30': product.category === 'Electronics',
-                    'bg-green-500/20 text-green-400 border-green-500/30': product.category === 'Clothing',
-                    'bg-purple-500/20 text-purple-400 border-purple-500/30': product.category === 'Home & Kitchen',
-                    'bg-amber-500/20 text-amber-400 border-amber-500/30': product.category === 'Fitness',
-                    'bg-indigo-500/20 text-indigo-400 border-indigo-500/30': product.category === 'Footwear',
-                    'bg-pink-500/20 text-pink-400 border-pink-500/30': product.category === 'Accessories'
-                  }"
-                >
-                  {{ product.category }}
-                </Badge>
+              <td><Badge variant="info">{{ product.category }}</Badge></td>
+              <td>
+                <span class="td-accent">{{ formatCurrency(product.price) }}</span>
+                <p v-if="product.price > 100" class="text-xs mt-0.5" style="color: var(--ni-orange);">
+                  <i class="fas fa-arrow-trend-up mr-1"></i>Premium
+                </p>
               </td>
-              <td class="py-4 px-4">
-                <div class="flex flex-col">
-                  <span class="font-medium text-[var(--text-primary)]">{{ formatCurrency(product.price) }}</span>
-                  <span
-                    v-if="product.price > 100"
-                    class="text-xs text-amber-500 mt-1"
-                  >
-                    <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
-                    </svg>
-                    Premium
-                  </span>
-                </div>
-              </td>
-              <td class="py-4 px-4">
-                <div class="flex items-center gap-3">
-                  <div class="flex-1">
-                    <div class="flex justify-between text-sm mb-1">
-                      <span class="text-[var(--text-secondary)]">{{ product.stock }} units</span>
-                      <span
-                        class="font-medium"
-                        :class="{
-                          'text-green-500': product.stock > 20,
-                          'text-yellow-500': product.stock <= 20 && product.stock > 0,
-                          'text-red-500': product.stock === 0
-                        }"
-                      >
-                        {{ getStockLevel(product.stock) }}
-                      </span>
-                    </div>
-                    <div class="w-full h-2 bg-[var(--glass-bg)] rounded-full overflow-hidden">
-                      <div
-                        class="h-full transition-all duration-500 ease-out"
-                        :class="{
-                          'bg-gradient-to-r from-green-500 to-emerald-400': product.stock > 20,
-                          'bg-gradient-to-r from-yellow-500 to-amber-400': product.stock <= 20 && product.stock > 0,
-                          'bg-gradient-to-r from-red-500 to-rose-400': product.stock === 0
-                        }"
-                        :style="{ width: Math.min((product.stock / 100) * 100, 100) + '%' }"
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td class="py-4 px-4">
-                <div class="flex items-center gap-2">
-                  <Badge
-                    :variant="product.status === 'active' ? 'success' : 'secondary'"
-                    class="px-3 py-1"
-                  >
-                    <span class="flex items-center gap-1.5">
-                      <span
-                        class="w-2 h-2 rounded-full"
-                        :class="{
-                          'bg-green-500': product.status === 'active',
-                          'bg-gray-500': product.status !== 'active'
-                        }"
-                      ></span>
-                      {{ product.status }}
+              <td>
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span style="color: var(--text-secondary);">{{ product.stock }} units</span>
+                    <span :style="product.stock > 20 ? 'color: var(--ni-green)' : product.stock > 0 ? 'color: var(--ni-orange)' : 'color: var(--ni-red)'">
+                      {{ getStockLevel(product.stock) }}
                     </span>
-                  </Badge>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill" :style="{ width: Math.min((product.stock / 100) * 100, 100) + '%', background: product.stock > 20 ? 'var(--progress-primary)' : product.stock > 0 ? 'var(--ni-orange)' : 'var(--ni-red)' }"></div>
+                  </div>
                 </div>
               </td>
-              <td class="py-4 px-4">
+              <td>
+                <Badge :variant="product.status === 'active' ? 'success' : 'secondary'">{{ product.status }}</Badge>
+              </td>
+              <td>
                 <div class="flex items-center gap-1">
-                  <button
-                    @click="editProduct(product.id)"
-                    class="btn-glass-icon"
-                    title="Edit product"
-                  >
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                    </svg>
+                  <button @click="viewProduct(product.id)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="View">
+                    <i class="fas fa-eye"></i>
                   </button>
-                  <button
-                    @click="viewProduct(product.id)"
-                    class="p-2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:bg-gray-500/10 rounded-lg transition-all duration-150"
-                    title="View details"
-                  >
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                      <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                    </svg>
+                  <button @click="editProduct(product.id)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Edit">
+                    <i class="fas fa-pen"></i>
                   </button>
-                  <button
-                    @click="duplicateProduct(product.id)"
-                    class="p-2 text-[var(--text-secondary)] hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-all duration-150"
-                    title="Duplicate product"
-                  >
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z"/>
-                      <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z"/>
-                    </svg>
+                  <button @click="duplicateProduct(product.id)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Duplicate">
+                    <i class="fas fa-copy"></i>
                   </button>
-                  <button
-                    @click="deleteProduct(product.id)"
-                    class="p-2 text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-150"
-                    title="Delete product"
-                  >
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                    </svg>
+                  <button @click="deleteProduct(product.id)" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Delete">
+                    <i class="fas fa-trash"></i>
                   </button>
                 </div>
               </td>
             </tr>
-          </template>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
-      <!-- Empty State -->
-      <EmptyState
-        v-if="products.length === 0"
-        title="No products found"
+      <EmptyState v-if="products.length === 0" title="No products found"
         description="Get started by adding your first product."
-        action-text="Add Product"
-        action-to="/products/create"
-        class="py-12"
-      />
+        action-text="Add Product" action-to="/products/create" class="py-12" />
 
-      <!-- Pagination -->
-      <Pagination
-        :current-page="currentPage"
-        :total-pages="totalPages"
-        :total-items="filteredProducts.length"
-        :items-per-page="itemsPerPage"
-        @page-change="onPageChange"
-      />
+      <Pagination :current-page="currentPage" :total-pages="totalPages"
+        :total-items="filteredProducts.length" :items-per-page="itemsPerPage"
+        @page-change="onPageChange" />
     </Card>
   </div>
 </template>
@@ -282,7 +182,6 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
-import Table from '@/components/ui/Table.vue';
 import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
@@ -516,66 +415,3 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-/* Custom scrollbar for table */
-.overflow-x-auto {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
-}
-
-.overflow-x-auto::-webkit-scrollbar {
-  height: 6px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
-  border-radius: 3px;
-}
-
-/* Smooth transitions */
-tr {
-  transition: all 0.15s ease-out;
-}
-
-/* Image hover effect */
-img {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-img:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Button focus states */
-button:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Gradient border for premium items */
-.premium-border {
-  position: relative;
-}
-
-.premium-border::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 8px;
-  padding: 1px;
-  background: linear-gradient(45deg, #f59e0b, #d97706);
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-}
-</style>
