@@ -1,45 +1,50 @@
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto">
-    <!-- Backdrop -->
-    <div class="fixed inset-0 bg-black bg-opacity-50" @click="close"></div>
+  <Teleport to="body">
+    <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="animation: fade-up 0.2s ease-out;">
+      <!-- Backdrop -->
+      <div
+        class="fixed inset-0"
+        style="background: rgba(30,10,60,0.35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);"
+        @click="close"
+      ></div>
 
-    <!-- Modal -->
-    <div class="flex items-center justify-center min-h-screen p-4">
-      <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full">
+      <!-- Modal panel -->
+      <div
+        class="glass-card relative w-full max-w-2xl max-h-[90vh] flex flex-col z-10"
+        style="overflow: hidden;"
+      >
         <!-- Header -->
-        <div class="flex items-center justify-between p-6 border-b border-gray-200">
-          <h3 class="text-lg font-semibold">
+        <div
+          class="flex items-center justify-between px-6 py-4 flex-shrink-0"
+          style="border-bottom: 1px solid var(--glass-border);"
+        >
+          <h3 class="text-[17px] font-semibold" style="color: var(--text-primary);">
             <slot name="title"></slot>
           </h3>
-          <button @click="close" class="p-1 text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
+          <button @click="close" class="btn-glass-icon w-8 h-8 text-sm rounded-[10px]">
+            <i class="fas fa-xmark"></i>
           </button>
         </div>
 
         <!-- Content -->
-        <div class="p-6">
+        <div class="px-6 py-5 overflow-y-auto flex-1" style="color: var(--text-secondary);">
           <slot name="content"></slot>
         </div>
 
         <!-- Footer -->
-        <div class="flex items-center justify-end p-6 border-t border-gray-200 gap-3">
+        <div
+          class="flex items-center justify-end gap-3 px-6 py-4 flex-shrink-0"
+          style="border-top: 1px solid var(--glass-border);"
+        >
           <slot name="footer"></slot>
         </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
-  isOpen: Boolean
-});
-
+defineProps({ isOpen: Boolean });
 const emit = defineEmits(['close']);
-
-const close = () => {
-  emit('close');
-};
+const close = () => emit('close');
 </script>

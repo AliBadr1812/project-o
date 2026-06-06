@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-[var(--color-primary)] shadow-md rounded-xl hover:shadow-lg transition-shadow duration-300 border border-[var(--color-border)]">
+  <div class="glass-card">
     <slot></slot>
   </div>
 </template>
