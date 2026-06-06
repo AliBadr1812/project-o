@@ -19,10 +19,19 @@ public interface CustomerMapper {
     List<CustomerResponse> toResponseList(List<Customer> customers);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "fullName", ignore = true)
-    @Mapping(target = "email", ignore = true)
+    @Mapping(target = "orderCount", ignore = true)
+    @Mapping(target = "totalSpent", ignore = true)
+    @Mapping(target = "lastOrderDate", ignore = true)
+    @Mapping(target = "orders", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     Customer toEntity(CreateCustomerRequest request);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "orderCount", ignore = true)
+    @Mapping(target = "totalSpent", ignore = true)
+    @Mapping(target = "lastOrderDate", ignore = true)
+    @Mapping(target = "orders", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     void updateEntityFromRequest(UpdateCustomerRequest request, @MappingTarget Customer entity);
 }

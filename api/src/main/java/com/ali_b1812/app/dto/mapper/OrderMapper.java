@@ -14,20 +14,30 @@ import com.ali_b1812.app.model.entity.Order;
 public interface OrderMapper {
     OrderMapper INSTANCE = Mappers.getMapper(OrderMapper.class);
 
+    @Mapping(target = "customerId", expression = "java(order.getCustomer() != null ? order.getCustomer().getId() : null)")
     OrderResponse toResponse(Order order);
 
     List<OrderResponse> toResponseList(List<Order> orders);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "orderNumber", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "total", ignore = true)
     @Mapping(target = "customer", ignore = true)
+    @Mapping(target = "items", ignore = true)
+    @Mapping(target = "shippingAddress", ignore = true)
+    @Mapping(target = "notes", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "processedAt", ignore = true)
     @Mapping(target = "shippedAt", ignore = true)
     @Mapping(target = "deliveredAt", ignore = true)
     Order toEntity(CreateOrderRequest request);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "orderNumber", ignore = true)
+    @Mapping(target = "customer", ignore = true)
+    @Mapping(target = "items", ignore = true)
+    @Mapping(target = "shippingAddress", ignore = true)
+    @Mapping(target = "notes", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     void updateEntityFromRequest(UpdateOrderRequest request, @MappingTarget Order entity);
 }

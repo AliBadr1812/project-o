@@ -10,20 +10,16 @@ import org.mapstruct.factory.Mappers;
 @Mapper(componentModel = "spring", uses = {DateMapper.class})
 public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
-    
-    // Entity → Response
+
+    // Entity → Response (userName maps to username in response)
+    @Mapping(target = "username", source = "userName")
     UserResponse toResponse(User user);
-    
+
     // CreateRequest → Entity
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", constant = "USER")
-    @Mapping(target = "userName", ignore = true)
-    @Mapping(target = "firstName", ignore = true)
-    @Mapping(target = "lastName", ignore = true)
-    @Mapping(target = "email", ignore = true)
+    @Mapping(target = "userName", source = "username")
     @Mapping(target = "hashedPassword", ignore = true)
-    @Mapping(target = "phoneNumber", ignore = true)
-    @Mapping(target = "profileImageUrl", ignore = true)
     @Mapping(target = "following", ignore = true)
     @Mapping(target = "followers", ignore = true)
     @Mapping(target = "failedLoginAttempts", ignore = true)
@@ -34,9 +30,12 @@ public interface UserMapper {
     @Mapping(target = "lastLoginAt", ignore = true)
     @Mapping(target = "emailVerifiedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
+    @Mapping(target = "profileImageUrl", ignore = true)
+    @Mapping(target = "phoneNumber", ignore = true)
     User toEntity(CreateUserRequest request);
-    
+
     // Update Entity from Request
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "userName", source = "username")
     void updateEntityFromRequest(UpdateUserRequest request, @MappingTarget User entity);
 }
