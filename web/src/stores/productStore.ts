@@ -35,5 +35,11 @@ export const useProductStore = defineStore('products', () => {
     items.value.unshift(item);
   }
 
-  return { items, loading, error, loaded, fetchAll, remove, prependItem };
+  /** Patch a product in the local cache by id. */
+  function updateItem(id: number, patch: Partial<Product>) {
+    const idx = items.value.findIndex(p => p.id === id);
+    if (idx !== -1) items.value[idx] = { ...items.value[idx], ...patch };
+  }
+
+  return { items, loading, error, loaded, fetchAll, remove, prependItem, updateItem };
 });
