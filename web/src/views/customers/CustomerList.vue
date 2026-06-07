@@ -190,7 +190,7 @@ import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency, formatDate, getInitials } from '@/utils/formatters';
-import { customerService } from '@/services/customerService';
+import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import { useCustomerStore } from '@/stores/customerStore';
 
 const router = useRouter();
@@ -260,5 +260,11 @@ const onPageChange = (page: number) => { currentPage.value = page; window.scroll
 const viewCustomer = (id: number) => router.push(`/customers/${id}`);
 const editCustomer = (id: number) => router.push(`/customers/edit/${id}`);
 const sendEmail    = (email: string) => { window.location.href = `mailto:${email}`; };
-const exportCustomers = () => customerService.exportCustomers(customers.value);
+const exportCustomers = () => {
+  exportToCsv(
+    datestampedFilename('customers'),
+    filteredCustomers.value,
+    ['id', 'fullName', 'email', 'phone', 'type', 'status', 'orderCount', 'totalSpent', 'lastOrderDate'],
+  );
+};
 </script>

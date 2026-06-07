@@ -337,7 +337,7 @@
 </template>
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import Modal from '@/components/ui/Modal.vue';
 import Button from '@/components/ui/Button.vue';
@@ -345,8 +345,11 @@ import Card from '@/components/ui/Card.vue';
 import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import { formatCurrency, formatDate } from '@/utils/formatters';
+import { useProductStore } from '@/stores/productStore';
 
 const router = useRouter();
+const route  = useRoute();
+const store  = useProductStore();
 
 // State
 const loading = ref(true);
@@ -469,7 +472,7 @@ const calculateProfitMargin = (prod: any) => {
 };
 
 const handleEdit = () => {
-  router.push(`/products/edit/${product.value.id}`);
+  router.push(`/products/${product.value.id}/edit`);
 };
 
 const handleDuplicate = () => {
@@ -480,11 +483,14 @@ const handleDuplicate = () => {
   }
 };
 
-const handleDelete = () => {
+const handleDelete = async () => {
   if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-    // In real app, make API call
-    alert('Product deleted!');
-    router.push('/products');
+    try {
+      await store.remove(Number(product.value.id));
+      router.push('/products');
+    } catch (e: any) {
+      alert(e?.message ?? 'Delete failed');
+    }
   }
 };
 
@@ -524,13 +530,27 @@ const goBack = () => {
 };
 
 // Lifecycle
-onMounted(() => {
-  // Simulate API call
-  setTimeout(() => {
-    product.value = mockProduct;
-    reviews.value = mockReviews;
-    mainImage.value = mockProduct.images[0]!;
-    loading.value = false;
-  }, 800);
+onMounted(async () => {
+  await store.fetchAll();
+  const realProduct = store.items.find(p => p.id === Number(route.params.id));
+  if (realProduct) {
+    product.value = {
+      ...mockProduct,
+      id:          realProduct.id,
+      name:        realProduct.name,
+      sku:         realProduct.sku,
+      status:      realProduct.status,
+      price:       realProduct.price,
+      stock:       realProduct.stock,
+      images:      (realProduct.images && realProduct.images.length) ? realProduct.images : mockProduct.images,
+      categories:  realProduct.categories
+        ? [{ id: 1, name: realProduct.categories, icon: 'fas fa-folder', productCount: 0 }]
+        : mockProduct.categories,
+      createdAt:   realProduct.createdAt ?? mockProduct.createdAt,
+    };
+    mainImage.value = product.value.images[0]!;
+  }
+  reviews.value = mockReviews;
+  loading.value = false;
 });
 </script>

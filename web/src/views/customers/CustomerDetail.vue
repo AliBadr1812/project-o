@@ -1,5 +1,12 @@
 <template>
   <div class="flex flex-col gap-6">
+    <!-- Loading / not found -->
+    <div v-if="!customer" class="py-12 text-center">
+      <i class="fas fa-spinner fa-spin text-2xl mb-3" style="color: var(--text-muted);"></i>
+      <p style="color: var(--text-muted);">Loading customer…</p>
+    </div>
+
+    <template v-else>
     <!-- Page Header -->
     <div class="page-header">
       <div class="flex items-center gap-4">
@@ -216,52 +223,52 @@
         </Card>
       </div>
     </div>
+    </template><!-- end v-else -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
 import Badge from '@/components/ui/Badge.vue';
 import { formatCurrency, formatDate, getInitials } from '@/utils/formatters';
+import { useCustomerStore } from '@/stores/customerStore';
 
-const route = useRoute();
+const route  = useRoute();
 const router = useRouter();
-const customerId = route.params.id;
+const store  = useCustomerStore();
 
-// Mock customer data
-const customer = ref({
-  id: customerId,
-  name: 'John Smith',
-  email: 'john.smith@example.com',
-  phone: '+1 (555) 123-4567',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
-  status: 'active',
-  type: 'Premium',
-  emailVerified: true,
-  preferredLanguage: 'English',
-  createdAt: '2023-06-15T10:30:00Z',
-  stats: {
-    totalOrders: 24,
-    totalSpent: 2899.99,
-    averageOrderValue: 120.83,
-    lastOrderDate: '2024-01-15T14:30:00Z'
-  },
-  recentOrders: [
-    { id: 1, orderNumber: '001245', createdAt: '2024-01-15T14:30:00Z', total: 149.99, status: 'pending' },
-    { id: 2, orderNumber: '001244', createdAt: '2024-01-10T11:20:00Z', total: 89.99, status: 'delivered' },
-    { id: 3, orderNumber: '001239', createdAt: '2024-01-05T09:15:00Z', total: 199.99, status: 'shipped' }
-  ],
-  notes: [
-    { id: 1, author: 'Support Team', createdAt: '2024-01-10T14:30:00Z', content: 'Customer reported an issue with shipping. Followed up and resolved.' },
-    { id: 2, author: 'Sales Team', createdAt: '2023-12-15T11:20:00Z', content: 'Customer showed interest in bulk purchase. Sent quote.' }
-  ],
-  addresses: [
-    { id: 1, name: 'Home', street: '123 Main St', city: 'New York', state: 'NY', zipCode: '10001', country: 'USA', isDefault: true },
-    { id: 2, name: 'Office', street: '456 Business Ave', city: 'New York', state: 'NY', zipCode: '10002', country: 'USA', isDefault: false }
-  ],
-  tags: ['VIP', 'Premium', 'Tech', 'Early Adopter']
+// Customer data — enriched from store + sensible defaults
+const customer = ref<any>(null);
+
+onMounted(async () => {
+  await store.fetchAll();
+  const c = store.items.find(c => c.id === Number(route.params.id));
+  if (c) {
+    customer.value = {
+      id:    c.id,
+      name:  c.fullName,
+      email: c.email,
+      phone: c.phone ?? '—',
+      avatar: null,
+      status: c.status,
+      type:   c.type ?? 'new',
+      emailVerified: true,
+      preferredLanguage: 'English',
+      createdAt: c.lastOrderDate ?? new Date().toISOString(),
+      stats: {
+        totalOrders:        c.orderCount,
+        totalSpent:         c.totalSpent,
+        averageOrderValue:  c.orderCount > 0 ? Math.round(c.totalSpent / c.orderCount * 100) / 100 : 0,
+        lastOrderDate:      c.lastOrderDate ?? '—',
+      },
+      recentOrders: [],
+      notes: [],
+      addresses: [],
+      tags: c.type === 'vip' ? ['VIP'] : c.type === 'returning' ? ['Returning'] : ['New'],
+    };
+  }
 });
 
 // Helper functions
