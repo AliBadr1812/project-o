@@ -7,6 +7,9 @@
         <p class="page-subtitle">Manage your product categories</p>
       </div>
       <div class="flex items-center gap-3">
+        <button @click="exportCategories" class="btn-glass text-sm">
+          <i class="fas fa-download text-xs mr-1"></i>Export CSV
+        </button>
         <button @click="handleCreate" class="btn-accent text-sm">
           <i class="fas fa-plus text-xs mr-1"></i>New Category
         </button>
@@ -195,6 +198,7 @@ import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import { formatDate, truncateText } from '@/utils/formatters';
+import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import { useCategoryStore } from '@/stores/categoryStore';
 
 const router = useRouter();
@@ -274,6 +278,14 @@ const handleDelete = async (id: number) => {
   } catch (e: any) {
     alert(e?.message ?? 'Delete failed');
   }
+};
+
+const exportCategories = () => {
+  exportToCsv(
+    datestampedFilename('categories'),
+    filteredCategories.value,
+    ['id', 'name', 'description', 'productCount', 'isActive', 'createdAt'],
+  );
 };
 
 const handleBulkDelete = async () => {
