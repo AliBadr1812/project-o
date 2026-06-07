@@ -83,6 +83,45 @@
           </div>
         </div>
 
+        <!-- Variants -->
+        <div class="glass-card p-0 overflow-hidden">
+          <div class="px-5 pt-5 pb-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="stat-icon" style="background: linear-gradient(135deg,#30d158,#28b14c); width:30px; height:30px; font-size:13px;">
+                  <i class="fas fa-layer-group"></i>
+                </div>
+                <h2 class="text-[14px] font-semibold" style="color:var(--text-primary)">Variants</h2>
+              </div>
+              <button type="button" @click="addVariant" class="btn-glass text-xs">
+                <i class="fas fa-plus text-[10px] mr-1"></i>Add variant
+              </button>
+            </div>
+          </div>
+          <div class="px-5 pb-5 flex flex-col gap-3">
+            <p v-if="variants.length === 0" class="text-sm text-center py-4" style="color: var(--text-muted);">
+              No variants — click "Add variant" to create size/colour options.
+            </p>
+            <div v-for="(v, i) in variants" :key="i"
+              class="grid grid-cols-[1fr_1fr_80px_80px_28px] gap-2 items-center">
+              <input v-model="v.options" type="text" class="glass-input text-sm" placeholder="e.g. Red / L">
+              <input v-model="v.sku" type="text" class="glass-input text-sm font-mono" placeholder="SKU-R-L">
+              <input v-model.number="v.price" type="number" step="0.01" min="0" class="glass-input text-sm" placeholder="0.00">
+              <input v-model.number="v.stock" type="number" min="0" class="glass-input text-sm" placeholder="0">
+              <button type="button" @click="removeVariant(i)"
+                class="w-7 h-7 rounded-lg flex items-center justify-center text-xs"
+                style="color: var(--ni-red); background: rgba(239,68,68,0.1);">
+                <i class="fas fa-xmark"></i>
+              </button>
+            </div>
+            <div v-if="variants.length > 0"
+              class="grid grid-cols-[1fr_1fr_80px_80px_28px] gap-2 text-[10px] font-semibold px-0.5"
+              style="color: var(--text-muted);">
+              <span>Options</span><span>SKU</span><span>Price</span><span>Stock</span><span></span>
+            </div>
+          </div>
+        </div>
+
         <!-- Product Images -->
         <div class="glass-card p-0 overflow-hidden">
           <div class="px-5 pt-5 pb-3">
@@ -286,6 +325,11 @@ const categories = ref([
   { id: 3, name: 'Home & Garden' },
 ]);
 
+// Variants
+const variants = ref<Array<{ options: string; sku: string; price: number | null; stock: number | null }>>([]);
+const addVariant    = () => variants.value.push({ options: '', sku: '', price: null, stock: 0 });
+const removeVariant = (i: number) => variants.value.splice(i, 1);
+
 const mainImagePreview = ref<string | null>(null);
 const additionalImagesPreview = ref<string[]>([]);
 
@@ -340,6 +384,7 @@ const submitForm = async () => {
       stock:      product.value.stock ?? 0,
       status:     product.value.status,
       images:     mainImagePreview.value ? [mainImagePreview.value] : [],
+      variants:   variants.value,
     };
     if (isEditing.value) {
       const updated = await productService.updateProduct(Number(route.params.id), payload);

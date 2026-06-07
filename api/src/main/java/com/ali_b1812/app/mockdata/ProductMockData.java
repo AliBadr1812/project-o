@@ -25,19 +25,35 @@ public class ProductMockData {
                 "High-quality wireless headphones with active noise cancellation and 30-hour battery life.",
                 "2024-01-15T10:30:00"));
 
-        products.add(build(idGenerator.getAndIncrement(),
+        ProductResponse tshirt = build(idGenerator.getAndIncrement(),
                 "Organic Cotton T-Shirt", "CLOTH-045", "Clothing",
                 24.99, 9.00, 15, "active", false,
                 "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop",
                 "Soft, breathable organic cotton t-shirt available in multiple colours.",
-                "2024-01-14T14:20:00"));
+                "2024-01-14T14:20:00");
+        tshirt.setVariants(List.of(
+            ProductResponse.ProductVariantResponse.builder().id(1L).options("White / S").sku("CLOTH-045-WS").price(24.99).stock(5).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(2L).options("White / M").sku("CLOTH-045-WM").price(24.99).stock(4).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(3L).options("White / L").sku("CLOTH-045-WL").price(24.99).stock(3).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(4L).options("Black / S").sku("CLOTH-045-BS").price(24.99).stock(2).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(5L).options("Black / M").sku("CLOTH-045-BM").price(24.99).stock(1).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(6L).options("Black / L").sku("CLOTH-045-BL").price(24.99).stock(0).isAvailable(false).build()
+        ));
+        products.add(tshirt);
 
-        products.add(build(idGenerator.getAndIncrement(),
+        ProductResponse bottle = build(idGenerator.getAndIncrement(),
                 "Stainless Steel Water Bottle", "HOME-023", "Home & Kitchen",
                 29.99, 11.00, 8, "active", false,
                 "https://images.unsplash.com/photo-1523362628745-0c100150b504?w=400&h=400&fit=crop",
                 "Double-walled insulated stainless steel bottle, keeps drinks cold 24 h / hot 12 h.",
-                "2024-01-13T09:15:00"));
+                "2024-01-13T09:15:00");
+        bottle.setVariants(List.of(
+            ProductResponse.ProductVariantResponse.builder().id(7L).options("Silver / 500ml").sku("HOME-023-SIL-S").price(29.99).stock(4).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(8L).options("Silver / 750ml").sku("HOME-023-SIL-L").price(34.99).stock(2).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(9L).options("Matte Black / 500ml").sku("HOME-023-BLK-S").price(29.99).stock(2).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(10L).options("Matte Black / 750ml").sku("HOME-023-BLK-L").price(34.99).stock(0).isAvailable(false).build()
+        ));
+        products.add(bottle);
 
         products.add(build(idGenerator.getAndIncrement(),
                 "Yoga Mat Premium", "FIT-078", "Fitness",
@@ -60,12 +76,20 @@ public class ProductMockData {
                 "Programmable 12-cup coffee maker with thermal carafe and auto-clean feature.",
                 "2024-01-10T13:20:00"));
 
-        products.add(build(idGenerator.getAndIncrement(),
+        ProductResponse shoes = build(idGenerator.getAndIncrement(),
                 "Running Shoes", "SHOE-034", "Footwear",
                 79.99, 30.00, 12, "active", false,
                 "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
                 "Lightweight breathable running shoes with responsive cushioning sole.",
-                "2024-01-09T15:10:00"));
+                "2024-01-09T15:10:00");
+        shoes.setVariants(List.of(
+            ProductResponse.ProductVariantResponse.builder().id(11L).options("US 8").sku("SHOE-034-8").price(79.99).stock(3).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(12L).options("US 9").sku("SHOE-034-9").price(79.99).stock(4).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(13L).options("US 10").sku("SHOE-034-10").price(79.99).stock(3).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(14L).options("US 11").sku("SHOE-034-11").price(79.99).stock(2).isAvailable(true).build(),
+            ProductResponse.ProductVariantResponse.builder().id(15L).options("US 12").sku("SHOE-034-12").price(79.99).stock(0).isAvailable(false).build()
+        ));
+        products.add(shoes);
 
         products.add(build(idGenerator.getAndIncrement(),
                 "Backpack", "BAG-021", "Accessories",

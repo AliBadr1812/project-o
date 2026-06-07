@@ -6,11 +6,15 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Product response data")
 public class ProductResponse {
@@ -89,4 +93,23 @@ public class ProductResponse {
 
     @Schema(description = "dimensions", example = "10x5x2 cm")
     private String dimensions;
+
+    @Schema(description = "Product variants (size, colour, etc.)")
+    private List<ProductVariantResponse> variants;
+
+    // ── Nested type ────────────────────────────────────────────────────────
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class ProductVariantResponse {
+        private Long    id;
+        /** e.g. "Color / Size" */
+        private String  options;
+        private String  sku;
+        private Double  price;
+        private Integer stock;
+        private Boolean isAvailable;
+    }
 }

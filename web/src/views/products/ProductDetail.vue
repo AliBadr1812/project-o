@@ -118,6 +118,42 @@
                 </div>
               </div>
 
+              <!-- Variants -->
+              <div v-if="activeTab === 'variants'" class="flex flex-col gap-4">
+                <div v-if="!product.variants || product.variants.length === 0"
+                  class="py-10 text-center">
+                  <i class="fas fa-layer-group text-3xl mb-3" style="color: var(--text-muted);"></i>
+                  <p class="text-sm" style="color: var(--text-muted);">No variants for this product.</p>
+                  <p class="text-xs mt-1" style="color: var(--text-muted);">Add variants via the edit form.</p>
+                </div>
+                <div v-else class="overflow-x-auto">
+                  <table class="glass-table w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th class="text-left py-2 px-3 text-xs font-semibold" style="color: var(--text-muted);">Options</th>
+                        <th class="text-left py-2 px-3 text-xs font-semibold" style="color: var(--text-muted);">SKU</th>
+                        <th class="text-right py-2 px-3 text-xs font-semibold" style="color: var(--text-muted);">Price</th>
+                        <th class="text-right py-2 px-3 text-xs font-semibold" style="color: var(--text-muted);">Stock</th>
+                        <th class="text-center py-2 px-3 text-xs font-semibold" style="color: var(--text-muted);">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="v in product.variants" :key="v.id">
+                        <td class="py-2 px-3" style="color: var(--text-primary);">{{ v.options }}</td>
+                        <td class="py-2 px-3 font-mono text-xs" style="color: var(--text-muted);">{{ v.sku }}</td>
+                        <td class="py-2 px-3 text-right td-accent">{{ formatCurrency(v.price) }}</td>
+                        <td class="py-2 px-3 text-right" style="color: var(--text-primary);">{{ v.stock }}</td>
+                        <td class="py-2 px-3 text-center">
+                          <span class="badge" :class="v.isAvailable ? 'badge-success' : 'badge-danger'">
+                            {{ v.isAvailable ? 'In Stock' : 'Out of Stock' }}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
               <!-- Specifications -->
               <div v-if="activeTab === 'specifications'" class="flex flex-col gap-3">
                 <div v-for="spec in product.specifications" :key="spec.name" class="flex text-sm">
@@ -326,10 +362,11 @@ const reviews = ref<any[]>([]);
 
 // Tabs
 const tabs = [
-  { id: 'overview', label: 'Overview' },
+  { id: 'overview',       label: 'Overview'       },
   { id: 'specifications', label: 'Specifications' },
-  { id: 'reviews', label: 'Reviews' },
-  { id: 'sales', label: 'Sales' }
+  { id: 'variants',       label: 'Variants'       },
+  { id: 'reviews',        label: 'Reviews'        },
+  { id: 'sales',          label: 'Sales'          },
 ];
 
 // Mock product data
@@ -394,7 +431,13 @@ const mockProduct = {
     width: 18.7,
     height: 9.3,
     unit: 'cm'
-  }
+  },
+
+  variants: [
+    { id: 1, options: 'Black', sku: 'PHONES-001-BLK', price: 149.99, stock: 12, isAvailable: true },
+    { id: 2, options: 'White', sku: 'PHONES-001-WHT', price: 149.99, stock: 8,  isAvailable: true },
+    { id: 3, options: 'Midnight Blue', sku: 'PHONES-001-BLU', price: 159.99, stock: 5, isAvailable: true },
+  ]
 };
 
 // Mock reviews
