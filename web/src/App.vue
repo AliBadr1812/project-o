@@ -22,11 +22,13 @@
     </div>
 
     <LoadingSpinner v-if="isLoading" />
+    <ToastContainer />
   </div>
 </template>
 
 <script setup lang="ts">
 import LoadingSpinner from './components/shared/LoadingSpinner.vue';
+import ToastContainer from './components/ui/ToastContainer.vue';
 import Sidebar from './components/layout/Sidebar.vue';
 import Breadcrumb from './components/layout/Breadcrumb.vue';
 import Footer from './components/layout/Footer.vue';
