@@ -3,7 +3,9 @@ import Dashboard from '@/views/Dashboard.vue';
 import ProductList from '@/views/products/ProductList.vue';
 import ProductForm from '@/views/products/ProductForm.vue';
 import OrderList from '@/views/orders/OrderList.vue';
+import OrderEdit from '@/views/orders/OrderEdit.vue';
 import CustomerList from '@/views/customers/CustomerList.vue';
+import CustomerEdit from '@/views/customers/CustomerEdit.vue';
 import AnalyticsDashboard from '@/views/analytics/AnalyticsDashboard.vue';
 import Settings from '@/views/settings/GeneralSettings.vue';
 import OrderDetail from '@/views/orders/OrderDetail.vue';
@@ -12,6 +14,7 @@ import CategoryList from '@/views/categories/CategoryList.vue';
 import UserProfile from '@/views/settings/UserProfile.vue';
 import CustomerDetail from '@/views/customers/CustomerDetail.vue';
 import CategoryForm from '@/views/categories/CategoryForm.vue';
+import NotificationList from '@/views/notifications/NotificationList.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -93,12 +96,32 @@ const router = createRouter({
       }
     },
     {
+      path: '/orders/edit/:id',
+      name: 'EditOrder',
+      component: OrderEdit,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Edit Order',
+        parent: { path: '/orders', name: 'Orders' }
+      }
+    },
+    {
       path: '/customers',
       name: 'Customers',
       component: CustomerList,
       meta: {
         requiresAuth: false,
         breadcrumb: 'Customers'
+      }
+    },
+    {
+      path: '/customers/edit/:id',
+      name: 'EditCustomer',
+      component: CustomerEdit,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Edit Customer',
+        parent: { path: '/customers', name: 'Customers' }
       }
     },
     {
@@ -174,12 +197,28 @@ const router = createRouter({
         meta: {
             requiresAuth: false,
             breadcrumb: 'Create Category',
-            parent: {
-                path: '/categories',
-                name: 'Categories'
-            }
+            parent: { path: '/categories', name: 'Categories' }
         }
-    }
+    },
+    {
+        path: '/categories/edit/:id',
+        name: 'EditCategory',
+        component: CategoryForm,
+        meta: {
+            requiresAuth: false,
+            breadcrumb: 'Edit Category',
+            parent: { path: '/categories', name: 'Categories' }
+        }
+    },
+    {
+      path: '/notifications',
+      name: 'Notifications',
+      component: NotificationList,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Notifications',
+      }
+    },
   ],
 })
 
