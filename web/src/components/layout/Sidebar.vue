@@ -20,12 +20,7 @@
     </div>
 
     <!-- Search -->
-    <div
-      class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl mb-5"
-      style="background: rgba(255,255,255,0.50);
-             border: 1px solid var(--glass-border);
-             box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 4px rgba(100,80,160,0.06);"
-    >
+    <div class="sidebar-search flex items-center gap-2.5 px-3 py-2.5 rounded-xl mb-5">
       <i class="fas fa-magnifying-glass text-xs" style="color: var(--text-muted);"></i>
       <span class="text-[13px]" style="color: var(--text-muted);">Search…</span>
     </div>
@@ -97,26 +92,28 @@
       <!-- Notification + Dark mode row -->
       <div class="flex items-center gap-2 px-1">
         <!-- Notifications -->
-        <button
-          class="btn-glass-icon relative flex-1 rounded-xl"
-          style="height: 38px;"
-          title="Notifications"
-        >
-          <i class="fas fa-bell text-sm"></i>
-          <span
-            class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-            style="background: #dc2626; box-shadow: 0 0 4px rgba(220,38,38,0.7);"
-          ></span>
-        </button>
+        <router-link to="/notifications" class="flex-1">
+          <button
+            class="btn-glass-icon relative w-full rounded-xl"
+            style="height: 38px;"
+            title="Notifications"
+          >
+            <i class="fas fa-bell text-sm"></i>
+            <span
+              class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+              style="background: #dc2626; box-shadow: 0 0 4px rgba(220,38,38,0.7);"
+            ></span>
+          </button>
+        </router-link>
 
         <!-- Dark mode toggle -->
         <button
-          @click="$emit('toggle-dark')"
+          @click="toggleDark()"
           class="btn-glass-icon flex-1 rounded-xl"
           style="height: 38px;"
-          :title="dark ? 'Switch to light mode' : 'Switch to dark mode'"
+          :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
         >
-          <i :class="dark ? 'fas fa-sun' : 'fas fa-moon'" class="text-sm"></i>
+          <i :class="isDark ? 'fas fa-sun' : 'fas fa-moon'" class="text-sm"></i>
         </button>
 
         <!-- New item quick add -->
@@ -133,14 +130,7 @@
 
       <!-- User card -->
       <router-link to="/settings/profile">
-        <div
-          class="flex items-center gap-2.5 p-3 rounded-2xl transition-all duration-200"
-          style="background: rgba(255,255,255,0.50);
-                 border: 1px solid var(--glass-border);
-                 box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(100,80,160,0.06);"
-          onmouseover="this.style.background='rgba(255,255,255,0.68)'"
-          onmouseout="this.style.background='rgba(255,255,255,0.50)'"
-        >
+        <div class="sidebar-user-card flex items-center gap-2.5 p-3 rounded-2xl transition-all duration-200">
           <div
             class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
             style="background: linear-gradient(145deg, #c084fc, #7c3aed);
@@ -166,9 +156,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { NAVIGATION_ITEMS } from '@/utils/constants';
+import { useTheme } from '@/composables/useTheme';
 
+// Keep the prop/emit for backwards-compat with App.vue but drive the icon
+// from the composable's isDark so Settings can also change it.
 defineProps<{ dark: boolean }>();
 defineEmits(['toggle-dark']);
+
+const { isDark, toggleDark } = useTheme();
 
 const overviewItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Dashboard', 'Analytics'].includes(i.name)));
 const commerceItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Products', 'Orders', 'Customers', 'Categories'].includes(i.name)));
