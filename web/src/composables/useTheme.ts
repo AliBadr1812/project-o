@@ -3,8 +3,13 @@
  *
  * Module-level refs are shared across all component instances, so any
  * component that calls useTheme() reads and mutates the same state.
+ *
+ * Preferences are persisted to:
+ *  1. localStorage (immediate, offline-capable)
+ *  2. backend API  /user-preferences/{userId} (fire-and-forget, cross-device)
  */
 import { ref } from 'vue';
+import api from '@/services/api';
 
 // ── Types ─────────────────────────────────────────────────────────────
 export type ThemeId = 'purple' | 'blue' | 'green' | 'orange';
@@ -152,8 +157,15 @@ const THEMES: Record<ThemeId, ThemePalette> = {
 const isDark   = ref(false);
 const themeId  = ref<ThemeId>('purple');
 
-const LS_DARK  = 'sa-dark';
-const LS_THEME = 'sa-theme';
+const LS_DARK    = 'sa-dark';
+const LS_THEME   = 'sa-theme';
+const PREF_USER  = 'default'; // single-admin-user setup
+
+// ── Backend persistence (fire-and-forget) ─────────────────────────────
+function saveToBackend(dark: boolean, id: ThemeId) {
+  api.put(`/user-preferences/${PREF_USER}`, { themeId: id, darkMode: dark })
+     .catch(() => { /* backend unavailable — localStorage is the fallback */ });
+}
 
 // ── Core apply ────────────────────────────────────────────────────────
 function applyAll(dark: boolean, id: ThemeId) {
@@ -205,22 +217,29 @@ export function useTheme() {
     themeId.value = id;
     applyAll(isDark.value, id);
     localStorage.setItem(LS_THEME, id);
+    saveToBackend(isDark.value, id);
   }
 
   function toggleDark() {
     isDark.value = !isDark.value;
     applyAll(isDark.value, themeId.value);
     localStorage.setItem(LS_DARK, isDark.value ? '1' : '0');
+    saveToBackend(isDark.value, themeId.value);
   }
 
   function setDark(value: boolean) {
     isDark.value = value;
     applyAll(value, themeId.value);
     localStorage.setItem(LS_DARK, value ? '1' : '0');
+    saveToBackend(value, themeId.value);
   }
 
-  /** Call once in App.vue onMounted to restore persisted preferences. */
-  function init() {
+  /**
+   * Call once in App.vue onMounted to restore persisted preferences.
+   * Tries the backend first; falls back to localStorage if unavailable.
+   */
+  async function init() {
+    // 1. Apply localStorage immediately so the UI doesn't flash
     const savedDark  = localStorage.getItem(LS_DARK);
     const savedTheme = localStorage.getItem(LS_THEME) as ThemeId | null;
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -228,6 +247,28 @@ export function useTheme() {
     isDark.value  = savedDark != null ? savedDark === '1' : prefersDark;
     themeId.value = (savedTheme && savedTheme in THEMES) ? savedTheme : 'purple';
     applyAll(isDark.value, themeId.value);
+
+    // 2. Fetch backend preferences and reconcile (backend wins if present)
+    try {
+      const { data: res } = await api.get<{ data: { themeId: string; darkMode: boolean } | null }>(
+        `/user-preferences/${PREF_USER}`
+      );
+      const prefs = res?.data;
+      if (prefs) {
+        const remoteTheme = (prefs.themeId in THEMES ? prefs.themeId : 'purple') as ThemeId;
+        const remoteDark  = prefs.darkMode ?? false;
+        // Only re-apply if different from what we already have
+        if (remoteTheme !== themeId.value || remoteDark !== isDark.value) {
+          isDark.value  = remoteDark;
+          themeId.value = remoteTheme;
+          applyAll(isDark.value, themeId.value);
+          localStorage.setItem(LS_THEME, themeId.value);
+          localStorage.setItem(LS_DARK, isDark.value ? '1' : '0');
+        }
+      }
+    } catch {
+      // Backend not available — localStorage preferences are already applied
+    }
   }
 
   return { isDark, themeId, setTheme, toggleDark, setDark, init };
