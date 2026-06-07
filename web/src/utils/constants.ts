@@ -86,6 +86,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
   { name: 'Categories', path: '/categories',icon: 'fas fa-tag',          iconColor: 'ni-r' },
   { name: 'Inventory Alerts', path: '/inventory/alerts', icon: 'fas fa-triangle-exclamation', iconColor: 'ni-o' },
   { name: 'Analytics',  path: '/analytics', icon: 'fas fa-chart-line',   iconColor: 'ni-b' },
+  { name: 'Discounts',  path: '/discounts', icon: 'fas fa-ticket',        iconColor: 'ni-p' },
   { name: 'Settings',   path: '/settings',  icon: 'fas fa-gear',         iconColor: 'ni-s' },
 ];
 

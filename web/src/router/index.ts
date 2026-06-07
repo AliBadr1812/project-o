@@ -15,6 +15,8 @@ import UserProfile from '@/views/settings/UserProfile.vue';
 import CustomerDetail from '@/views/customers/CustomerDetail.vue';
 import CategoryForm from '@/views/categories/CategoryForm.vue';
 import NotificationList from '@/views/notifications/NotificationList.vue';
+import DiscountList from '@/views/discounts/DiscountList.vue';
+import DiscountForm from '@/views/discounts/DiscountForm.vue';
 import InventoryAlerts from '@/views/inventory/InventoryAlerts.vue';
 
 const router = createRouter({
@@ -228,6 +230,35 @@ const router = createRouter({
         requiresAuth: false,
         breadcrumb: 'Inventory Alerts',
         parent: { path: '/products', name: 'Products' }
+      }
+    },
+    {
+      path: '/discounts',
+      name: 'Discounts',
+      component: DiscountList,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Discounts',
+      }
+    },
+    {
+      path: '/discounts/create',
+      name: 'CreateDiscount',
+      component: DiscountForm,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'New Discount',
+        parent: { path: '/discounts', name: 'Discounts' }
+      }
+    },
+    {
+      path: '/discounts/:id/edit',
+      name: 'EditDiscount',
+      component: DiscountForm,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Edit Discount',
+        parent: { path: '/discounts', name: 'Discounts' }
       }
     },
   ],
