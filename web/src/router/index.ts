@@ -15,6 +15,7 @@ import UserProfile from '@/views/settings/UserProfile.vue';
 import CustomerDetail from '@/views/customers/CustomerDetail.vue';
 import CategoryForm from '@/views/categories/CategoryForm.vue';
 import NotificationList from '@/views/notifications/NotificationList.vue';
+import AuditLog from '@/views/audit/AuditLog.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -217,6 +218,15 @@ const router = createRouter({
       meta: {
         requiresAuth: false,
         breadcrumb: 'Notifications',
+      }
+    },
+    {
+      path: '/audit-log',
+      name: 'AuditLog',
+      component: AuditLog,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Audit Log',
       }
     },
   ],
