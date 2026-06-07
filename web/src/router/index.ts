@@ -15,6 +15,7 @@ import UserProfile from '@/views/settings/UserProfile.vue';
 import CustomerDetail from '@/views/customers/CustomerDetail.vue';
 import CategoryForm from '@/views/categories/CategoryForm.vue';
 import NotificationList from '@/views/notifications/NotificationList.vue';
+import ReturnList from '@/views/returns/ReturnList.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -217,6 +218,15 @@ const router = createRouter({
       meta: {
         requiresAuth: false,
         breadcrumb: 'Notifications',
+      }
+    },
+    {
+      path: '/returns',
+      name: 'Returns',
+      component: ReturnList,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Returns & Refunds',
       }
     },
   ],
