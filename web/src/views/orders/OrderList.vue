@@ -224,6 +224,7 @@ import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency, formatDate, formatOrderNumber, getInitials } from '@/utils/formatters';
+import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import { useOrderStore } from '@/stores/orderStore';
 import type { Order } from '@/types/order';
 
@@ -462,16 +463,11 @@ const cancelOrder = (id: number) => {
 };
 
 const exportOrders = () => {
-    const dataStr = JSON.stringify(filteredOrders.value, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = `orders_export_${new Date().toISOString().split('T')[0]}.json`;
-
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-
-    alert('Orders exported successfully!');
+  exportToCsv(
+    datestampedFilename('orders'),
+    filteredOrders.value,
+    ['id', 'orderNumber', 'customerName', 'customerEmail', 'status', 'total', 'itemCount', 'createdAt'],
+  );
 };
 
 const goToAnalytics = () => {

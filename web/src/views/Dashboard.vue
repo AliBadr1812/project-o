@@ -210,8 +210,8 @@
                     <span class="td-primary">{{ order.customerName }}</span>
                   </div>
                 </td>
-                <td>{{ formatDate(order.date) }}</td>
-                <td class="td-accent">{{ formatCurrency(order.amount) }}</td>
+                <td>{{ formatDate(order.createdAt ?? '') }}</td>
+                <td class="td-accent">{{ formatCurrency(order.total) }}</td>
                 <td>
                   <Badge :variant="getStatusVariant(order.status)">{{ order.status }}</Badge>
                 </td>
@@ -287,47 +287,119 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import Card  from '@/components/ui/Card.vue';
 import Badge from '@/components/ui/Badge.vue';
 import { formatCurrency, formatOrderNumber, getInitials } from '@/utils/formatters';
 import { Chart, registerables } from 'chart.js';
 import { useRouter } from 'vue-router';
+import { useOrderStore }    from '@/stores/orderStore';
+import { useProductStore }  from '@/stores/productStore';
+import { useCustomerStore } from '@/stores/customerStore';
 
 Chart.register(...registerables);
 const router = useRouter();
 
-const chartRange   = ref<'week' | 'month' | 'quarter'>('month');
-const selectedRange = ref('Last 30 days');
+// ── Stores ────────────────────────────────────────────────────────────────
+const orderStore    = useOrderStore();
+const productStore  = useProductStore();
+const customerStore = useCustomerStore();
 
-const stats = ref({
-  totalRevenue:    25489.67,
-  lastMonthRevenue:22652.34,
-  totalOrders:     342,
-  avgOrderValue:   74.53,
-  totalCustomers:  2432,
-  newCustomers:    128,
-  conversionRate:  3.2,
-  totalVisitors:   76025,
-  completionRate:  89,
-  satisfactionRate:94,
-  inventoryHealth: 76,
+const { items: orders }    = storeToRefs(orderStore);
+const { items: products }  = storeToRefs(productStore);
+const { items: customers } = storeToRefs(customerStore);
+
+onMounted(() => {
+  orderStore.fetchAll();
+  productStore.fetchAll();
+  customerStore.fetchAll();
 });
 
-const topProducts = ref([
-  { id: 1, name: 'Wireless Earbuds Pro',   category: 'Electronics', revenue: 2450.75, sales: 89 },
-  { id: 2, name: 'Ergonomic Office Chair', category: 'Furniture',   revenue: 1899.99, sales: 23 },
-  { id: 3, name: 'Organic Coffee Beans',   category: 'Food & Drink', revenue: 1245.50, sales: 178 },
-  { id: 4, name: 'Fitness Tracker Watch',  category: 'Wearables',   revenue: 1120.25, sales: 56 },
-]);
+const chartRange    = ref<'week' | 'month' | 'quarter'>('month');
+const selectedRange = ref('Last 30 days');
 
-const recentOrders = ref([
-  { id: '7842', customerName: 'Alex Johnson',   date: '2024-01-15', amount: 124.99, status: 'completed' },
-  { id: '7841', customerName: 'Maria Garcia',   date: '2024-01-15', amount: 89.50,  status: 'completed' },
-  { id: '7840', customerName: 'David Chen',     date: '2024-01-14', amount: 245.75, status: 'processing' },
-  { id: '7839', customerName: 'Sarah Williams', date: '2024-01-14', amount: 67.25,  status: 'completed' },
-  { id: '7838', customerName: 'James Wilson',   date: '2024-01-13', amount: 189.99, status: 'pending' },
-  { id: '7837', customerName: 'Lisa Anderson',  date: '2024-01-13', amount: 320.50, status: 'shipped' },
-]);
+// ── Computed stats from real data ─────────────────────────────────────────
+const stats = computed(() => {
+  const now        = new Date();
+  const msPerMonth = 30 * 24 * 60 * 60 * 1000;
+
+  const activeOrders = orders.value.filter(
+    o => o.status !== 'cancelled' && o.status !== 'refunded',
+  );
+  const totalRevenue    = activeOrders.reduce((s, o) => s + o.total, 0);
+  const totalOrders     = orders.value.length;
+  const avgOrderValue   = totalOrders > 0 ? Math.round((totalRevenue / totalOrders) * 100) / 100 : 0;
+
+  // "last month" = orders placed 30–60 days ago
+  const lastMonthOrders = orders.value.filter(o => {
+    if (!o.createdAt) return false;
+    const age = now.getTime() - new Date(o.createdAt).getTime();
+    return age > msPerMonth && age <= 2 * msPerMonth;
+  });
+  const lastMonthRevenue = lastMonthOrders
+    .filter(o => o.status !== 'cancelled' && o.status !== 'refunded')
+    .reduce((s, o) => s + o.total, 0);
+
+  const totalCustomers = customers.value.filter(c => c.status === 'active').length;
+  const newCustomers   = customers.value.filter(c => {
+    if (!c.lastOrderDate) return false;
+    return now.getTime() - new Date(c.lastOrderDate).getTime() <= msPerMonth;
+  }).length;
+
+  const completionRate = totalOrders > 0
+    ? Math.round((orders.value.filter(o => o.status === 'delivered').length / totalOrders) * 100)
+    : 0;
+
+  const inStockProducts = products.value.filter(p => p.stock > 0).length;
+  const inventoryHealth = products.value.length > 0
+    ? Math.round((inStockProducts / products.value.length) * 100)
+    : 0;
+
+  // Satisfaction: proxy — % of VIP + returning customers
+  const happyCustomers = customers.value.filter(c => c.type === 'vip' || c.type === 'returning').length;
+  const satisfactionRate = customers.value.length > 0
+    ? Math.round((happyCustomers / customers.value.length) * 100)
+    : 0;
+
+  return {
+    totalRevenue,
+    lastMonthRevenue,
+    totalOrders,
+    avgOrderValue,
+    totalCustomers,
+    newCustomers,
+    conversionRate:  3.2,   // no visitor tracking — keep static
+    totalVisitors:   76025, // no visitor tracking — keep static
+    completionRate,
+    satisfactionRate,
+    inventoryHealth,
+  };
+});
+
+// ── Top products: top 4 by price (proxy for revenue potential) ────────────
+const topProducts = computed(() =>
+  [...products.value]
+    .sort((a, b) => b.price - a.price)
+    .slice(0, 4)
+    .map(p => ({
+      id:      p.id,
+      name:    p.name,
+      category: p.categories || '—',
+      revenue: p.price * Math.max(p.stock, 1),   // price × stock as revenue estimate
+      sales:   p.stock,
+    })),
+);
+
+// ── Recent orders: last 6 by createdAt ───────────────────────────────────
+const recentOrders = computed(() =>
+  [...orders.value]
+    .sort((a, b) => {
+      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tb - ta;
+    })
+    .slice(0, 6),
+);
 
 const quickActions = [
   { label: 'Add Product',  path: '/products/create', icon: 'fas fa-plus',        color: 'ni-p' },
@@ -336,11 +408,11 @@ const quickActions = [
   { label: 'Analytics',   path: '/analytics',        icon: 'fas fa-chart-line',  color: 'ni-b' },
 ];
 
-const performance = [
-  { label: 'Order Completion',      value: stats.value.completionRate,  gradient: 'var(--progress-success)' },
+const performance = computed(() => [
+  { label: 'Order Completion',      value: stats.value.completionRate,   gradient: 'var(--progress-success)' },
   { label: 'Customer Satisfaction', value: stats.value.satisfactionRate, gradient: 'var(--progress-primary)' },
   { label: 'Inventory Health',      value: stats.value.inventoryHealth,  gradient: 'var(--progress-warning)' },
-];
+]);
 
 const chartData = computed(() => {
   const ranges = {
@@ -426,12 +498,15 @@ const setChartRange = (range: 'week' | 'month' | 'quarter') => {
   updateChart();
 };
 const updateChart = () => { if (chart) { chart.data = chartData.value; chart.update(); } };
-const refreshData = () => window.location.reload();
-const viewOrder   = (id: string) => router.push(`/orders/${id}`);
+const refreshData = () => {
+  orderStore.fetchAll(true);
+  productStore.fetchAll(true);
+  customerStore.fetchAll(true);
+};
+const viewOrder   = (id: number | undefined) => { if (id) router.push(`/orders/${id}`); };
 const goToPage    = (path: string) => router.push(path);
-const processOrder = (id: string) => {
-  const o = recentOrders.value.find(x => x.id === id);
-  if (o?.status === 'pending') o.status = 'processing';
+const processOrder = (id: number | undefined) => {
+  if (id) orderStore.updateItem(id, { status: 'processing' });
 };
 
 onMounted(() => {

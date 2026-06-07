@@ -257,9 +257,12 @@ import { ref, reactive, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
 import { formatCurrency, formatDate, getInitials } from '@/utils/formatters';
+import { customerService } from '@/services/customerService';
+import { useCustomerStore } from '@/stores/customerStore';
 
 const route  = useRoute();
 const router = useRouter();
+const store  = useCustomerStore();
 
 const loading = ref(true);
 const saving  = ref(false);
@@ -310,35 +313,29 @@ function stringToColor(str: string) {
   return `hsl(${hash % 360}, 70%, 50%)`;
 }
 
-// ── Mock data (same list as CustomerList) ─────────────────────────────
-const mockCustomers: Customer[] = [
-  { id: 1,  name: 'John Smith',      email: 'john.smith@example.com',  phone: '+1 (555) 123-4567', orderCount: 24, totalSpent: 2899.99, lastOrderDate: '2024-01-15T14:30:00Z', joinedAt: '2023-03-01T00:00:00Z', status: 'active',   type: 'vip',       address: { street: '123 Oak St',    city: 'New York',    state: 'NY', zip: '10001', country: 'US' } },
-  { id: 2,  name: 'Emma Johnson',    email: 'emma.j@example.com',      phone: '+1 (555) 234-5678', orderCount: 12, totalSpent: 1499.50, lastOrderDate: '2024-01-14T11:20:00Z', joinedAt: '2023-05-12T00:00:00Z', status: 'active',   type: 'returning', address: { street: '456 Maple Ave',  city: 'Boston',      state: 'MA', zip: '02101', country: 'US' } },
-  { id: 3,  name: 'Robert Brown',    email: 'robert.b@example.com',    phone: '+1 (555) 345-6789', orderCount: 8,  totalSpent: 899.99,  lastOrderDate: '2024-01-12T09:15:00Z', joinedAt: '2023-09-20T00:00:00Z', status: 'active',   type: 'new',       address: { street: '789 Pine Rd',    city: 'Chicago',     state: 'IL', zip: '60601', country: 'US' } },
-  { id: 4,  name: 'Sarah Davis',     email: 'sarah.d@example.com',     phone: '+1 (555) 456-7890', orderCount: 32, totalSpent: 3899.99, lastOrderDate: '2024-01-10T16:45:00Z', joinedAt: '2023-01-05T00:00:00Z', status: 'inactive', type: 'vip',       address: { street: '321 Elm St',     city: 'Seattle',     state: 'WA', zip: '98101', country: 'US' } },
-  { id: 5,  name: 'Michael Wilson',  email: 'michael.w@example.com',   phone: '+1 (555) 567-8901', orderCount: 5,  totalSpent: 599.99,  lastOrderDate: '2024-01-08T11:30:00Z', joinedAt: '2023-11-14T00:00:00Z', status: 'active',   type: 'new',       address: { street: '654 Cedar Blvd', city: 'Austin',      state: 'TX', zip: '73301', country: 'US' } },
-  { id: 6,  name: 'Jessica Miller',  email: 'jessica.m@example.com',   phone: '+1 (555) 678-9012', orderCount: 18, totalSpent: 2299.50, lastOrderDate: '2024-01-07T13:20:00Z', joinedAt: '2023-04-08T00:00:00Z', status: 'active',   type: 'returning', address: { street: '987 Birch Ln',   city: 'Denver',      state: 'CO', zip: '80201', country: 'US' } },
-  { id: 7,  name: 'David Taylor',    email: 'david.t@example.com',     phone: '+1 (555) 789-0123', orderCount: 3,  totalSpent: 399.99,  lastOrderDate: '2024-01-05T15:10:00Z', joinedAt: '2023-12-01T00:00:00Z', status: 'active',   type: 'new',       address: { street: '147 Spruce Way', city: 'Portland',    state: 'OR', zip: '97201', country: 'US' } },
-  { id: 8,  name: 'Lisa Anderson',   email: 'lisa.a@example.com',      phone: '+1 (555) 890-1234', orderCount: 15, totalSpent: 1799.99, lastOrderDate: '2024-01-04T10:45:00Z', joinedAt: '2023-06-18T00:00:00Z', status: 'inactive', type: 'returning', address: { street: '258 Walnut St',  city: 'Phoenix',     state: 'AZ', zip: '85001', country: 'US' } },
-  { id: 9,  name: 'James Thomas',    email: 'james.t@example.com',     phone: '+1 (555) 901-2345', orderCount: 27, totalSpent: 3299.99, lastOrderDate: '2024-01-03T14:30:00Z', joinedAt: '2023-02-22T00:00:00Z', status: 'active',   type: 'vip',       address: { street: '369 Willow Dr',  city: 'Miami',       state: 'FL', zip: '33101', country: 'US' } },
-  { id: 10, name: 'Jennifer White',  email: 'jennifer.w@example.com',  phone: '+1 (555) 012-3456', orderCount: 9,  totalSpent: 1099.99, lastOrderDate: '2024-01-02T09:20:00Z', joinedAt: '2023-10-31T00:00:00Z', status: 'active',   type: 'new',       address: { street: '741 Aspen Ct',   city: 'Nashville',   state: 'TN', zip: '37201', country: 'US' } },
-];
-
 // ── Lifecycle ─────────────────────────────────────────────────────────
 onMounted(async () => {
   const id = Number(route.params.id);
-  await new Promise(r => setTimeout(r, 350));
-
-  const found = mockCustomers.find(c => c.id === id);
+  await store.fetchAll();
+  const found = store.items.find(c => c.id === id);
   if (found) {
-    customer.value = found;
-    form.name   = found.name;
+    customer.value = {
+      id:            found.id,
+      name:          found.fullName,
+      email:         found.email,
+      phone:         found.phone ?? '',
+      orderCount:    found.orderCount,
+      totalSpent:    found.totalSpent,
+      lastOrderDate: found.lastOrderDate ?? '',
+      joinedAt:      found.lastOrderDate ?? new Date().toISOString(),
+      status:        found.status as 'active' | 'inactive',
+      type:          found.type as 'new' | 'returning' | 'vip',
+    };
+    form.name   = found.fullName;
     form.email  = found.email;
-    form.phone  = found.phone;
-    form.status = found.status;
-    form.type   = found.type;
-    form.notes  = found.notes ?? '';
-    if (found.address) Object.assign(form.address, found.address);
+    form.phone  = found.phone ?? '';
+    form.status = found.status as 'active' | 'inactive';
+    form.type   = found.type as 'new' | 'returning' | 'vip';
   }
   loading.value = false;
 });
@@ -347,10 +344,22 @@ onMounted(async () => {
 async function handleSave() {
   if (!form.name.trim() || !form.email.trim()) return;
   saving.value = true;
-  await new Promise(r => setTimeout(r, 700));
-  console.log('Customer saved:', { id: customer.value?.id, ...form });
-  saving.value = false;
-  router.push('/customers');
+  try {
+    const id = customer.value!.id;
+    const updated = await customerService.updateCustomer(id, {
+      fullName: form.name,
+      email:    form.email,
+      phone:    form.phone,
+      status:   form.status,
+      type:     form.type,
+    });
+    store.updateItem(id, updated);
+    router.push('/customers');
+  } catch (e: any) {
+    alert(e?.message ?? 'Save failed');
+  } finally {
+    saving.value = false;
+  }
 }
 
 function handleDeactivate() {
@@ -361,11 +370,15 @@ function handleDeactivate() {
   }
 }
 
-function handleDelete() {
+async function handleDelete() {
   if (!customer.value) return;
   if (confirm(`Permanently delete ${customer.value.name}? This cannot be undone.`)) {
-    alert('Customer deleted.');
-    router.push('/customers');
+    try {
+      await store.remove(customer.value.id);
+      router.push('/customers');
+    } catch (e: any) {
+      alert(e?.message ?? 'Delete failed');
+    }
   }
 }
 </script>

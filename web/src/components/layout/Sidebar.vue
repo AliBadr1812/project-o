@@ -166,6 +166,6 @@ defineEmits(['toggle-dark']);
 const { isDark, toggleDark } = useTheme();
 
 const overviewItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Dashboard', 'Analytics'].includes(i.name)));
-const commerceItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Products', 'Orders', 'Customers', 'Categories', 'Segments'].includes(i.name)));
+const commerceItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Products', 'Orders', 'Customers', 'Categories', 'Inventory Alerts', 'Discounts', 'Returns', 'Segments'].includes(i.name)));
 const settingsItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Settings'].includes(i.name)));
 </script>
