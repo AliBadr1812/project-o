@@ -1,93 +1,101 @@
 <template>
   <aside
-    class="glass-panel w-[270px] h-screen flex-shrink-0 relative z-10 flex flex-col py-7 px-3.5 overflow-hidden"
+    class="glass-panel w-[270px] h-screen flex-shrink-0 relative z-10 flex flex-col overflow-x-hidden"
     style="border-right: 1px solid var(--glass-border);
            box-shadow: inset -1px 0 0 rgba(255,255,255,0.35), 1px 0 20px rgba(140,100,200,0.06);"
   >
-    <!-- Brand -->
-    <div class="flex items-center gap-3 px-2.5 pb-6">
-      <div
-        class="w-[42px] h-[42px] rounded-[14px] flex items-center justify-center flex-shrink-0 text-white/90 text-[17px]"
-        style="background: linear-gradient(145deg, #b97fff, #7c5ef0, #5e5ce6);
-               box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 16px rgba(124,94,240,0.5);"
-      >
-        <i class="fas fa-store"></i>
+    <!-- ── Fixed top: brand + search ─────────────────────────────────── -->
+    <div class="flex-shrink-0 px-3.5 pt-7">
+      <!-- Brand -->
+      <div class="flex items-center gap-3 px-2.5 pb-6">
+        <div
+          class="w-[42px] h-[42px] rounded-[14px] flex items-center justify-center flex-shrink-0 text-white/90 text-[17px]"
+          style="background: linear-gradient(145deg, #b97fff, #7c5ef0, #5e5ce6);
+                 box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 16px rgba(124,94,240,0.5);"
+        >
+          <i class="fas fa-store"></i>
+        </div>
+        <div>
+          <div class="text-[17px] font-bold tracking-tight" style="color: var(--text-primary);">ShopAdmin</div>
+          <div class="text-[11px] mt-px" style="color: var(--text-muted);">Commerce Dashboard</div>
+        </div>
       </div>
-      <div>
-        <div class="text-[17px] font-bold tracking-tight" style="color: var(--text-primary);">ShopAdmin</div>
-        <div class="text-[11px] mt-px" style="color: var(--text-muted);">Commerce Dashboard</div>
+
+      <!-- Search -->
+      <div class="sidebar-search flex items-center gap-2.5 px-3 py-2.5 rounded-xl mb-3">
+        <i class="fas fa-magnifying-glass text-xs" style="color: var(--text-muted);"></i>
+        <span class="text-[13px]" style="color: var(--text-muted);">Search…</span>
       </div>
     </div>
 
-    <!-- Search -->
-    <div class="sidebar-search flex items-center gap-2.5 px-3 py-2.5 rounded-xl mb-5">
-      <i class="fas fa-magnifying-glass text-xs" style="color: var(--text-muted);"></i>
-      <span class="text-[13px]" style="color: var(--text-muted);">Search…</span>
+    <!-- ── Scrollable nav ─────────────────────────────────────────────── -->
+    <div class="flex-1 min-h-0 overflow-y-auto px-3.5 py-2 sidebar-scroll">
+
+      <!-- Nav: Overview -->
+      <div class="text-[11px] font-semibold px-2.5 pb-1 tracking-wide uppercase" style="color: var(--text-muted);">Overview</div>
+
+      <nav class="flex flex-col gap-0.5 mb-2">
+        <router-link
+          v-for="item in overviewItems"
+          :key="item.path"
+          :to="item.path"
+          class="glass-nav-item"
+        >
+          <div class="nav-icon" :class="item.iconColor">
+            <i :class="item.icon"></i>
+          </div>
+          <span class="flex-1">{{ item.name }}</span>
+          <span v-if="item.badge"
+            class="badge"
+            :class="`badge-${item.badge.variant}`"
+            style="font-size:10px; padding: 2px 7px;"
+          >{{ item.badge.text }}</span>
+        </router-link>
+      </nav>
+
+      <!-- Nav: Commerce -->
+      <div class="text-[11px] font-semibold px-2.5 pb-1 pt-2 tracking-wide uppercase" style="color: var(--text-muted);">Commerce</div>
+
+      <nav class="flex flex-col gap-0.5 mb-2">
+        <router-link
+          v-for="item in commerceItems"
+          :key="item.path"
+          :to="item.path"
+          class="glass-nav-item"
+        >
+          <div class="nav-icon" :class="item.iconColor">
+            <i :class="item.icon"></i>
+          </div>
+          <span class="flex-1">{{ item.name }}</span>
+          <span v-if="item.badge"
+            class="badge"
+            :class="`badge-${item.badge.variant}`"
+            style="font-size:10px; padding: 2px 7px;"
+          >{{ item.badge.text }}</span>
+        </router-link>
+      </nav>
+
+      <div class="glass-divider"></div>
+
+      <!-- Settings -->
+      <nav class="flex flex-col gap-0.5">
+        <router-link
+          v-for="item in settingsItems"
+          :key="item.path"
+          :to="item.path"
+          class="glass-nav-item"
+        >
+          <div class="nav-icon" :class="item.iconColor">
+            <i :class="item.icon"></i>
+          </div>
+          <span class="flex-1">{{ item.name }}</span>
+        </router-link>
+      </nav>
+
     </div>
 
-    <!-- Nav: Overview -->
-    <div class="text-[11px] font-semibold px-2.5 pb-1 tracking-wide uppercase" style="color: var(--text-muted);">Overview</div>
-
-    <nav class="flex flex-col gap-0.5 mb-2">
-      <router-link
-        v-for="item in overviewItems"
-        :key="item.path"
-        :to="item.path"
-        class="glass-nav-item"
-      >
-        <div class="nav-icon" :class="item.iconColor">
-          <i :class="item.icon"></i>
-        </div>
-        <span class="flex-1">{{ item.name }}</span>
-        <span v-if="item.badge"
-          class="badge"
-          :class="`badge-${item.badge.variant}`"
-          style="font-size:10px; padding: 2px 7px;"
-        >{{ item.badge.text }}</span>
-      </router-link>
-    </nav>
-
-    <!-- Nav: Commerce -->
-    <div class="text-[11px] font-semibold px-2.5 pb-1 pt-2 tracking-wide uppercase" style="color: var(--text-muted);">Commerce</div>
-
-    <nav class="flex flex-col gap-0.5 mb-2">
-      <router-link
-        v-for="item in commerceItems"
-        :key="item.path"
-        :to="item.path"
-        class="glass-nav-item"
-      >
-        <div class="nav-icon" :class="item.iconColor">
-          <i :class="item.icon"></i>
-        </div>
-        <span class="flex-1">{{ item.name }}</span>
-        <span v-if="item.badge"
-          class="badge"
-          :class="`badge-${item.badge.variant}`"
-          style="font-size:10px; padding: 2px 7px;"
-        >{{ item.badge.text }}</span>
-      </router-link>
-    </nav>
-
-    <div class="glass-divider"></div>
-
-    <!-- Settings -->
-    <nav class="flex flex-col gap-0.5">
-      <router-link
-        v-for="item in settingsItems"
-        :key="item.path"
-        :to="item.path"
-        class="glass-nav-item"
-      >
-        <div class="nav-icon" :class="item.iconColor">
-          <i :class="item.icon"></i>
-        </div>
-        <span class="flex-1">{{ item.name }}</span>
-      </router-link>
-    </nav>
-
-    <!-- Bottom controls -->
-    <div class="mt-auto flex flex-col gap-2.5">
+    <!-- ── Fixed bottom: controls + user card ────────────────────────── -->
+    <div class="flex-shrink-0 px-3.5 py-7 flex flex-col gap-2.5">
 
       <!-- Notification + Dark mode row -->
       <div class="flex items-center gap-2 px-1">
@@ -169,3 +177,24 @@ const overviewItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Dashboard',
 const commerceItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Products', 'Orders', 'Customers', 'Categories', 'Inventory Alerts', 'Discounts', 'Returns', 'Segments'].includes(i.name)));
 const settingsItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Settings', 'Audit Log'].includes(i.name)));
 </script>
+
+<style scoped>
+/* Thin, subtle scrollbar for the nav region */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb, rgba(124,94,240,0.28)) transparent;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, rgba(124,94,240,0.28));
+  border-radius: 9999px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--accent, #7c3aed);
+}
+</style>
