@@ -244,36 +244,87 @@
     <!-- ── APPEARANCE ─────────────────────────────────────────────────── -->
     <div v-if="activeTab === 'appearance'" class="flex flex-col gap-5">
 
+      <!-- Mode -->
       <div class="glass-card p-0 overflow-hidden">
         <div class="px-5 pt-5 pb-3">
           <div class="flex items-center gap-2 mb-1">
-            <div class="stat-icon" style="background: linear-gradient(135deg,#c084fc,#9333ea); width:30px; height:30px; font-size:13px;">
-              <i class="fas fa-palette"></i>
+            <div class="stat-icon" style="background: linear-gradient(135deg,#5ac8fa,#007aff); width:30px; height:30px; font-size:13px;">
+              <i class="fas fa-circle-half-stroke"></i>
             </div>
-            <h2 class="text-[14px] font-semibold" style="color:var(--text-primary)">Theme</h2>
+            <h2 class="text-[14px] font-semibold" style="color:var(--text-primary)">Display Mode</h2>
           </div>
         </div>
         <div class="settings-rows">
           <div class="settings-row border-none">
-            <label class="settings-label">Color Scheme</label>
+            <label class="settings-label">Mode</label>
             <div class="flex gap-2">
               <button
-                v-for="theme in themes"
-                :key="theme.id"
-                @click="appearance.theme = theme.id"
-                class="flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all duration-150"
-                :style="appearance.theme === theme.id
-                  ? 'border: 2px solid var(--accent); background: rgba(124,94,240,0.08);'
+                v-for="mode in displayModes"
+                :key="mode.id"
+                @click="setMode(mode.id)"
+                class="flex flex-col items-center gap-2 px-4 py-3 rounded-xl transition-all duration-150"
+                :style="currentMode === mode.id
+                  ? 'border: 2px solid var(--accent); background: rgba(var(--accent-rgb),0.08);'
                   : 'border: 1px solid var(--glass-border); background: transparent;'"
               >
-                <div class="w-8 h-8 rounded-full" :style="`background: ${theme.color};`"></div>
-                <span class="text-[11px]" style="color:var(--text-secondary)">{{ theme.label }}</span>
+                <!-- mini preview of mode -->
+                <div
+                  class="w-14 h-9 rounded-lg overflow-hidden flex-shrink-0 relative"
+                  :style="mode.previewStyle"
+                >
+                  <div class="absolute inset-x-0 top-0 h-2.5" :style="mode.headerStyle"></div>
+                  <div class="absolute left-1.5 top-3.5 w-3 h-4 rounded-sm opacity-70" :style="mode.sidebarStyle"></div>
+                  <div class="absolute right-1.5 top-3 w-7 h-2 rounded-sm opacity-60" :style="mode.cardStyle"></div>
+                  <div class="absolute right-1.5 top-6 w-5 h-1.5 rounded-sm opacity-40" :style="mode.cardStyle"></div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <i :class="mode.icon" class="text-[11px]" style="color: var(--text-accent);"></i>
+                  <span class="text-[12px] font-medium" style="color: var(--text-secondary);">{{ mode.label }}</span>
+                </div>
               </button>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Accent colour -->
+      <div class="glass-card p-0 overflow-hidden">
+        <div class="px-5 pt-5 pb-3">
+          <div class="flex items-center gap-2 mb-1">
+            <div class="stat-icon" style="background: linear-gradient(135deg,#c084fc,#9333ea); width:30px; height:30px; font-size:13px;">
+              <i class="fas fa-palette"></i>
+            </div>
+            <h2 class="text-[14px] font-semibold" style="color:var(--text-primary)">Accent Colour</h2>
+          </div>
+          <p class="text-[12px] pl-9" style="color:var(--text-muted)">Changes buttons, highlights, and the wallpaper tones</p>
+        </div>
+        <div class="settings-rows">
+          <div class="settings-row border-none">
+            <label class="settings-label">Palette</label>
+            <div class="flex gap-3 flex-wrap">
+              <button
+                v-for="theme in themes"
+                :key="theme.id"
+                @click="applyAccent(theme.id)"
+                class="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl transition-all duration-200"
+                :style="currentTheme === theme.id
+                  ? `border: 2px solid ${theme.accent}; background: ${theme.accent}14; box-shadow: 0 0 0 3px ${theme.accent}22;`
+                  : 'border: 1px solid var(--glass-border); background: transparent;'"
+              >
+                <div
+                  class="w-10 h-10 rounded-full flex items-center justify-center"
+                  :style="`background: ${theme.gradient}; box-shadow: 0 3px 10px ${theme.accent}44;`"
+                >
+                  <i v-if="currentTheme === theme.id" class="fas fa-check text-white text-xs"></i>
+                </div>
+                <span class="text-[11px] font-medium" style="color:var(--text-secondary)">{{ theme.label }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Regional -->
       <div class="glass-card p-0 overflow-hidden">
         <div class="px-5 pt-5 pb-3">
           <div class="flex items-center gap-2 mb-1">
@@ -309,7 +360,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
+import { useTheme, type ThemeId } from '@/composables/useTheme';
+
+const { isDark, themeId, setTheme, setDark } = useTheme();
 
 const activeTab = ref('store');
 
@@ -326,29 +380,59 @@ const store = reactive({
 });
 
 const orderNotifications = ref([
-  { key: 'new_order',   label: 'New Order',          description: 'Get notified when a new order is placed',          enabled: true  },
-  { key: 'shipped',     label: 'Order Shipped',       description: 'Notify when an order has been shipped',             enabled: true  },
-  { key: 'cancelled',   label: 'Order Cancelled',     description: 'Notify when a customer cancels their order',        enabled: false },
-  { key: 'low_stock',   label: 'Low Stock Alert',     description: 'Warn when a product falls below its stock threshold', enabled: true  },
+  { key: 'new_order', label: 'New Order',      description: 'Get notified when a new order is placed',            enabled: true  },
+  { key: 'shipped',   label: 'Order Shipped',  description: 'Notify when an order has been shipped',              enabled: true  },
+  { key: 'cancelled', label: 'Order Cancelled',description: 'Notify when a customer cancels their order',         enabled: false },
+  { key: 'low_stock', label: 'Low Stock Alert',description: 'Warn when a product falls below its stock threshold',enabled: true  },
 ]);
 
 const emailPreferences = ref([
-  { key: 'weekly',      label: 'Weekly Summary',      description: 'Receive a weekly report of your store performance', enabled: true  },
-  { key: 'marketing',   label: 'Product Updates',     description: 'News and updates from ShopAdmin',                  enabled: false },
+  { key: 'weekly',    label: 'Weekly Summary', description: 'Receive a weekly report of your store performance',  enabled: true  },
+  { key: 'marketing', label: 'Product Updates',description: 'News and updates from ShopAdmin',                    enabled: false },
 ]);
 
 const security = reactive({ twoFactor: false, loginAlerts: true });
 
+// ── Appearance ────────────────────────────────────────────────────────
+
+/** Live-reactive mirror of the composable */
+const currentTheme = computed(() => themeId.value);
+const currentMode  = computed(() => isDark.value ? 'dark' : 'light');
+
 const themes = [
-  { id: 'purple', label: 'Purple',  color: 'linear-gradient(135deg,#b97fff,#7c5ef0)' },
-  { id: 'blue',   label: 'Blue',    color: 'linear-gradient(135deg,#5ac8fa,#007aff)' },
-  { id: 'green',  label: 'Green',   color: 'linear-gradient(135deg,#34c759,#30a84b)' },
-  { id: 'orange', label: 'Orange',  color: 'linear-gradient(135deg,#ff9f0a,#e08800)' },
+  { id: 'purple' as ThemeId, label: 'Purple', accent: '#7c3aed', gradient: 'linear-gradient(135deg,#b97fff,#7c5ef0)' },
+  { id: 'blue'   as ThemeId, label: 'Blue',   accent: '#007aff', gradient: 'linear-gradient(135deg,#5ac8fa,#007aff)' },
+  { id: 'green'  as ThemeId, label: 'Green',  accent: '#16a34a', gradient: 'linear-gradient(135deg,#4ade80,#16a34a)' },
+  { id: 'orange' as ThemeId, label: 'Orange', accent: '#ea580c', gradient: 'linear-gradient(135deg,#fb923c,#ea580c)' },
 ];
 
-const appearance = reactive({ theme: 'purple', language: 'en', dateFormat: 'MM/DD/YYYY' });
+const displayModes = [
+  {
+    id: 'light', label: 'Light', icon: 'fas fa-sun',
+    previewStyle:  'background: linear-gradient(135deg,#f0e8ff,#e0f0ff);',
+    headerStyle:   'background: rgba(255,255,255,0.7);',
+    sidebarStyle:  'background: rgba(255,255,255,0.5);',
+    cardStyle:     'background: rgba(255,255,255,0.8);',
+  },
+  {
+    id: 'dark', label: 'Dark', icon: 'fas fa-moon',
+    previewStyle:  'background: linear-gradient(135deg,#0d0320,#090e28);',
+    headerStyle:   'background: rgba(28,14,58,0.8);',
+    sidebarStyle:  'background: rgba(12,6,28,0.8);',
+    cardStyle:     'background: rgba(255,255,255,0.08);',
+  },
+];
 
-const saveStore = () => console.log('Store saved:', store);
+function applyAccent(id: ThemeId) {
+  setTheme(id);
+}
+
+function setMode(id: string) {
+  setDark(id === 'dark');
+}
+
+const appearance = reactive({ language: 'en', dateFormat: 'MM/DD/YYYY' });
+const saveStore  = () => console.log('Store saved:', store);
 </script>
 
 <style scoped>
