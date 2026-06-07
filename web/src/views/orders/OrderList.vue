@@ -218,50 +218,35 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
 import Card from '@/components/ui/Card.vue';
 import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency, formatDate, formatOrderNumber, getInitials } from '@/utils/formatters';
-import { orderService } from '@/services/orderService';
+import { useOrderStore } from '@/stores/orderStore';
 import type { Order } from '@/types/order';
 
 const router = useRouter();
+const store = useOrderStore();
+const { items: orders, loading, error } = storeToRefs(store);
 
-// State
-const orders = ref<Order[] | null>(null);
+// ── UI state ──────────────────────────────────────────────────────────────
 const statusFilter = ref('');
 const searchQuery = ref('');
 const showDatePicker = ref(false);
 const currentPage = ref(1);
 const itemsPerPage = 8;
-
-const loading = ref(true);
-const error = ref<string | null>(null);
-
 const sortField = ref('date');
 const sortDirection = ref('desc');
-
-const fetchOrders = async () => {
-    loading.value = true;
-    error.value = null;
-
-    try {
-        orders.value = await orderService.getAllOrders();
-    }
-    catch (err) {
-        error.value = err instanceof Error ? err.message : 'Failed to load orders';
-    }
-    finally {
-        loading.value = false;
-    }
-}
 
 // Date Range
 const dateRange = ref({
   start: '',
   end: ''
 });
+
+onMounted(() => store.fetchAll());
 
 // Computed properties
 const dateRangeLabel = computed(() => {
@@ -451,8 +436,7 @@ const editOrder = (id: number) => {
 };
 
 const printInvoice = (id: number) => {
-    if (!orders.value) return;
-    const order = orders.value.find(o => o.id === id);
+    const order = store.items.find(o => o.id === id);
     if (order) {
         alert(`Printing invoice for order #${order.orderNumber}`);
         // In a real app, you would open a print dialog or generate a PDF
@@ -460,21 +444,19 @@ const printInvoice = (id: number) => {
 };
 
 const processOrder = (id: number) => {
-    if (!orders.value) return;
-    const order = orders.value.find(o => o.id === id);
+    const order = store.items.find(o => o.id === id);
     if (order && order.status === 'pending') {
-        order.status = 'processing';
+        store.updateItem(id, { status: 'processing' });
         alert(`Order #${order.orderNumber} is now being processed`);
     }
 };
 
 const cancelOrder = (id: number) => {
-    if (!orders.value) return;
-    if (confirm('Are you sure you want to cancel this order?')) {
-        const order = orders.value.find(o => o.id === id);
-        if (order && (order.status === 'pending' || order.status === 'processing')) {
-        order.status = 'cancelled';
-        alert(`Order #${order.orderNumber} has been cancelled`);
+    const order = store.items.find(o => o.id === id);
+    if (order && confirm('Are you sure you want to cancel this order?')) {
+        if (order.status === 'pending' || order.status === 'processing') {
+            store.updateItem(id, { status: 'cancelled' });
+            alert(`Order #${order.orderNumber} has been cancelled`);
         }
     }
 };
@@ -495,12 +477,6 @@ const exportOrders = () => {
 const goToAnalytics = () => {
     router.push('/analytics');
 };
-
-// Initialize
-onMounted(() => {
-    console.log('OrderList component mounted');
-    fetchOrders();
-});
 
 // Watch for filter changes and reset to page 1
 watch([statusFilter, searchQuery, dateRange], () => {
