@@ -167,5 +167,5 @@ const { isDark, toggleDark } = useTheme();
 
 const overviewItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Dashboard', 'Analytics'].includes(i.name)));
 const commerceItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Products', 'Orders', 'Customers', 'Categories'].includes(i.name)));
-const settingsItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Settings'].includes(i.name)));
+const settingsItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Settings', 'Audit Log'].includes(i.name)));
 </script>
