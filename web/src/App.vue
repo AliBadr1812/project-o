@@ -32,31 +32,15 @@ import Breadcrumb from './components/layout/Breadcrumb.vue';
 import Footer from './components/layout/Footer.vue';
 import { computed, ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { STORAGE_KEYS } from '@/utils/constants';
+import { useTheme } from '@/composables/useTheme';
 
 const isLoading = false;
 const route = useRoute();
 const router = useRouter();
 
-/* ── Dark mode ── */
-const isDark = ref(false);
-
-const applyTheme = (dark: boolean) => {
-  document.documentElement.classList.toggle('dark', dark);
-  localStorage.setItem(STORAGE_KEYS.THEME, dark ? 'dark' : 'light');
-};
-
-const toggleDark = () => {
-  isDark.value = !isDark.value;
-  applyTheme(isDark.value);
-};
-
-onMounted(() => {
-  const saved = localStorage.getItem(STORAGE_KEYS.THEME);
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  isDark.value = saved ? saved === 'dark' : prefersDark;
-  applyTheme(isDark.value);
-});
+/* ── Theme / dark mode ── */
+const { isDark, toggleDark, init: initTheme } = useTheme();
+onMounted(initTheme);
 
 /* ── Breadcrumbs ── */
 const productName = ref('');
