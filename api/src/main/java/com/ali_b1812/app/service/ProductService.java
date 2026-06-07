@@ -1,16 +1,14 @@
 package com.ali_b1812.app.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.ali_b1812.app.dto.mapper.ProductMapper;
 import com.ali_b1812.app.dto.request.CreateProductRequest;
 import com.ali_b1812.app.dto.request.UpdateProductRequest;
 import com.ali_b1812.app.dto.response.ProductResponse;
-import com.ali_b1812.app.model.entity.Product;
-import com.ali_b1812.app.repository.ProductRepository;
+import com.ali_b1812.app.mockdata.ProductMockData;
 import com.ali_b1812.app.service.interfaces.IProductService;
 
 import lombok.RequiredArgsConstructor;
@@ -19,107 +17,84 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class ProductService implements IProductService {
-    
-    private final ProductRepository productRepository;
-    private final ProductMapper productMapper;
-    private final AuditLoggerService auditLogger;
+
+    private final ProductMockData productMockData;
+
+    @Override
+    public List<ProductResponse> getAllProducts() {
+        log.info("Fetching all products from mock data");
+        return productMockData.getAllProducts();
+    }
 
     @Override
     public ProductResponse getProductById(Long id) {
         log.info("Fetching product with ID: {}", id);
-        Product product = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
-
-        auditLogger.logProductActivity(
-            "GET_PRODUCT",
-            product.getId(),
-            product.getName(),
-            null,
-            "Product retrieved",
-            null,
-            product
-        );
-
-        return productMapper.toResponse(product);
-    }
-
-    @Override
-    public List<ProductResponse> getAllProducts() {
-        log.info("Fetching all products");
-        List<Product> products = productRepository.findAll();
-
-        auditLogger.logProductActivity(
-            "GET_ALL_PRODUCTS",
-            null,
-            null,
-            null,
-            "All products retrieved",
-            null,
-            products.size()
-        );
-
-        return productMapper.toResponseList(products);
+        return productMockData.getProductById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
     }
 
     @Override
     public ProductResponse createProduct(CreateProductRequest request, Long userId) {
-        log.info("Creating new product with name: {}", request.getName());
-        Product product = productMapper.toEntity(request);
-        Product savedProduct = productRepository.save(product);
-
-        auditLogger.logProductActivity(
-            "CREATE_PRODUCT",
-            savedProduct.getId(),
-            savedProduct.getName(),
-            userId,
-            "Product created",
-            null,
-            savedProduct
-        );
-
-        return productMapper.toResponse(savedProduct);
+        log.info("Creating new product: {}", request.getName());
+        String now = LocalDateTime.now().toString();
+        ProductResponse newProduct = ProductResponse.builder()
+                .id(productMockData.nextId())
+                .name(request.getName())
+                .sku(request.getSku())
+                .description(request.getDescription())
+                .price(request.getPrice())
+                .cost(request.getCost())
+                .compareAtPrice(request.getCompareAtPrice())
+                .stock(request.getStock())
+                .status(request.getStatus() != null ? request.getStatus() : "active")
+                .images(request.getImageUrl() != null ? List.of(request.getImageUrl()) : List.of())
+                .inStock(request.getStock() != null && request.getStock() > 0)
+                .trackInventory(true)
+                .isVisible(true)
+                .isFeatured(false)
+                .lowStockThreshold(5)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+        return productMockData.saveProduct(newProduct);
     }
 
     @Override
     public ProductResponse updateProduct(Long id, UpdateProductRequest request) {
         log.info("Updating product with ID: {}", id);
-        Product existingProduct = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
-        
-        productMapper.updateEntityFromRequest(request, existingProduct);
-        Product updatedProduct = productRepository.save(existingProduct);
+        ProductResponse existing = productMockData.getProductById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
 
-        auditLogger.logProductActivity(
-            "UPDATE_PRODUCT",
-            updatedProduct.getId(),
-            updatedProduct.getName(),
-            id,
-            "Product updated",
-            existingProduct,
-            updatedProduct
-        );
+        ProductResponse updated = ProductResponse.builder()
+                .id(id)
+                .name(request.getName() != null ? request.getName() : existing.getName())
+                .sku(request.getSku() != null ? request.getSku() : existing.getSku())
+                .description(request.getDescription() != null ? request.getDescription() : existing.getDescription())
+                .price(request.getPrice() != null ? request.getPrice() : existing.getPrice())
+                .cost(request.getCost() != null ? request.getCost() : existing.getCost())
+                .compareAtPrice(request.getCompareAtPrice() != null ? request.getCompareAtPrice() : existing.getCompareAtPrice())
+                .stock(request.getStock() != null ? request.getStock() : existing.getStock())
+                .status(request.getStatus() != null ? request.getStatus() : existing.getStatus())
+                .images(existing.getImages())
+                .inStock(request.getStock() != null ? request.getStock() > 0 : existing.getInStock())
+                .categories(existing.getCategories())
+                .trackInventory(existing.getTrackInventory())
+                .isVisible(existing.getIsVisible())
+                .isFeatured(existing.getIsFeatured())
+                .lowStockThreshold(existing.getLowStockThreshold())
+                .createdAt(existing.getCreatedAt())
+                .updatedAt(LocalDateTime.now().toString())
+                .build();
 
-        return productMapper.toResponse(updatedProduct);
+        return productMockData.saveProduct(updated);
     }
 
     @Override
     public void deleteProduct(Long id, Long userId) {
         log.info("Deleting product with ID: {}", id);
-        Product existingProduct = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
-        
-        productRepository.delete(existingProduct);
-
-        auditLogger.logProductActivity(
-            "DELETE_PRODUCT",
-            existingProduct.getId(),
-            existingProduct.getName(),
-            userId,
-            "Product deleted",
-            existingProduct,
-            null
-        );
+        productMockData.getProductById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
+        productMockData.deleteProduct(id);
     }
 }
