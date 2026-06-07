@@ -20,6 +20,7 @@ import DiscountForm from '@/views/discounts/DiscountForm.vue';
 import InventoryAlerts from '@/views/inventory/InventoryAlerts.vue';
 import ReturnList from '@/views/returns/ReturnList.vue';
 import SegmentList from '@/views/segments/SegmentList.vue';
+import AuditLog from '@/views/audit/AuditLog.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -279,6 +280,15 @@ const router = createRouter({
       meta: {
         requiresAuth: false,
         breadcrumb: 'Customer Segments',
+      }
+    },
+    {
+      path: '/audit-log',
+      name: 'AuditLog',
+      component: AuditLog,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Audit Log',
       }
     },
   ],
