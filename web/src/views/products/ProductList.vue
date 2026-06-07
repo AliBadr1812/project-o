@@ -7,6 +7,9 @@
         <p class="page-subtitle">Manage your product inventory</p>
       </div>
       <div class="flex items-center gap-3">
+        <button @click="exportProducts" class="btn-glass text-sm">
+          <i class="fas fa-download text-xs mr-1"></i>Export CSV
+        </button>
         <router-link to="/products/create" class="btn-accent text-sm">
           <i class="fas fa-plus text-xs mr-1"></i>
           New Product
@@ -217,6 +220,7 @@ import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency, formatDate, formatSku } from '@/utils/formatters';
+import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import { useProductStore } from '@/stores/productStore';
 import type { Product } from '@/types/product';
 
@@ -297,6 +301,14 @@ const deleteProduct = async (id: number) => {
   } catch (e: any) {
     alert(e?.message ?? 'Delete failed');
   }
+};
+
+const exportProducts = () => {
+  exportToCsv(
+    datestampedFilename('products'),
+    filteredProducts.value,
+    ['id', 'name', 'sku', 'categories', 'price', 'stock', 'status', 'createdAt'],
+  );
 };
 
 const duplicateProduct = (id: number) => {
