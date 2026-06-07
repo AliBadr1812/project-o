@@ -18,6 +18,7 @@ import NotificationList from '@/views/notifications/NotificationList.vue';
 import DiscountList from '@/views/discounts/DiscountList.vue';
 import DiscountForm from '@/views/discounts/DiscountForm.vue';
 import InventoryAlerts from '@/views/inventory/InventoryAlerts.vue';
+import ReturnList from '@/views/returns/ReturnList.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -259,6 +260,15 @@ const router = createRouter({
         requiresAuth: false,
         breadcrumb: 'Edit Discount',
         parent: { path: '/discounts', name: 'Discounts' }
+      }
+    },
+    {
+      path: '/returns',
+      name: 'Returns',
+      component: ReturnList,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Returns & Refunds',
       }
     },
   ],
