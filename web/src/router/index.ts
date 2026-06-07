@@ -19,6 +19,7 @@ import DiscountList from '@/views/discounts/DiscountList.vue';
 import DiscountForm from '@/views/discounts/DiscountForm.vue';
 import InventoryAlerts from '@/views/inventory/InventoryAlerts.vue';
 import ReturnList from '@/views/returns/ReturnList.vue';
+import SegmentList from '@/views/segments/SegmentList.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -269,6 +270,15 @@ const router = createRouter({
       meta: {
         requiresAuth: false,
         breadcrumb: 'Returns & Refunds',
+      }
+    },
+    {
+      path: '/segments',
+      name: 'Segments',
+      component: SegmentList,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Customer Segments',
       }
     },
   ],
