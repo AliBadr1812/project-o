@@ -1,47 +1,47 @@
 <template>
   <div class="flex flex-col gap-6">
-    <!-- Page Header -->
+
+    <!-- ── Page header ─────────────────────────────────────────────────── -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Analytics Dashboard</h1>
-        <p class="page-subtitle">Track your business performance and metrics</p>
+        <h1 class="page-title">Analytics</h1>
+        <p class="page-subtitle">Track performance across your entire store</p>
       </div>
-      <div class="flex items-center gap-3">
-        <button @click="handleRefresh" class="btn-glass text-sm">
-          <i class="fas fa-sync-alt text-xs mr-1"></i>Refresh
-        </button>
-        <button @click="handleExport" class="btn-accent text-sm">
-          <i class="fas fa-arrow-up-from-bracket text-xs mr-1"></i>Export
-        </button>
-      </div>
-    </div>
-
-    <!-- Time Range Selector -->
-    <Card>
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5">
-        <div class="flex items-center gap-2 flex-wrap">
+      <div class="flex items-center gap-2">
+        <!-- Time range pill tabs -->
+        <div
+          class="flex gap-1 p-1 rounded-2xl"
+          style="background: rgba(255,255,255,0.30); border: 1px solid var(--glass-border);"
+        >
           <button
             v-for="range in timeRanges"
             :key="range.value"
             @click="setTimeRange(range.value)"
-            class="text-sm px-3 py-1.5 rounded-lg transition-colors"
-            :class="timeRange === range.value ? 'btn-accent' : 'btn-glass'"
-          >
-            {{ range.label }}
-          </button>
+            class="px-3 py-1.5 rounded-xl text-[13px] font-medium transition-all duration-200"
+            :style="timeRange === range.value
+              ? 'background: rgba(255,255,255,0.75); color: var(--accent); box-shadow: 0 1px 6px rgba(100,80,160,0.15);'
+              : 'color: var(--text-secondary);'"
+          >{{ range.label }}</button>
         </div>
-        <div class="flex items-center gap-2 flex-wrap">
-          <input type="date" v-model="customDateRange.start" :max="customDateRange.end"
-            class="glass-input text-sm" />
-          <span class="text-sm" style="color: var(--text-secondary);">to</span>
-          <input type="date" v-model="customDateRange.end" :min="customDateRange.start" :max="today"
-            class="glass-input text-sm" />
-          <button @click="applyCustomDate" :disabled="!isCustomDateValid" class="btn-accent text-sm">Apply</button>
-        </div>
-      </div>
-    </Card>
 
-    <!-- Stats Bar -->
+        <!-- Custom date range -->
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl" style="background: rgba(255,255,255,0.30); border: 1px solid var(--glass-border);">
+          <input type="date" v-model="customDateRange.start" :max="customDateRange.end" class="glass-input text-[12px] py-1 px-2" style="width:130px;">
+          <span class="text-[12px]" style="color:var(--text-muted);">—</span>
+          <input type="date" v-model="customDateRange.end" :min="customDateRange.start" :max="today" class="glass-input text-[12px] py-1 px-2" style="width:130px;">
+          <button @click="applyCustomDate" :disabled="!isCustomDateValid" class="btn-accent text-[12px] px-3 py-1.5">Apply</button>
+        </div>
+
+        <button @click="handleRefresh" class="btn-glass">
+          <i class="fas fa-rotate-right text-xs"></i>
+        </button>
+        <button @click="handleExport" class="btn-accent">
+          <i class="fas fa-arrow-up-from-bracket text-xs mr-1.5"></i>Export
+        </button>
+      </div>
+    </div>
+
+    <!-- ── KPI cards ───────────────────────────────────────────────────── -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card v-for="metric in metrics" :key="metric.key">
         <div class="p-5">
@@ -49,7 +49,7 @@
             <div class="stat-icon" :class="metric.iconClass">
               <i :class="metric.icon"></i>
             </div>
-            <span class="text-xs px-2 py-0.5 rounded-full font-medium" :style="metric.trendStyle">
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" :style="metric.trendStyle">
               <i v-if="metric.trend > 0" class="fas fa-arrow-up text-[9px] mr-0.5"></i>
               <i v-else class="fas fa-arrow-down text-[9px] mr-0.5"></i>
               {{ Math.abs(metric.trend) }}%
@@ -62,24 +62,40 @@
       </Card>
     </div>
 
-    <!-- Charts Section -->
+    <!-- ── Sales chart + Category breakdown ───────────────────────────── -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Sales Chart -->
+
+      <!-- Sales chart (wide) -->
       <Card class="lg:col-span-2">
         <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Sales Trend</h2>
-              <p class="text-xs mt-0.5" style="color: var(--text-muted);">Revenue over time</p>
+              <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Revenue Trend</h2>
+              <p class="text-xs mt-0.5" style="color: var(--text-muted);">{{ timeRanges.find(r => r.value === timeRange)?.label ?? 'Custom range' }}</p>
             </div>
-            <select v-model="salesChartType" class="glass-select text-sm">
-              <option value="line">Line Chart</option>
-              <option value="bar">Bar Chart</option>
-            </select>
+            <div
+              class="flex gap-1 p-1 rounded-xl"
+              style="background: rgba(255,255,255,0.30); border: 1px solid var(--glass-border);"
+            >
+              <button
+                @click="salesChartType = 'line'"
+                class="px-3 py-1 rounded-lg text-[12px] font-medium transition-all"
+                :style="salesChartType === 'line'
+                  ? 'background: rgba(255,255,255,0.75); color: var(--accent);'
+                  : 'color: var(--text-secondary);'"
+              ><i class="fas fa-chart-line text-[11px] mr-1"></i>Line</button>
+              <button
+                @click="salesChartType = 'bar'"
+                class="px-3 py-1 rounded-lg text-[12px] font-medium transition-all"
+                :style="salesChartType === 'bar'
+                  ? 'background: rgba(255,255,255,0.75); color: var(--accent);'
+                  : 'color: var(--text-secondary);'"
+              ><i class="fas fa-chart-bar text-[11px] mr-1"></i>Bar</button>
+            </div>
           </div>
         </div>
-        <div class="p-5">
-          <div class="h-72 flex items-center justify-center">
+        <div class="p-6">
+          <div style="height: 280px; position: relative;">
             <canvas id="salesChart"></canvas>
           </div>
         </div>
@@ -90,50 +106,55 @@
         <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Revenue by Category</h2>
-              <p class="text-xs mt-0.5" style="color: var(--text-muted);">Distribution across categories</p>
+              <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">By Category</h2>
+              <p class="text-xs mt-0.5" style="color: var(--text-muted);">Revenue distribution</p>
             </div>
-            <button @click="exportCategories" class="btn-glass-icon w-7 h-7 rounded-lg text-xs">
+            <button @click="exportCategories" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Export">
               <i class="fas fa-download"></i>
             </button>
           </div>
         </div>
-        <div class="p-5">
-          <div v-if="categoryRevenue.length === 0" class="h-48 flex items-center justify-center">
-            <p class="text-sm" style="color: var(--text-muted);">No data available</p>
-          </div>
-          <div v-else class="flex flex-col gap-4">
-            <div v-for="item in categoryRevenue" :key="item.category">
-              <div class="flex justify-between text-sm mb-1">
-                <span style="color: var(--text-secondary);">{{ item.category }}</span>
-                <span class="font-medium" style="color: var(--text-primary);">{{ formatCurrency(item.revenue) }}</span>
+        <div class="p-5 flex flex-col gap-4">
+          <div v-for="(item, i) in categoryRevenue" :key="item.category">
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="`background: ${categoryColors[i % categoryColors.length]};`"></span>
+                <span class="text-[13px]" style="color: var(--text-secondary);">{{ item.category }}</span>
               </div>
-              <div class="progress-track">
-                <div class="progress-fill" :style="{ width: item.percentage + '%', background: 'var(--progress-primary)' }"></div>
+              <div class="flex items-center gap-2">
+                <span class="text-[12px]" style="color: var(--text-muted);">{{ item.percentage }}%</span>
+                <span class="text-[13px] font-semibold" style="color: var(--text-primary);">{{ formatCurrency(item.revenue) }}</span>
               </div>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" :style="{ width: item.percentage + '%', background: categoryColors[i % categoryColors.length] }"></div>
             </div>
           </div>
         </div>
       </Card>
     </div>
 
-    <!-- Top Products + Recent Orders -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Top Products -->
-      <Card>
+    <!-- ── Top products + Recent orders ───────────────────────────────── -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+      <!-- Top Products (wider) -->
+      <Card class="lg:col-span-3 overflow-hidden">
         <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Top Products</h2>
-              <p class="text-xs mt-0.5" style="color: var(--text-muted);">Best selling products</p>
+              <p class="text-xs mt-0.5" style="color: var(--text-muted);">Best performing this period</p>
             </div>
-            <router-link to="/products" class="text-sm font-medium" style="color: var(--text-accent);">View all →</router-link>
+            <router-link to="/products" class="text-sm font-medium hover:opacity-75 transition-opacity" style="color: var(--text-accent);">
+              View all →
+            </router-link>
           </div>
         </div>
         <div class="overflow-x-auto">
           <table class="glass-table w-full">
             <thead>
               <tr>
+                <th>#</th>
                 <th>Product</th>
                 <th>Sales</th>
                 <th>Revenue</th>
@@ -141,11 +162,23 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="product in topProducts" :key="product.id">
+              <tr v-for="(product, i) in topProducts" :key="product.id">
+                <td>
+                  <span
+                    class="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-bold"
+                    :style="i === 0
+                      ? 'background: rgba(255,184,0,0.15); color: #b8860b;'
+                      : i === 1
+                        ? 'background: rgba(156,163,175,0.15); color: #6b7280;'
+                        : i === 2
+                          ? 'background: rgba(180,130,90,0.15); color: #92400e;'
+                          : 'background: var(--glass-bg); color: var(--text-muted);'"
+                  >{{ i + 1 }}</span>
+                </td>
                 <td>
                   <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--glass-bg); border: 1px solid var(--glass-border);">
-                      <i class="fas fa-box text-xs" style="color: var(--text-muted);"></i>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" :class="`ni-${['p','g','b','o','t'][i % 5]}`" style="border: 1px solid rgba(255,255,255,0.4);">
+                      <i class="fas fa-box text-xs"></i>
                     </div>
                     <div>
                       <p class="td-primary">{{ product.name }}</p>
@@ -153,7 +186,7 @@
                     </div>
                   </div>
                 </td>
-                <td><span class="text-sm font-medium" style="color: var(--text-primary);">{{ product.sales }}</span></td>
+                <td><span class="text-sm font-medium" style="color: var(--text-primary);">{{ product.sales.toLocaleString() }}</span></td>
                 <td class="td-accent">{{ formatCurrency(product.revenue) }}</td>
                 <td>
                   <Badge :variant="product.stock > 20 ? 'success' : product.stock > 5 ? 'warning' : 'danger'">
@@ -164,73 +197,84 @@
             </tbody>
           </table>
         </div>
-        <div class="px-6 py-3 text-right" style="border-top: 1px solid var(--glass-border);">
-          <button @click="viewAllProducts" class="btn-glass text-sm">View All Products</button>
-        </div>
       </Card>
 
-      <!-- Recent Orders -->
-      <Card>
+      <!-- Recent Orders (narrower) -->
+      <Card class="lg:col-span-2">
         <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Recent Orders</h2>
-              <p class="text-xs mt-0.5" style="color: var(--text-muted);">Latest customer orders</p>
+              <p class="text-xs mt-0.5" style="color: var(--text-muted);">Latest activity</p>
             </div>
-            <router-link to="/orders" class="text-sm font-medium" style="color: var(--text-accent);">View all →</router-link>
+            <router-link to="/orders" class="text-sm font-medium hover:opacity-75 transition-opacity" style="color: var(--text-accent);">
+              View all →
+            </router-link>
           </div>
         </div>
-        <div class="flex flex-col" style="divide-y: 1px solid var(--glass-border);">
-          <div v-for="order in recentOrders" :key="order.id"
-            class="flex items-center justify-between px-5 py-3 cursor-pointer transition-colors"
+        <div class="flex flex-col">
+          <div
+            v-for="order in recentOrders"
+            :key="order.id"
+            class="flex items-center gap-3 px-5 py-3.5 cursor-pointer transition-all duration-150"
             style="border-bottom: 1px solid var(--glass-border);"
-            @click="goToOrder(order.id)">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-semibold"
-                style="color: var(--text-primary);"
-                :style="{ background: `linear-gradient(135deg, ${stringToColor(order.customerName)}, ${stringToColor(order.customerName + '2')})` }">
-                {{ getInitials(order.customerName) }}
-              </div>
-              <div>
-                <p class="td-primary">Order #{{ order.id }}</p>
-                <p class="text-xs" style="color: var(--text-secondary);">{{ order.customerName }}</p>
-              </div>
+            @mouseenter="(e: MouseEvent) => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.3)'"
+            @mouseleave="(e: MouseEvent) => (e.currentTarget as HTMLElement).style.background = 'transparent'"
+            @click="goToOrder(order.id)"
+          >
+            <div
+              class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0"
+              :style="`background: linear-gradient(135deg, ${stringToColor(order.customerName)}, ${stringToColor(order.customerName + '2')}); color:#fff;`"
+            >{{ getInitials(order.customerName) }}</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[13px] font-medium truncate" style="color: var(--text-primary);">{{ order.customerName }}</p>
+              <p class="text-[11px]" style="color: var(--text-muted);">#{{ order.id }} · {{ order.date }}</p>
             </div>
-            <div class="text-right">
-              <p class="font-medium text-sm td-accent">{{ formatCurrency(order.amount) }}</p>
-              <Badge :variant="getOrderStatusVariant(order.status)" class="mt-1">{{ order.status }}</Badge>
+            <div class="text-right flex-shrink-0">
+              <p class="text-[13px] font-semibold" style="color: var(--text-accent);">{{ formatCurrency(order.amount) }}</p>
+              <Badge :variant="getOrderStatusVariant(order.status)" class="text-[10px] mt-0.5">{{ order.status }}</Badge>
             </div>
           </div>
         </div>
       </Card>
     </div>
 
-    <!-- Geographic Distribution -->
-    <Card>
+    <!-- ── Geographic Distribution ─────────────────────────────────────── -->
+    <Card class="overflow-hidden">
       <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
-        <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Geographic Distribution</h2>
-        <p class="text-xs mt-0.5" style="color: var(--text-muted);">Customer locations by region</p>
-      </div>
-      <div class="p-5">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="flex items-center justify-between">
           <div>
-            <GeoMap :regions="mapRegions" />
+            <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Geographic Distribution</h2>
+            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Revenue and orders by region — click a bubble for details</p>
           </div>
-          <div class="flex flex-col gap-3">
-            <p class="text-xs font-medium mb-1" style="color: var(--text-secondary);">Top Regions</p>
-            <div v-for="region in topRegions" :key="region.name">
-              <div class="flex justify-between text-sm mb-1">
-                <span style="color: var(--text-secondary);">{{ region.name }}</span>
-                <span class="font-medium" style="color: var(--text-primary);">{{ region.percentage }}%</span>
-              </div>
-              <div class="progress-track">
-                <div class="progress-fill" :style="{ width: region.percentage + '%', background: 'var(--progress-primary)' }"></div>
-              </div>
+          <span class="badge badge-info text-[11px]">{{ topRegions.length }} regions</span>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <GeoMap :regions="mapRegions" />
+
+      <!-- Region breakdown below the map -->
+      <div class="px-6 pb-5 pt-4 flex flex-col gap-3">
+        <div v-for="(region, i) in topRegions" :key="region.name">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="flex items-center gap-2.5">
+              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="`background: ${regionColors[i % regionColors.length]};`"></span>
+              <span class="text-[13px] font-medium" style="color: var(--text-primary);">{{ region.name }}</span>
             </div>
+            <div class="flex items-center gap-3">
+              <span class="text-[12px]" style="color: var(--text-muted);">{{ mapRegions[i]?.orders ?? 0 }} orders</span>
+              <span class="text-[12px]" style="color: var(--text-muted);">{{ formatCurrency(region.revenue) }}</span>
+              <span class="text-[13px] font-bold w-9 text-right" style="color: var(--text-primary);">{{ region.percentage }}%</span>
+            </div>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" :style="{ width: region.percentage + '%', background: regionColors[i % regionColors.length] }"></div>
           </div>
         </div>
       </div>
     </Card>
+
   </div>
 </template>
 
@@ -244,6 +288,25 @@ import Chart from 'chart.js/auto';
 import GeoMap from './GeoMap.vue';
 
 const router = useRouter();
+
+// ── Design constants ──────────────────────────────────────────────────────
+const categoryColors = [
+  'linear-gradient(135deg,#b97fff,#7c5ef0)',
+  'linear-gradient(135deg,#5ac8fa,#007aff)',
+  'linear-gradient(135deg,#34c759,#30a84b)',
+  'linear-gradient(135deg,#ff9f0a,#e08800)',
+  'linear-gradient(135deg,#ff6b6b,#ee5a24)',
+];
+
+const regionColors = [
+  'linear-gradient(135deg,#7c5ef0,#5e5ce6)',
+  'linear-gradient(135deg,#007aff,#0055ff)',
+  'linear-gradient(135deg,#34c759,#30a84b)',
+  'linear-gradient(135deg,#ff9f0a,#e08800)',
+  'linear-gradient(135deg,#ff6b6b,#ee5a24)',
+];
+
+const regionFlags = ['🌎', '🌍', '🌏', '🌎', '🕌'];
 
 // Types
 interface Metric {
@@ -316,9 +379,9 @@ function isDateAfter(date1: string, date2: string): boolean {
 // Time range options
 const timeRanges = [
   { label: 'Today', value: 'today' },
-  { label: 'This Week', value: 'week' },
-  { label: 'This Month', value: 'month' },
-  { label: 'This Year', value: 'year' }
+  { label: 'Week', value: 'week' },
+  { label: 'Month', value: 'month' },
+  { label: 'Year', value: 'year' }
 ] as const;
 
 type TimeRange = 'today' | 'week' | 'month' | 'year' | 'custom';
@@ -394,7 +457,7 @@ const metrics = computed<Metric[]>(() => {
 const mapRegions = computed(() => [
   {
     name: 'North America',
-    coordinates: [40, -100] as [number, number], // Approximate center
+    coordinates: [40, -100] as [number, number],
     revenue: 45230 * getTimeMultiplier(),
     orders: 342,
     percentage: 45
@@ -494,7 +557,6 @@ const topRegions = computed<Region[]>(() => {
 });
 
 // Chart data
-// Chart data
 const salesChartData = computed(() => {
   const multiplier = getTimeMultiplier();
 
@@ -517,66 +579,49 @@ const salesChartData = computed(() => {
     }
   };
 
-  // Handle custom range by using month data as default
   if (timeRange.value === 'custom') {
-    return {
-      labels: ranges.month.labels,
-      datasets: [{
-        label: 'Revenue',
-        data: ranges.month.data,
-        borderColor: '#3B82F6',
-        backgroundColor: salesChartType.value === 'line'
-          ? 'rgba(59, 130, 246, 0.1)'
-          : 'rgba(59, 130, 246, 0.8)',
-        fill: salesChartType.value === 'line',
-        tension: 0.4,
-        borderWidth: 2,
-        pointBackgroundColor: '#3B82F6',
-        pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 5
-      }]
-    };
+    return buildDataset(ranges.month.labels, ranges.month.data);
   }
 
   const range = ranges[timeRange.value];
+  return buildDataset(range.labels, range.data);
+});
 
+function buildDataset(labels: string[], data: number[]) {
   return {
-    labels: range.labels,
+    labels,
     datasets: [{
       label: 'Revenue',
-      data: range.data,
-      borderColor: '#3B82F6',
+      data,
+      borderColor: '#7c3aed',
       backgroundColor: salesChartType.value === 'line'
-        ? 'rgba(59, 130, 246, 0.1)'
-        : 'rgba(59, 130, 246, 0.8)',
+        ? 'rgba(124,58,237,0.08)'
+        : 'rgba(124,58,237,0.65)',
       fill: salesChartType.value === 'line',
       tension: 0.4,
       borderWidth: 2,
-      pointBackgroundColor: '#3B82F6',
+      pointBackgroundColor: '#7c3aed',
       pointBorderColor: '#ffffff',
       pointBorderWidth: 2,
       pointRadius: 3,
-      pointHoverRadius: 5
+      pointHoverRadius: 5,
+      borderRadius: salesChartType.value === 'bar' ? 6 : 0,
     }]
   };
-});
+}
 
 const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: {
-      display: false
-    },
+    legend: { display: false },
     tooltip: {
-      backgroundColor: 'rgba(17, 24, 39, 0.95)',
-      titleColor: '#ffffff',
-      bodyColor: '#D1D5DB',
-      borderColor: '#374151',
+      backgroundColor: 'rgba(30,10,60,0.92)',
+      titleColor: '#f0e8ff',
+      bodyColor: 'rgba(200,180,240,0.85)',
+      borderColor: 'rgba(255,255,255,0.15)',
       borderWidth: 1,
-      cornerRadius: 6,
+      cornerRadius: 10,
       displayColors: false,
       callbacks: {
         label: (context: any) => `$${context.parsed.y.toLocaleString()}`
@@ -586,21 +631,12 @@ const chartOptions = {
   scales: {
     y: {
       beginAtZero: true,
-      grid: {
-        color: 'rgba(255, 255, 255, 0.05)'
-      },
-      ticks: {
-        color: 'rgba(255, 255, 255, 0.6)',
-        callback: (value: any) => '$' + value.toLocaleString()
-      }
+      grid: { color: 'rgba(255,255,255,0.06)' },
+      ticks: { color: 'rgba(60,30,100,0.5)', callback: (value: any) => '$' + value.toLocaleString() }
     },
     x: {
-      grid: {
-        color: 'rgba(255, 255, 255, 0.05)'
-      },
-      ticks: {
-        color: 'rgba(255, 255, 255, 0.6)'
-      }
+      grid: { color: 'rgba(255,255,255,0.06)' },
+      ticks: { color: 'rgba(60,30,100,0.5)', maxTicksLimit: 10 }
     }
   }
 };
@@ -609,57 +645,37 @@ let chart: Chart | null = null;
 
 // Helper functions
 function getTimeMultiplier(): number {
-  const multipliers = {
-    today: 0.1,
-    week: 0.5,
-    month: 1,
-    year: 12,
-    custom: 1
-  };
+  const multipliers = { today: 0.1, week: 0.5, month: 1, year: 12, custom: 1 };
   return multipliers[timeRange.value] || 1;
 }
 
 function formatMetricValue(metric: Metric): string {
   const value = metric.value;
-
   switch (metric.format) {
-    case 'currency':
-      return formatCurrency(value);
-    case 'percent':
-      return value.toFixed(1) + '%';
-    default:
-      return Math.round(value).toLocaleString();
+    case 'currency': return formatCurrency(value);
+    case 'percent':  return value.toFixed(1) + '%';
+    default:         return Math.round(value).toLocaleString();
   }
 }
 
 function stringToColor(str: string): string {
   let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const hue = hash % 360;
-  return `hsl(${hue}, 70%, 50%)`;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  return `hsl(${hash % 360}, 70%, 50%)`;
 }
 
 function getOrderStatusVariant(status: string): string {
-  switch (status) {
-    case 'completed': return 'success';
-    case 'processing': return 'secondary';
-    case 'shipped': return 'primary';
-    case 'pending': return 'warning';
-    case 'cancelled': return 'danger';
-    default: return 'secondary';
-  }
+  const map: Record<string, string> = {
+    completed: 'success', processing: 'info', shipped: 'primary', pending: 'warning', cancelled: 'danger'
+  };
+  return map[status] || 'neutral';
 }
 
 // Methods
 function setTimeRange(range: TimeRange) {
   timeRange.value = range;
   loading.value = true;
-
-  setTimeout(() => {
-    loading.value = false;
-  }, 500);
+  setTimeout(() => { loading.value = false; }, 500);
 }
 
 function applyCustomDate() {
@@ -671,90 +687,50 @@ function applyCustomDate() {
 
 function handleExport() {
   const data = {
-    metrics: metrics.value,
-    categories: categoryRevenue.value,
-    products: topProducts.value,
-    orders: recentOrders.value,
-    regions: topRegions.value,
-    timeRange: timeRange.value,
+    metrics: metrics.value, categories: categoryRevenue.value,
+    products: topProducts.value, orders: recentOrders.value,
+    regions: topRegions.value, timeRange: timeRange.value,
     exportDate: new Date().toISOString()
   };
-
   const dataStr = JSON.stringify(data, null, 2);
-  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-
+  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
   const date = new Date();
-  const fileName = `analytics_export_${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}.json`;
-
-  const linkElement = document.createElement('a');
-  linkElement.setAttribute('href', dataUri);
-  linkElement.setAttribute('download', fileName);
-  linkElement.click();
+  const fileName = `analytics_${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}.json`;
+  const a = document.createElement('a');
+  a.href = dataUri; a.download = fileName; a.click();
 }
 
 function handleRefresh() {
   loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-  }, 500);
+  setTimeout(() => { loading.value = false; }, 500);
 }
 
 function exportCategories() {
   const dataStr = JSON.stringify(categoryRevenue.value, null, 2);
-  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-
-  const date = new Date();
-  const fileName = `category_revenue_${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}.json`;
-
-  const linkElement = document.createElement('a');
-  linkElement.setAttribute('href', dataUri);
-  linkElement.setAttribute('download', fileName);
-  linkElement.click();
+  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+  const a = document.createElement('a');
+  a.href = dataUri; a.download = 'category_revenue.json'; a.click();
 }
 
-function viewAllProducts() {
-  router.push('/products');
-}
-
-function goToOrder(orderId: string) {
-  router.push(`/orders/${orderId}`);
-}
+function viewAllProducts() { router.push('/products'); }
+function goToOrder(orderId: string) { router.push(`/orders/${orderId}`); }
 
 function updateChart() {
   if (chart) {
     chart.destroy();
     const ctx = document.getElementById('salesChart') as HTMLCanvasElement;
     if (ctx) {
-      chart = new Chart(ctx, {
-        type: salesChartType.value,
-        data: salesChartData.value,
-        options: chartOptions
-      });
+      chart = new Chart(ctx, { type: salesChartType.value, data: salesChartData.value, options: chartOptions });
     }
   }
 }
 
-// Lifecycle
 onMounted(() => {
   const ctx = document.getElementById('salesChart') as HTMLCanvasElement;
-  if (ctx) {
-    chart = new Chart(ctx, {
-      type: salesChartType.value,
-      data: salesChartData.value,
-      options: chartOptions
-    });
-  }
+  if (ctx) chart = new Chart(ctx, { type: salesChartType.value, data: salesChartData.value, options: chartOptions });
 });
 
-onUnmounted(() => {
-  if (chart) {
-    chart.destroy();
-  }
-});
+onUnmounted(() => { if (chart) chart.destroy(); });
 
-// Watchers
-watch([timeRange, salesChartType], () => {
-  updateChart();
-});
+watch([timeRange, salesChartType], () => { updateChart(); });
 </script>
-
