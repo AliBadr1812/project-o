@@ -251,10 +251,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { productService } from '@/services/productService';
+import { useProductStore } from '@/stores/productStore';
 
-const route = useRoute();
+const route  = useRoute();
+const router = useRouter();
+const store  = useProductStore();
+
 const isEditing = computed(() => !!route.params.id);
 const isSubmitting = ref(false);
 
@@ -307,13 +312,48 @@ const removeAdditionalImage = (index: number) => {
   additionalImagesPreview.value.splice(index, 1);
 };
 
+onMounted(async () => {
+  if (!isEditing.value) return;
+  await store.fetchAll();
+  const p = store.items.find(p => p.id === Number(route.params.id));
+  if (p) {
+    product.value.name             = p.name;
+    product.value.sku              = p.sku ?? '';
+    product.value.categoryId       = p.categories ?? '';
+    product.value.price            = p.price;
+    product.value.stock            = p.stock;
+    product.value.status           = p.status as typeof product.value.status;
+    if (p.images?.[0]) mainImagePreview.value = p.images[0];
+  }
+});
+
 const saveAsDraft = () => { product.value.status = 'draft'; submitForm(); };
 
 const submitForm = async () => {
   isSubmitting.value = true;
-  await new Promise(r => setTimeout(r, 800));
-  console.log('Product saved:', product.value);
-  isSubmitting.value = false;
+  try {
+    const payload = {
+      name:       product.value.name,
+      sku:        product.value.sku,
+      categories: product.value.categoryId,
+      price:      product.value.price ?? 0,
+      stock:      product.value.stock ?? 0,
+      status:     product.value.status,
+      images:     mainImagePreview.value ? [mainImagePreview.value] : [],
+    };
+    if (isEditing.value) {
+      const updated = await productService.updateProduct(Number(route.params.id), payload);
+      store.updateItem(Number(route.params.id), updated);
+    } else {
+      const created = await productService.createProduct(payload);
+      store.prependItem(created);
+    }
+    router.push('/products');
+  } catch (e: any) {
+    alert(e?.message ?? 'Save failed');
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 </script>
 

@@ -228,10 +228,10 @@
             >{{ getInitials(order.customerName) }}</div>
             <div class="flex-1 min-w-0">
               <p class="text-[13px] font-medium truncate" style="color: var(--text-primary);">{{ order.customerName }}</p>
-              <p class="text-[11px]" style="color: var(--text-muted);">#{{ order.id }} · {{ order.date }}</p>
+              <p class="text-[11px]" style="color: var(--text-muted);">#{{ order.orderNumber }} · {{ formatDateShort(order.createdAt ?? '') }}</p>
             </div>
             <div class="text-right flex-shrink-0">
-              <p class="text-[13px] font-semibold" style="color: var(--text-accent);">{{ formatCurrency(order.amount) }}</p>
+              <p class="text-[13px] font-semibold" style="color: var(--text-accent);">{{ formatCurrency(order.total) }}</p>
               <Badge :variant="getOrderStatusVariant(order.status)" class="text-[10px] mt-0.5">{{ order.status }}</Badge>
             </div>
           </div>
@@ -280,14 +280,28 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, onUnmounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
 import Badge from '@/components/ui/Badge.vue';
 import { formatCurrency, getInitials } from '@/utils/formatters';
+import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import Chart from 'chart.js/auto';
 import GeoMap from './GeoMap.vue';
+import { useOrderStore }    from '@/stores/orderStore';
+import { useProductStore }  from '@/stores/productStore';
+import { useCustomerStore } from '@/stores/customerStore';
 
 const router = useRouter();
+
+// ── Stores ────────────────────────────────────────────────────────────────
+const orderStore    = useOrderStore();
+const productStore  = useProductStore();
+const customerStore = useCustomerStore();
+
+const { items: storeOrders }    = storeToRefs(orderStore);
+const { items: storeProducts }  = storeToRefs(productStore);
+const { items: storeCustomers } = storeToRefs(customerStore);
 
 // ── Design constants ──────────────────────────────────────────────────────
 const categoryColors = [
@@ -401,17 +415,33 @@ const isCustomDateValid = computed(() => {
   return customDateRange.start && customDateRange.end && customDateRange.start <= customDateRange.end;
 });
 
+// ── Real store metrics ────────────────────────────────────────────────────
+const storeMetrics = computed(() => {
+  const activeOrders = storeOrders.value.filter(
+    o => o.status !== 'cancelled' && o.status !== 'refunded',
+  );
+  const totalRevenue  = activeOrders.reduce((s, o) => s + o.total, 0);
+  const totalOrders   = storeOrders.value.length;
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  const activeCustomers = storeCustomers.value.filter(c => c.status === 'active').length;
+  const msPerMonth = 30 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const newCustomers = storeCustomers.value.filter(c =>
+    c.lastOrderDate && (now - new Date(c.lastOrderDate).getTime()) <= msPerMonth,
+  ).length;
+  return { totalRevenue, totalOrders, avgOrderValue, activeCustomers, newCustomers };
+});
+
 // Metrics data
 const metrics = computed<Metric[]>(() => {
-  const multiplier = getTimeMultiplier();
-
+  const m = storeMetrics.value;
   return [
     {
       key: 'totalSales',
       label: 'Total Sales',
-      value: 152489.67 * multiplier,
+      value: m.totalRevenue,
       trend: 12.5,
-      subtext: 'vs previous period',
+      subtext: 'all-time revenue',
       icon: 'fas fa-shopping-cart',
       iconClass: 'ni-b',
       trendStyle: `color: var(--ni-green); background: rgba(var(--ni-green-rgb, 34,197,94), 0.1);`,
@@ -420,9 +450,9 @@ const metrics = computed<Metric[]>(() => {
     {
       key: 'totalOrders',
       label: 'Total Orders',
-      value: 1242 * multiplier,
+      value: m.totalOrders,
       trend: 8.2,
-      subtext: `Avg order: ${formatCurrency(74.53)}`,
+      subtext: `Avg order: ${formatCurrency(m.avgOrderValue)}`,
       icon: 'fas fa-box',
       iconClass: 'ni-g',
       trendStyle: `color: var(--ni-green); background: rgba(var(--ni-green-rgb, 34,197,94), 0.1);`,
@@ -431,9 +461,9 @@ const metrics = computed<Metric[]>(() => {
     {
       key: 'totalCustomers',
       label: 'Active Customers',
-      value: 2432 * multiplier,
+      value: m.activeCustomers,
       trend: 15.3,
-      subtext: `+${Math.round(128 * multiplier)} new this month`,
+      subtext: `+${m.newCustomers} new this month`,
       icon: 'fas fa-users',
       iconClass: 'ni-p',
       trendStyle: `color: var(--ni-green); background: rgba(var(--ni-green-rgb, 34,197,94), 0.1);`,
@@ -444,7 +474,7 @@ const metrics = computed<Metric[]>(() => {
       label: 'Conversion Rate',
       value: 3.2,
       trend: -2.1,
-      subtext: `From ${Math.round(76025 * multiplier)} visitors`,
+      subtext: `From 76,025 visitors`,
       icon: 'fas fa-eye',
       iconClass: 'ni-o',
       trendStyle: `color: var(--ni-red); background: rgba(var(--ni-red-rgb, 239,68,68), 0.1);`,
@@ -492,57 +522,55 @@ const mapRegions = computed(() => [
   }
 ]);
 
-// Category revenue data
+// Category revenue data — group products by category and compute price*stock
 const categoryRevenue = computed<CategoryRevenue[]>(() => {
-  const multiplier = getTimeMultiplier();
-  const data = [
-    { category: 'Electronics', revenue: 45230 * multiplier },
-    { category: 'Furniture', revenue: 32180 * multiplier },
-    { category: 'Clothing', revenue: 28450 * multiplier },
-    { category: 'Food & Drink', revenue: 19890 * multiplier },
-    { category: 'Books', revenue: 12450 * multiplier }
-  ];
-
-  const total = data.reduce((sum, item) => sum + item.revenue, 0);
-
-  return data.map(item => ({
-    ...item,
-    percentage: Math.round((item.revenue / total) * 100)
-  })).sort((a, b) => b.revenue - a.revenue);
-});
-
-// Top products
-const topProducts = computed<Product[]>(() => {
-  const multiplier = getTimeMultiplier();
-  return [
-    { id: 1, name: 'Wireless Earbuds Pro', category: 'Electronics', revenue: 12450 * multiplier, sales: Math.round(89 * multiplier), stock: 45 },
-    { id: 2, name: 'Ergonomic Office Chair', category: 'Furniture', revenue: 8999 * multiplier, sales: Math.round(23 * multiplier), stock: 12 },
-    { id: 3, name: 'Organic Coffee Beans', category: 'Food & Drink', revenue: 7245 * multiplier, sales: Math.round(178 * multiplier), stock: 234 },
-    { id: 4, name: 'Fitness Tracker Watch', category: 'Wearables', revenue: 6120 * multiplier, sales: Math.round(56 * multiplier), stock: 78 },
-    { id: 5, name: 'Designer Backpack', category: 'Accessories', revenue: 4590 * multiplier, sales: Math.round(34 * multiplier), stock: 23 }
-  ].sort((a, b) => b.revenue - a.revenue);
-});
-
-// Recent orders
-const recentOrders = computed<Order[]>(() => {
-  const baseOrders: Order[] = [
-    { id: '7842', customerName: 'Alex Johnson', date: '2024-01-15', amount: 124.99, status: 'completed' },
-    { id: '7841', customerName: 'Maria Garcia', date: '2024-01-15', amount: 89.50, status: 'completed' },
-    { id: '7840', customerName: 'David Chen', date: '2024-01-14', amount: 245.75, status: 'processing' },
-    { id: '7839', customerName: 'Sarah Williams', date: '2024-01-14', amount: 67.25, status: 'completed' },
-    { id: '7838', customerName: 'James Wilson', date: '2024-01-13', amount: 189.99, status: 'pending' },
-    { id: '7837', customerName: 'Lisa Anderson', date: '2024-01-13', amount: 320.50, status: 'shipped' }
-  ];
-
-  if (timeRange.value === 'custom' && customDateRange.start && customDateRange.end) {
-    return baseOrders.filter(order => {
-      return isDateAfter(order.date, customDateRange.start) &&
-             isDateAfter(customDateRange.end, order.date);
-    });
+  const map = new Map<string, number>();
+  for (const p of storeProducts.value) {
+    const cat = p.categories || 'Uncategorized';
+    map.set(cat, (map.get(cat) ?? 0) + p.price * Math.max(p.stock, 1));
   }
-
-  return baseOrders;
+  if (map.size === 0) {
+    // fallback while products are loading
+    const fallback = [
+      { category: 'Electronics', revenue: 45230 },
+      { category: 'Furniture',   revenue: 32180 },
+      { category: 'Clothing',    revenue: 28450 },
+    ];
+    const total = fallback.reduce((s, x) => s + x.revenue, 0);
+    return fallback.map(x => ({ ...x, percentage: Math.round((x.revenue / total) * 100) }));
+  }
+  const entries = [...map.entries()]
+    .map(([category, revenue]) => ({ category, revenue }))
+    .sort((a, b) => b.revenue - a.revenue);
+  const total = entries.reduce((s, x) => s + x.revenue, 0);
+  return entries.map(x => ({ ...x, percentage: total > 0 ? Math.round((x.revenue / total) * 100) : 0 }));
 });
+
+// Top products — real store, sorted by price desc
+const topProducts = computed<Product[]>(() =>
+  [...storeProducts.value]
+    .sort((a, b) => b.price - a.price)
+    .slice(0, 5)
+    .map(p => ({
+      id:       p.id,
+      name:     p.name,
+      category: p.categories || '—',
+      revenue:  p.price * Math.max(p.stock, 1),
+      sales:    p.stock,
+      stock:    p.stock,
+    })),
+);
+
+// Recent orders — real store, last 6 by createdAt
+const recentOrders = computed(() =>
+  [...storeOrders.value]
+    .sort((a, b) => {
+      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tb - ta;
+    })
+    .slice(0, 6),
+);
 
 // Top regions
 const topRegions = computed<Region[]>(() => {
@@ -658,6 +686,11 @@ function formatMetricValue(metric: Metric): string {
   }
 }
 
+function formatDateShort(dateString: string): string {
+  if (!dateString) return '—';
+  return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 function stringToColor(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -686,34 +719,25 @@ function applyCustomDate() {
 }
 
 function handleExport() {
-  const data = {
-    metrics: metrics.value, categories: categoryRevenue.value,
-    products: topProducts.value, orders: recentOrders.value,
-    regions: topRegions.value, timeRange: timeRange.value,
-    exportDate: new Date().toISOString()
-  };
-  const dataStr = JSON.stringify(data, null, 2);
-  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-  const date = new Date();
-  const fileName = `analytics_${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}.json`;
-  const a = document.createElement('a');
-  a.href = dataUri; a.download = fileName; a.click();
+  exportToCsv(
+    datestampedFilename('analytics_orders'),
+    storeOrders.value,
+    ['id', 'orderNumber', 'customerName', 'status', 'total', 'createdAt'],
+  );
 }
 
 function handleRefresh() {
-  loading.value = true;
-  setTimeout(() => { loading.value = false; }, 500);
+  orderStore.fetchAll(true);
+  productStore.fetchAll(true);
+  customerStore.fetchAll(true);
 }
 
 function exportCategories() {
-  const dataStr = JSON.stringify(categoryRevenue.value, null, 2);
-  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-  const a = document.createElement('a');
-  a.href = dataUri; a.download = 'category_revenue.json'; a.click();
+  exportToCsv(datestampedFilename('category_revenue'), categoryRevenue.value);
 }
 
 function viewAllProducts() { router.push('/products'); }
-function goToOrder(orderId: string) { router.push(`/orders/${orderId}`); }
+function goToOrder(orderId: number | undefined) { if (orderId) router.push(`/orders/${orderId}`); }
 
 function updateChart() {
   if (chart) {
@@ -726,6 +750,9 @@ function updateChart() {
 }
 
 onMounted(() => {
+  orderStore.fetchAll();
+  productStore.fetchAll();
+  customerStore.fetchAll();
   const ctx = document.getElementById('salesChart') as HTMLCanvasElement;
   if (ctx) chart = new Chart(ctx, { type: salesChartType.value, data: salesChartData.value, options: chartOptions });
 });

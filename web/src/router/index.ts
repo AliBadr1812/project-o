@@ -17,6 +17,7 @@ import CategoryForm from '@/views/categories/CategoryForm.vue';
 import NotificationList from '@/views/notifications/NotificationList.vue';
 import DiscountList from '@/views/discounts/DiscountList.vue';
 import DiscountForm from '@/views/discounts/DiscountForm.vue';
+import InventoryAlerts from '@/views/inventory/InventoryAlerts.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -219,6 +220,16 @@ const router = createRouter({
       meta: {
         requiresAuth: false,
         breadcrumb: 'Notifications',
+      }
+    },
+    {
+      path: '/inventory/alerts',
+      name: 'InventoryAlerts',
+      component: InventoryAlerts,
+      meta: {
+        requiresAuth: false,
+        breadcrumb: 'Inventory Alerts',
+        parent: { path: '/products', name: 'Products' }
       }
     },
     {
