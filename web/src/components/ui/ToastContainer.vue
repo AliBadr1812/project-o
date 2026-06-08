@@ -15,9 +15,6 @@
           @mouseenter="pauseToast(toast.id)"
           @mouseleave="resumeToast(toast.id)"
         >
-          <!-- Left accent bar -->
-          <div class="toast-accent-bar"></div>
-
           <!-- Icon -->
           <div class="toast-icon">
             <i :class="iconClass(toast.variant)"></i>
@@ -31,7 +28,7 @@
 
           <!-- Close -->
           <button class="toast-close" @click="dismiss(toast.id)" aria-label="Close">
-            <i class="fas fa-xmark text-xs"></i>
+            <i class="fas fa-xmark"></i>
           </button>
 
           <!-- Progress bar -->
@@ -68,181 +65,170 @@ function resumeToast(id: number) { paused.delete(id); }
 </script>
 
 <style scoped>
+/* ── Container ─────────────────────────────────────────────── */
 .toast-stack {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   pointer-events: none;
-  max-width: 380px;
-  width: 100%;
+  width: 340px;
 }
 
 .toast-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
+/* ── Toast card ────────────────────────────────────────────── */
 .toast-item {
   position: relative;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px 16px 18px 12px;
-  border-radius: 14px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 15px 14px;   /* extra 3px bottom for progress bar */
+  border-radius: 12px;
   overflow: hidden;
   pointer-events: all;
   cursor: default;
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+
+  background: #ffffff;
+  border: 1px solid #e8e3f2;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.07);
 }
 
-/* Variant backgrounds */
-.toast-success {
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.25);
-}
-.toast-error {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.25);
-}
-.toast-warning {
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.25);
-}
-.toast-info {
-  background: rgba(124, 58, 237, 0.12);
-  border-color: rgba(124, 58, 237, 0.25);
-}
-
-/* Left accent bar */
-.toast-accent-bar {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  border-radius: 14px 0 0 14px;
-}
-.toast-success .toast-accent-bar { background: #22c55e; }
-.toast-error   .toast-accent-bar { background: #ef4444; }
-.toast-warning .toast-accent-bar { background: #f59e0b; }
-.toast-info    .toast-accent-bar { background: var(--accent, #7c3aed); }
-
-/* Icon */
+/* ── Icon ──────────────────────────────────────────────────── */
 .toast-icon {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 1px;
   font-size: 15px;
+  align-self: flex-start;
+  margin-top: 1px;
 }
-.toast-success .toast-icon { color: #22c55e; }
-.toast-error   .toast-icon { color: #ef4444; }
-.toast-warning .toast-icon { color: #f59e0b; }
-.toast-info    .toast-icon { color: var(--accent, #7c3aed); }
 
-/* Body */
+.toast-success .toast-icon { color: #16a34a; }
+.toast-error   .toast-icon { color: #dc2626; }
+.toast-warning .toast-icon { color: #d97706; }
+.toast-info    .toast-icon { color: #7c3aed; }
+
+/* ── Body ──────────────────────────────────────────────────── */
 .toast-body {
   flex: 1;
   min-width: 0;
 }
+
 .toast-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary, #1a0a2e);
+  color: #18102e;
   margin: 0 0 2px;
   line-height: 1.3;
 }
+
 .toast-message {
-  font-size: 12.5px;
-  color: var(--text-secondary, #4a3070);
+  font-size: 12px;
+  color: #6b5b8d;
   margin: 0;
   line-height: 1.45;
 }
 
-/* Close button */
+/* ── Close button ──────────────────────────────────────────── */
 .toast-close {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
   border: none;
-  background: rgba(255, 255, 255, 0.2);
-  color: var(--text-muted, #8070a0);
+  background: transparent;
+  color: #b8a8d0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 11px;
   transition: background 0.15s, color 0.15s;
+  align-self: flex-start;
   margin-top: 1px;
+  padding: 0;
 }
 .toast-close:hover {
-  background: rgba(255, 255, 255, 0.35);
-  color: var(--text-primary, #1a0a2e);
+  background: #f0ebfa;
+  color: #4a3070;
 }
 
-/* Progress bar */
+/* ── Progress bar ──────────────────────────────────────────── */
 .toast-progress-track {
   position: absolute;
   left: 0;
   bottom: 0;
   right: 0;
   height: 3px;
-  background: rgba(255, 255, 255, 0.15);
+  background: transparent;
 }
+
 .toast-progress-fill {
   height: 100%;
   transition: width 50ms linear;
-  border-radius: 0 0 0 0;
+  border-radius: 0 0 12px 12px;
+  opacity: 0.45;
 }
-.toast-success .toast-progress-fill { background: rgba(34, 197, 94, 0.6); }
-.toast-error   .toast-progress-fill { background: rgba(239, 68, 68, 0.6); }
-.toast-warning .toast-progress-fill { background: rgba(245, 158, 11, 0.6); }
-.toast-info    .toast-progress-fill { background: rgba(124, 58, 237, 0.6); }
 
-/* TransitionGroup animations */
+.toast-success .toast-progress-fill { background: #16a34a; }
+.toast-error   .toast-progress-fill { background: #dc2626; }
+.toast-warning .toast-progress-fill { background: #d97706; }
+.toast-info    .toast-progress-fill { background: #7c3aed; }
+
+/* ── Animations ────────────────────────────────────────────── */
 .toast-enter-active {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .toast-leave-active {
-  transition: all 0.25s ease-in;
+  transition: all 0.2s ease-in;
   position: absolute;
 }
 .toast-enter-from {
   opacity: 0;
-  transform: translateX(60px) scale(0.95);
+  transform: translateX(60px) scale(0.96);
 }
 .toast-leave-to {
   opacity: 0;
-  transform: translateX(60px) scale(0.9);
+  transform: translateX(60px) scale(0.92);
 }
 .toast-move {
-  transition: transform 0.3s ease;
+  transition: transform 0.28s ease;
 }
 
-/* Dark mode support */
-:global(.dark) .toast-success { background: rgba(34, 197, 94, 0.15); }
-:global(.dark) .toast-error   { background: rgba(239, 68, 68, 0.15); }
-:global(.dark) .toast-warning { background: rgba(245, 158, 11, 0.15); }
-:global(.dark) .toast-info    { background: rgba(124, 58, 237, 0.18); }
+/* ── Dark mode ─────────────────────────────────────────────── */
 :global(.dark) .toast-item {
-  border-color: rgba(255, 255, 255, 0.10);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.12);
+  background: #1e1530;
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 4px 16px rgba(0, 0, 0, 0.4);
 }
+
+/* Lighter icon colors for dark backgrounds */
+:global(.dark) .toast-success .toast-icon { color: #4ade80; }
+:global(.dark) .toast-error   .toast-icon { color: #f87171; }
+:global(.dark) .toast-warning .toast-icon { color: #fbbf24; }
+:global(.dark) .toast-info    .toast-icon { color: #a78bfa; }
+
 :global(.dark) .toast-title   { color: #f0e8ff; }
-:global(.dark) .toast-message { color: rgba(200, 180, 240, 0.85); }
-:global(.dark) .toast-close   { background: rgba(255,255,255,0.08); color: rgba(200,180,240,0.6); }
-:global(.dark) .toast-close:hover { background: rgba(255,255,255,0.15); color: #f0e8ff; }
+:global(.dark) .toast-message { color: rgba(200, 180, 240, 0.7); }
+
+:global(.dark) .toast-close         { color: rgba(200, 180, 240, 0.35); }
+:global(.dark) .toast-close:hover   { background: rgba(255,255,255,0.07); color: #f0e8ff; }
+
+/* Progress bar — keep same hue, slightly brighter in dark */
+:global(.dark) .toast-success .toast-progress-fill { background: #4ade80; }
+:global(.dark) .toast-error   .toast-progress-fill { background: #f87171; }
+:global(.dark) .toast-warning .toast-progress-fill { background: #fbbf24; }
+:global(.dark) .toast-info    .toast-progress-fill { background: #a78bfa; }
 </style>
