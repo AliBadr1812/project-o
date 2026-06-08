@@ -136,11 +136,13 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useDiscountStore } from '@/stores/discountStore';
 import { discountService } from '@/services/discountService';
+import { useToast } from '@/composables/useToast';
 import { formatCurrency } from '@/utils/formatters';
 
 const route  = useRoute();
 const router = useRouter();
 const store  = useDiscountStore();
+const toast  = useToast();
 
 const isEdit = computed(() => !!route.params.id);
 const saving = ref(false);
@@ -192,9 +194,10 @@ async function submit() {
       const created = await discountService.createDiscount(payload);
       store.prependItem(created);
     }
+    toast.success(isEdit.value ? 'Discount updated' : 'Discount created');
     router.push('/discounts');
   } catch (e: any) {
-    alert(e?.message ?? 'Save failed');
+    toast.error(e?.message ?? 'Save failed', 'Error');
   } finally {
     saving.value = false;
   }

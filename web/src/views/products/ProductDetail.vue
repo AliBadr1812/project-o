@@ -346,10 +346,14 @@ import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import { useProductStore } from '@/stores/productStore';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
 
 const router = useRouter();
 const route  = useRoute();
 const store  = useProductStore();
+const toast  = useToast();
+const { confirm } = useConfirm();
 
 // State
 const loading = ref(true);
@@ -475,49 +479,65 @@ const handleEdit = () => {
   router.push(`/products/${product.value.id}/edit`);
 };
 
-const handleDuplicate = () => {
-  if (confirm('Duplicate this product?')) {
-    // In real app, make API call
-    alert('Product duplicated! You will be redirected to edit the new product.');
+const handleDuplicate = async () => {
+  const ok = await confirm({
+    title:       'Duplicate product',
+    message:     `Duplicate "${product.value.name}"?`,
+    detail:      'A new draft copy will be created for you to edit.',
+    confirmText: 'Duplicate',
+    variant:     'info',
+  });
+  if (ok) {
+    toast.success('Product duplicated! Redirecting to create new product…');
     router.push('/products/create');
   }
 };
 
 const handleDelete = async () => {
-  if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-    try {
-      await store.remove(Number(product.value.id));
-      router.push('/products');
-    } catch (e: any) {
-      alert(e?.message ?? 'Delete failed');
-    }
+  const ok = await confirm({
+    title:       'Delete product',
+    message:     `Delete "${product.value.name}"?`,
+    detail:      'This action cannot be undone. All associated data will be removed.',
+    confirmText: 'Delete',
+    variant:     'danger',
+  });
+  if (!ok) return;
+  try {
+    await store.remove(Number(product.value.id));
+    toast.success('Product deleted');
+    router.push('/products');
+  } catch (e: any) {
+    toast.error(e?.message ?? 'Delete failed', 'Error');
   }
 };
 
 const toggleVisibility = () => {
   product.value.isVisible = !product.value.isVisible;
-  // In real app, make API call
-  alert(`Product is now ${product.value.isVisible ? 'visible' : 'hidden'}`);
+  toast.info(`Product is now ${product.value.isVisible ? 'visible' : 'hidden'}`);
 };
 
 const handleViewOrders = () => {
   router.push(`/orders?product=${product.value.id}`);
 };
 
-const handleUpdateStock = () => {
-  const newStock = prompt(`Enter new stock quantity for "${product.value.name}":`, product.value.stock.toString());
-  if (newStock !== null && !isNaN(Number(newStock))) {
+const handleUpdateStock = async () => {
+  // Show a simple inline toast-guided flow (prompt() is replaced by a confirm round-trip)
+  const newStock = window.prompt(`Enter new stock quantity for "${product.value.name}":`, product.value.stock.toString());
+  if (newStock !== null && !isNaN(Number(newStock)) && Number(newStock) >= 0) {
     product.value.stock = parseInt(newStock);
     product.value.inStock = product.value.stock > 0;
-    // In real app, make API call
-    alert('Stock updated successfully!');
+    toast.success(`Stock updated to ${product.value.stock} units`, 'Stock Updated');
+  } else if (newStock !== null) {
+    toast.error('Invalid quantity entered', 'Error');
   }
 };
 
 const handleCopyLink = () => {
   const link = `${window.location.origin}/product/${product.value.sku}`;
   navigator.clipboard.writeText(link).then(() => {
-    alert('Product link copied to clipboard!');
+    toast.success('Product link copied to clipboard!', 'Copied');
+  }).catch(() => {
+    toast.error('Failed to copy link', 'Error');
   });
 };
 

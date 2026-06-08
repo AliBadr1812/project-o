@@ -294,10 +294,12 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { productService } from '@/services/productService';
 import { useProductStore } from '@/stores/productStore';
+import { useToast } from '@/composables/useToast';
 
 const route  = useRoute();
 const router = useRouter();
 const store  = useProductStore();
+const toast  = useToast();
 
 const isEditing = computed(() => !!route.params.id);
 const isSubmitting = ref(false);
@@ -393,9 +395,10 @@ const submitForm = async () => {
       const created = await productService.createProduct(payload);
       store.prependItem(created);
     }
+    toast.success(isEditing.value ? 'Product updated' : 'Product created', 'Saved');
     router.push('/products');
   } catch (e: any) {
-    alert(e?.message ?? 'Save failed');
+    toast.error(e?.message ?? 'Save failed', 'Error');
   } finally {
     isSubmitting.value = false;
   }

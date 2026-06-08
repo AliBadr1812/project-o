@@ -200,9 +200,13 @@ import Pagination from '@/components/ui/Pagination.vue';
 import { formatDate, truncateText } from '@/utils/formatters';
 import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import { useCategoryStore } from '@/stores/categoryStore';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
 
-const router = useRouter();
-const store = useCategoryStore();
+const router  = useRouter();
+const store   = useCategoryStore();
+const toast   = useToast();
+const { confirm } = useConfirm();
 const { items: categories, loading, error } = storeToRefs(store);
 
 // ── UI state ──────────────────────────────────────────────────────────────
@@ -271,12 +275,21 @@ const handleCreate = () => router.push('/categories/create');
 const handleEdit   = (id: number) => router.push(`/categories/edit/${id}`);
 
 const handleDelete = async (id: number) => {
-  if (!confirm('Are you sure you want to delete this category?')) return;
+  const cat = categories.value.find(c => c.id === id);
+  const ok = await confirm({
+    title:       'Delete category',
+    message:     `Delete "${cat?.name ?? 'this category'}"?`,
+    detail:      'Products in this category will become uncategorised.',
+    confirmText: 'Delete',
+    variant:     'danger',
+  });
+  if (!ok) return;
   try {
     await store.remove(id);
     selectedIds.value = selectedIds.value.filter(x => x !== id);
+    toast.success('Category deleted');
   } catch (e: any) {
-    alert(e?.message ?? 'Delete failed');
+    toast.error(e?.message ?? 'Delete failed', 'Error');
   }
 };
 
@@ -286,14 +299,22 @@ const exportCategories = () => {
     filteredCategories.value,
     ['id', 'name', 'description', 'productCount', 'isActive', 'createdAt'],
   );
+  toast.success(`Exported ${filteredCategories.value.length} categories to CSV`);
 };
 
 const handleBulkDelete = async () => {
   if (!selectedIds.value.length) return;
-  if (!confirm(`Delete ${selectedIds.value.length} categories?`)) return;
+  const ok = await confirm({
+    title:       'Delete categories',
+    message:     `Permanently delete ${selectedIds.value.length} categories?`,
+    confirmText: `Delete ${selectedIds.value.length}`,
+    variant:     'danger',
+  });
+  if (!ok) return;
   for (const id of [...selectedIds.value]) {
     try { await store.remove(id); } catch { /* skip */ }
   }
+  toast.success(`${selectedIds.value.length} categories deleted`);
   selectedIds.value = [];
 };
 </script>

@@ -189,9 +189,13 @@ import Card from '@/components/ui/Card.vue';
 import Button from '@/components/ui/Button.vue';
 import Badge from '@/components/ui/Badge.vue';
 import { formatDate } from '@/utils/formatters';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
 
 const router = useRouter();
 const route = useRoute();
+const toast = useToast();
+const { confirm } = useConfirm();
 
 // State
 const submitting = ref(false);
@@ -306,26 +310,28 @@ const handleSubmit = async () => {
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     if (isEditing.value) {
-      console.log('Updating category:', { id: route.params.id, ...form });
-      alert('Category updated successfully!');
+      toast.success('Category updated successfully!', 'Saved');
     } else {
-      console.log('Creating category:', form);
-      alert('Category created successfully!');
+      toast.success('Category created successfully!', 'Created');
     }
 
     router.push('/categories');
-  } catch (error) {
-    console.error('Error saving category:', error);
-    alert('Failed to save category. Please try again.');
+  } catch (error: any) {
+    toast.error(error?.message ?? 'Failed to save category. Please try again.', 'Error');
   } finally {
     submitting.value = false;
   }
 };
 
-const handleCancel = () => {
-  if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
-    router.push('/categories');
-  }
+const handleCancel = async () => {
+  const ok = await confirm({
+    title:       'Discard changes?',
+    message:     'Are you sure you want to cancel? Any unsaved changes will be lost.',
+    confirmText: 'Discard',
+    cancelText:  'Keep editing',
+    variant:     'warning',
+  });
+  if (ok) router.push('/categories');
 };
 
 const triggerFileUpload = () => {

@@ -234,10 +234,14 @@ import Card from '@/components/ui/Card.vue';
 import Badge from '@/components/ui/Badge.vue';
 import { formatCurrency, formatDate, getInitials } from '@/utils/formatters';
 import { useCustomerStore } from '@/stores/customerStore';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
 
 const route  = useRoute();
 const router = useRouter();
 const store  = useCustomerStore();
+const toast  = useToast();
+const { confirm } = useConfirm();
 
 // Customer data — enriched from store + sensible defaults
 const customer = ref<any>(null);
@@ -295,7 +299,7 @@ const getStatusVariant = (status: string) => {
 
 // Methods
 const sendMessage = () => {
-  alert(`Sending message to ${customer.value.name}`);
+  toast.info(`Message composer coming soon for ${customer.value?.name}`, 'Send Message');
 };
 
 const editCustomer = () => {
@@ -303,40 +307,50 @@ const editCustomer = () => {
 };
 
 const addNote = () => {
-  const content = prompt('Enter note content:');
-  if (content) {
+  const content = window.prompt('Enter note content:');
+  if (content?.trim()) {
     customer.value.notes.unshift({
       id: Date.now(),
       author: 'You',
       createdAt: new Date().toISOString(),
-      content
+      content: content.trim(),
     });
+    toast.success('Note added');
   }
 };
 
 const addAddress = () => {
-  alert('Adding new address...');
+  toast.info('Address management coming soon', 'Add Address');
 };
 
 const editAddress = (addressId: number) => {
-  alert(`Editing address ${addressId}`);
+  toast.info(`Address editor coming soon (ID: ${addressId})`, 'Edit Address');
 };
 
-const deleteAddress = (addressId: number) => {
-  if (confirm('Are you sure you want to delete this address?')) {
-    customer.value.addresses = customer.value.addresses.filter(addr => addr.id !== addressId);
+const deleteAddress = async (addressId: number) => {
+  const ok = await confirm({
+    title:       'Delete address',
+    message:     'Remove this address from the customer profile?',
+    confirmText: 'Delete',
+    variant:     'danger',
+  });
+  if (ok) {
+    customer.value.addresses = customer.value.addresses.filter((addr: any) => addr.id !== addressId);
+    toast.success('Address removed');
   }
 };
 
 const addTag = () => {
-  const tag = prompt('Enter tag name:');
-  if (tag && !customer.value.tags.includes(tag)) {
-    customer.value.tags.push(tag);
+  const tag = window.prompt('Enter tag name:');
+  if (tag?.trim() && !customer.value.tags.includes(tag.trim())) {
+    customer.value.tags.push(tag.trim());
+    toast.success(`Tag "${tag.trim()}" added`);
   }
 };
 
 const removeTag = (tag: string) => {
-  customer.value.tags = customer.value.tags.filter(t => t !== tag);
+  customer.value.tags = customer.value.tags.filter((t: string) => t !== tag);
+  toast.info(`Tag "${tag}" removed`);
 };
 </script>
 

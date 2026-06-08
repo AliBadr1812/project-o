@@ -259,10 +259,14 @@ import Card from '@/components/ui/Card.vue';
 import { formatCurrency, formatDate, getInitials } from '@/utils/formatters';
 import { customerService } from '@/services/customerService';
 import { useCustomerStore } from '@/stores/customerStore';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
 
 const route  = useRoute();
 const router = useRouter();
 const store  = useCustomerStore();
+const toast  = useToast();
+const { confirm } = useConfirm();
 
 const loading = ref(true);
 const saving  = ref(false);
@@ -354,31 +358,46 @@ async function handleSave() {
       type:     form.type,
     });
     store.updateItem(id, updated);
+    toast.success('Customer saved', 'Saved');
     router.push('/customers');
   } catch (e: any) {
-    alert(e?.message ?? 'Save failed');
+    toast.error(e?.message ?? 'Save failed', 'Error');
   } finally {
     saving.value = false;
   }
 }
 
-function handleDeactivate() {
+async function handleDeactivate() {
   if (!customer.value) return;
-  if (confirm(`Deactivate ${customer.value.name}? They will lose access to their account.`)) {
+  const ok = await confirm({
+    title:       'Deactivate account',
+    message:     `Deactivate ${customer.value.name}?`,
+    detail:      'They will lose access to their account immediately.',
+    confirmText: 'Deactivate',
+    variant:     'warning',
+  });
+  if (ok) {
     form.status = 'inactive';
-    alert('Account deactivated. Save to apply.');
+    toast.info('Account deactivated. Save to apply.', 'Deactivated');
   }
 }
 
 async function handleDelete() {
   if (!customer.value) return;
-  if (confirm(`Permanently delete ${customer.value.name}? This cannot be undone.`)) {
-    try {
-      await store.remove(customer.value.id);
-      router.push('/customers');
-    } catch (e: any) {
-      alert(e?.message ?? 'Delete failed');
-    }
+  const ok = await confirm({
+    title:       'Delete customer',
+    message:     `Permanently delete ${customer.value.name}?`,
+    detail:      'All their data will be removed. This cannot be undone.',
+    confirmText: 'Delete',
+    variant:     'danger',
+  });
+  if (!ok) return;
+  try {
+    await store.remove(customer.value.id);
+    toast.success('Customer deleted');
+    router.push('/customers');
+  } catch (e: any) {
+    toast.error(e?.message ?? 'Delete failed', 'Error');
   }
 }
 </script>
