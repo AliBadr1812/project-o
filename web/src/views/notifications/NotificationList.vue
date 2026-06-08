@@ -11,29 +11,85 @@
           <span v-if="alertCount > 0" class="badge badge-warning">{{ alertCount }} alerts</span>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button
-          v-if="unreadCount > 0"
-          @click="markAllRead"
-          class="btn-glass flex items-center gap-2 text-sm"
-        >
-          <i class="fas fa-check-double text-xs"></i>
-          Mark all read
+      <div class="flex items-center gap-2 flex-wrap">
+        <!-- Bulk mode toggle -->
+        <button @click="toggleBulkMode" class="btn-glass flex items-center gap-2 text-sm"
+          :class="{ 'btn-accent': bulkMode }">
+          <i class="fas fa-list-check text-xs"></i>
+          {{ bulkMode ? 'Cancel' : 'Select' }}
         </button>
-        <button
-          v-if="notifications.length > 0"
-          @click="clearAll"
-          class="btn-glass flex items-center gap-2 text-sm"
-        >
-          <i class="fas fa-trash-can text-xs"></i>
-          Clear all
-        </button>
+        <!-- Bulk actions -->
+        <template v-if="bulkMode && selectedIds.size > 0">
+          <button @click="bulkMarkRead" class="btn-glass flex items-center gap-2 text-sm">
+            <i class="fas fa-check-double text-xs"></i>
+            Mark read ({{ selectedIds.size }})
+          </button>
+          <button @click="bulkDismiss" class="btn-glass flex items-center gap-2 text-sm"
+            style="color: var(--ni-red);">
+            <i class="fas fa-trash-can text-xs"></i>
+            Delete ({{ selectedIds.size }})
+          </button>
+        </template>
+        <template v-else-if="!bulkMode">
+          <button v-if="unreadCount > 0" @click="markAllRead"
+            class="btn-glass flex items-center gap-2 text-sm">
+            <i class="fas fa-check-double text-xs"></i>
+            Mark all read
+          </button>
+          <button v-if="notifications.length > 0" @click="clearAll"
+            class="btn-glass flex items-center gap-2 text-sm">
+            <i class="fas fa-trash-can text-xs"></i>
+            Clear all
+          </button>
+          <button @click="showPrefs = !showPrefs"
+            class="btn-glass flex items-center gap-2 text-sm"
+            :class="{ 'btn-accent': showPrefs }" title="Notification preferences">
+            <i class="fas fa-sliders text-xs"></i>
+          </button>
+        </template>
       </div>
     </div>
 
-    <!-- Filter row -->
+    <!-- Preferences panel -->
+    <Transition name="prefs-slide">
+      <div v-if="showPrefs" class="glass-card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-[14px] font-semibold" style="color: var(--text-primary);">
+            <i class="fas fa-sliders text-xs mr-2" style="color: var(--accent);"></i>
+            Notification Preferences
+          </h2>
+          <button @click="showPrefs = false" class="btn-glass-icon w-7 h-7 rounded-lg text-xs">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div v-for="pref in prefs" :key="pref.key"
+            class="flex items-center justify-between p-3 rounded-xl"
+            style="background: var(--glass-bg); border: 1px solid var(--glass-border);">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs"
+                :style="{ background: pref.iconBg, color: pref.iconColor }">
+                <i :class="pref.icon"></i>
+              </div>
+              <span class="text-sm font-medium" style="color: var(--text-primary);">{{ pref.label }}</span>
+            </div>
+            <button @click="pref.enabled = !pref.enabled"
+              class="notif-toggle"
+              :class="{ 'notif-toggle--on': pref.enabled }">
+              <span class="notif-toggle-knob"></span>
+            </button>
+          </div>
+        </div>
+        <p class="text-xs mt-3" style="color: var(--text-muted);">
+          <i class="fas fa-circle-info mr-1"></i>
+          Changes are saved automatically and apply to in-app notifications.
+        </p>
+      </div>
+    </Transition>
+
+    <!-- Filter row + search -->
     <div class="flex items-center gap-3 flex-wrap">
-      <div class="notif-filter-bar flex items-center gap-1 p-1 rounded-xl">
+      <div class="notif-filter-bar flex items-center gap-1 p-1 rounded-xl flex-wrap">
         <button
           v-for="tab in filterTabs"
           :key="tab.id"
@@ -48,6 +104,18 @@
             class="notif-count-badge"
             :class="{ 'active': activeFilter === tab.id }"
           >{{ tab.count }}</span>
+        </button>
+      </div>
+      <!-- Search -->
+      <div class="relative ml-auto">
+        <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs"
+          style="color: var(--text-muted);"></i>
+        <input v-model="searchQuery" type="text" placeholder="Search notifications…"
+          class="glass-input pl-9 text-sm" style="width: 220px;">
+        <button v-if="searchQuery" @click="searchQuery = ''"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
+          style="color: var(--text-muted);">
+          <i class="fas fa-xmark"></i>
         </button>
       </div>
     </div>
@@ -81,18 +149,20 @@
           <div
             v-for="(n, idx) in group.items"
             :key="n.id"
-            @click="markRead(n)"
+            @click="bulkMode ? toggleSelect(n.id) : markRead(n)"
             class="notif-row flex items-start gap-4 px-5 py-4 cursor-pointer transition-all duration-150"
-            :class="{ 'is-unread': !n.read, 'border-t': idx > 0 }"
+            :class="{ 'is-unread': !n.read, 'border-t': idx > 0, 'is-selected': selectedIds.has(n.id) }"
             :style="idx > 0 ? 'border-color: var(--glass-border)' : ''"
           >
-            <!-- Unread pip -->
-            <div class="flex-shrink-0 w-2 flex justify-center pt-[18px]">
-              <div
-                v-if="!n.read"
-                class="w-2 h-2 rounded-full"
-                :style="{ background: typeConfig[n.type].dotColor }"
-              ></div>
+            <!-- Bulk checkbox / Unread pip -->
+            <div class="flex-shrink-0 w-5 flex justify-center pt-[14px]">
+              <template v-if="bulkMode">
+                <div class="notif-checkbox" :class="{ 'notif-checkbox--checked': selectedIds.has(n.id) }">
+                  <i v-if="selectedIds.has(n.id)" class="fas fa-check text-[9px]"></i>
+                </div>
+              </template>
+              <div v-else-if="!n.read" class="w-2 h-2 rounded-full mt-1"
+                :style="{ background: typeConfig[n.type].dotColor }"></div>
             </div>
 
             <!-- Icon -->
@@ -145,7 +215,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, reactive } from 'vue';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
+
+const toast = useToast();
+const { confirm } = useConfirm();
 
 /* ── Types ── */
 type NotificationType = 'order' | 'customer' | 'product' | 'alert' | 'info' | 'payment';
@@ -262,25 +337,52 @@ const notifications = ref<Notification[]>([
   },
 ]);
 
+/* ── UI state ── */
+const searchQuery = ref('');
+const showPrefs   = ref(false);
+const bulkMode    = ref(false);
+const selectedIds = ref(new Set<number>());
+
+/* ── Notification preferences ── */
+const prefs = reactive([
+  { key: 'orders',    label: 'Orders',    icon: 'fas fa-bag-shopping',         iconBg: 'var(--ni-blue-bg)',   iconColor: 'var(--ni-blue)',   enabled: true  },
+  { key: 'payments',  label: 'Payments',  icon: 'fas fa-credit-card',          iconBg: 'var(--ni-green-bg)',  iconColor: 'var(--ni-green)',  enabled: true  },
+  { key: 'customers', label: 'Customers', icon: 'fas fa-user-circle',          iconBg: 'var(--ni-purple-bg)', iconColor: 'var(--ni-purple)', enabled: true  },
+  { key: 'products',  label: 'Products',  icon: 'fas fa-box',                  iconBg: 'var(--ni-orange-bg)', iconColor: 'var(--ni-orange)', enabled: true  },
+  { key: 'alerts',    label: 'Alerts',    icon: 'fas fa-triangle-exclamation', iconBg: 'var(--ni-red-bg)',    iconColor: 'var(--ni-red)',    enabled: true  },
+  { key: 'info',      label: 'Info',      icon: 'fas fa-circle-info',          iconBg: 'var(--ni-teal-bg)',   iconColor: 'var(--ni-teal)',   enabled: false },
+]);
+
 /* ── Derived counts ── */
 const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
 const alertCount  = computed(() => notifications.value.filter(n => n.type === 'alert').length);
 
 /* ── Filter tabs ── */
-const activeFilter = ref<'all' | 'unread' | 'orders' | 'alerts'>('all');
+const activeFilter = ref<string>('all');
 
 const filterTabs = computed(() => [
-  { id: 'all',    label: 'All',    icon: 'fas fa-inbox',                count: notifications.value.length },
-  { id: 'unread', label: 'Unread', icon: 'fas fa-circle',               count: unreadCount.value },
-  { id: 'orders', label: 'Orders', icon: 'fas fa-bag-shopping',         count: notifications.value.filter(n => n.type === 'order').length },
-  { id: 'alerts', label: 'Alerts', icon: 'fas fa-triangle-exclamation', count: alertCount.value },
+  { id: 'all',       label: 'All',       icon: 'fas fa-inbox',                count: notifications.value.length },
+  { id: 'unread',    label: 'Unread',    icon: 'fas fa-circle',               count: unreadCount.value },
+  { id: 'orders',    label: 'Orders',    icon: 'fas fa-bag-shopping',         count: notifications.value.filter(n => n.type === 'order').length },
+  { id: 'alerts',    label: 'Alerts',    icon: 'fas fa-triangle-exclamation', count: alertCount.value },
+  { id: 'payments',  label: 'Payments',  icon: 'fas fa-credit-card',          count: notifications.value.filter(n => n.type === 'payment').length },
+  { id: 'customers', label: 'Customers', icon: 'fas fa-user-circle',          count: notifications.value.filter(n => n.type === 'customer').length },
 ]);
 
 const filtered = computed(() => {
-  if (activeFilter.value === 'unread') return notifications.value.filter(n => !n.read);
-  if (activeFilter.value === 'orders') return notifications.value.filter(n => n.type === 'order');
-  if (activeFilter.value === 'alerts') return notifications.value.filter(n => n.type === 'alert');
-  return notifications.value;
+  let list = notifications.value;
+  if (activeFilter.value === 'unread')    list = list.filter(n => !n.read);
+  else if (activeFilter.value === 'orders')    list = list.filter(n => n.type === 'order');
+  else if (activeFilter.value === 'alerts')    list = list.filter(n => n.type === 'alert');
+  else if (activeFilter.value === 'payments')  list = list.filter(n => n.type === 'payment');
+  else if (activeFilter.value === 'customers') list = list.filter(n => n.type === 'customer');
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase();
+    list = list.filter(n =>
+      n.title.toLowerCase().includes(q) || n.message.toLowerCase().includes(q)
+    );
+  }
+  return list;
 });
 
 /* ── Grouping ── */
@@ -300,10 +402,59 @@ const groupedNotifications = computed(() => {
 });
 
 /* ── Actions ── */
-function markRead(n: Notification)  { n.read = true; }
-function markAllRead()              { notifications.value.forEach(n => { n.read = true; }); }
-function dismiss(n: Notification)   { notifications.value.splice(notifications.value.findIndex(x => x.id === n.id), 1); }
-function clearAll()                 { notifications.value = []; }
+function markRead(n: Notification) { n.read = true; }
+
+function markAllRead() {
+  const count = notifications.value.filter(n => !n.read).length;
+  notifications.value.forEach(n => { n.read = true; });
+  toast.success(`${count} notification${count !== 1 ? 's' : ''} marked as read`);
+}
+
+function dismiss(n: Notification) {
+  notifications.value.splice(notifications.value.findIndex(x => x.id === n.id), 1);
+}
+
+async function clearAll() {
+  const ok = await confirm({
+    title:       'Clear all notifications',
+    message:     `Remove all ${notifications.value.length} notifications?`,
+    detail:      'This cannot be undone.',
+    confirmText: 'Clear all',
+    variant:     'danger',
+  });
+  if (ok) {
+    const count = notifications.value.length;
+    notifications.value = [];
+    toast.success(`${count} notifications cleared`);
+  }
+}
+
+/* ── Bulk select ── */
+function toggleBulkMode() {
+  bulkMode.value = !bulkMode.value;
+  if (!bulkMode.value) selectedIds.value.clear();
+}
+
+function toggleSelect(id: number) {
+  const s = new Set(selectedIds.value);
+  if (s.has(id)) s.delete(id); else s.add(id);
+  selectedIds.value = s;
+}
+
+function bulkMarkRead() {
+  const count = selectedIds.value.size;
+  notifications.value.forEach(n => { if (selectedIds.value.has(n.id)) n.read = true; });
+  selectedIds.value = new Set();
+  toast.success(`${count} notification${count !== 1 ? 's' : ''} marked as read`);
+}
+
+function bulkDismiss() {
+  const count = selectedIds.value.size;
+  notifications.value = notifications.value.filter(n => !selectedIds.value.has(n.id));
+  selectedIds.value = new Set();
+  bulkMode.value = false;
+  toast.success(`${count} notification${count !== 1 ? 's' : ''} deleted`);
+}
 </script>
 
 <style scoped>
@@ -355,5 +506,65 @@ function clearAll()                 { notifications.value = []; }
   background: rgba(255,255,255,0.25);
   color: #fff;
   border-color: rgba(255,255,255,0.20);
+}
+
+/* Selected row highlight */
+.notif-row.is-selected {
+  background: rgba(var(--accent-rgb), 0.08) !important;
+  border-left: 3px solid var(--accent);
+}
+
+/* Bulk-select checkbox */
+.notif-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid var(--glass-border);
+  background: var(--glass-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  color: #fff;
+}
+.notif-checkbox--checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Notification preference toggle */
+.notif-toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--glass-border);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.notif-toggle--on { background: var(--accent); }
+.notif-toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.notif-toggle--on .notif-toggle-knob { transform: translateX(16px); }
+
+/* Preferences panel slide */
+.prefs-slide-enter-active { transition: all 0.25s ease; }
+.prefs-slide-leave-active { transition: all 0.2s ease; }
+.prefs-slide-enter-from,
+.prefs-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scaleY(0.96);
+  transform-origin: top;
 }
 </style>
