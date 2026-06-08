@@ -71,7 +71,7 @@
                 <span style="color: var(--text-muted);">Loading…</span>
               </td>
             </tr>
-            <tr v-for="r in filtered" :key="r.id">
+            <tr v-for="r in paginatedReturns" :key="r.id">
               <td>
                 <span class="font-mono text-sm font-semibold" style="color: var(--accent);">{{ r.returnNumber }}</span>
               </td>
@@ -120,14 +120,24 @@
                 </div>
               </td>
             </tr>
-            <tr v-if="!loading && filtered.length === 0">
+            <tr v-if="!loading && items.length > 0 && paginatedReturns.length === 0 && filtered.length === 0">
               <td colspan="8" class="py-12 text-center">
-                <i class="fas fa-box-open text-3xl mb-3" style="color: var(--text-muted);"></i>
-                <p class="text-sm" style="color: var(--text-muted);">No return requests found.</p>
+                <i class="fas fa-magnifying-glass text-3xl mb-3" style="color: var(--text-muted);"></i>
+                <p class="text-sm font-medium mb-1" style="color: var(--text-primary);">No results</p>
+                <p class="text-xs" style="color: var(--text-muted);">No returns match your current filters.</p>
               </td>
             </tr>
           </tbody>
         </table>
+        <EmptyState v-if="!loading && items.length === 0"
+          title="No return requests"
+          description="When customers submit return requests they will appear here.">
+          <template #icon><i class="fas fa-box-open"></i></template>
+        </EmptyState>
+        <Pagination v-if="filtered.length > itemsPerPage"
+          :current-page="currentPage" :total-pages="totalPages"
+          :total-items="filtered.length" :items-per-page="itemsPerPage"
+          @page-change="(p) => { currentPage.value = p; window.scrollTo({ top: 0, behavior: 'smooth' }); }" />
       </div>
     </div>
 
@@ -204,16 +214,22 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useReturnStore } from '@/stores/returnStore';
 import { returnService } from '@/services/returnService';
+import { useToast } from '@/composables/useToast';
+import EmptyState from '@/components/shared/EmptyState.vue';
+import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import type { Return } from '@/types/return';
 
 const store = useReturnStore();
+const toast = useToast();
 const { items, loading, error } = storeToRefs(store);
 
 const search       = ref('');
 const filterStatus = ref('');
 const selected     = ref<Return | null>(null);
 const staffNotesDraft = ref('');
+const currentPage  = ref(1);
+const itemsPerPage = 8;
 
 onMounted(() => store.fetchAll());
 
@@ -247,6 +263,14 @@ const filtered = computed(() => {
   }
   return list;
 });
+
+const totalPages    = computed(() => Math.ceil(filtered.value.length / itemsPerPage));
+const paginatedReturns = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filtered.value.slice(start, start + itemsPerPage);
+});
+
+watch([search, filterStatus], () => { currentPage.value = 1; });
 
 function statusClass(status: string): string {
   const map: Record<string, string> = {
@@ -283,8 +307,9 @@ async function updateStatus(r: Return, status: string) {
   try {
     const updated = await returnService.updateReturn(r.id, { status });
     store.updateItem(r.id, updated);
+    toast.success(`Return ${r.returnNumber} marked as ${status.toLowerCase().replace('_', ' ')}`);
   } catch (e: any) {
-    alert(e?.message ?? 'Update failed');
+    toast.error(e?.message ?? 'Update failed', 'Error');
   }
 }
 
@@ -299,8 +324,9 @@ async function updateStatusFromDrawer(status: string) {
     const updated = await returnService.updateReturn(selected.value.id, { status, staffNotes: notes });
     store.updateItem(selected.value.id, updated);
     selected.value = { ...selected.value, ...updated };
+    toast.success('Status updated');
   } catch (e: any) {
-    alert(e?.message ?? 'Update failed');
+    toast.error(e?.message ?? 'Update failed', 'Error');
   }
 }
 
@@ -310,8 +336,9 @@ async function saveNotes() {
     const updated = await returnService.updateReturn(selected.value.id, { staffNotes: staffNotesDraft.value });
     store.updateItem(selected.value.id, updated);
     selected.value = { ...selected.value, staffNotes: staffNotesDraft.value };
+    toast.success('Staff notes saved');
   } catch (e: any) {
-    alert(e?.message ?? 'Save failed');
+    toast.error(e?.message ?? 'Save failed', 'Error');
   }
 }
 </script>

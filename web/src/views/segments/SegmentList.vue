@@ -56,13 +56,22 @@
     </div>
 
     <!-- Segment Cards -->
+    <div v-else-if="!loading && items.length === 0">
+      <EmptyState
+        title="No segments yet"
+        description="Create customer segments to group buyers by behavior, value, or other criteria for targeted campaigns."
+        action-text="New Segment"
+        @action="showCreate = true">
+        <template #icon><i class="fas fa-layer-group"></i></template>
+      </EmptyState>
+    </div>
     <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
       <div v-if="loading" v-for="n in 5" :key="n" class="glass-card p-6 animate-pulse">
         <div class="w-10 h-10 rounded-xl mb-4" style="background: var(--glass-bg);"></div>
         <div class="h-4 rounded mb-2" style="background: var(--glass-bg); width: 60%;"></div>
         <div class="h-3 rounded" style="background: var(--glass-bg); width: 80%;"></div>
       </div>
-      <div v-for="seg in items" :key="seg.id" class="glass-card p-6 flex flex-col gap-4">
+      <div v-for="seg in paginatedSegments" :key="seg.id" class="glass-card p-6 flex flex-col gap-4">
         <!-- Card header -->
         <div class="flex items-start justify-between">
           <div class="flex items-center gap-3">
@@ -116,6 +125,10 @@
         </div>
       </div>
     </div>
+    <Pagination v-if="items.length > itemsPerPage"
+      :current-page="currentPage" :total-pages="totalPages"
+      :total-items="items.length" :items-per-page="itemsPerPage"
+      @page-change="(p) => { currentPage.value = p; window.scrollTo({ top: 0, behavior: 'smooth' }); }" />
 
     <!-- Create / Edit Modal -->
     <Teleport to="body">
@@ -172,15 +185,23 @@ import { ref, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSegmentStore } from '@/stores/segmentStore';
 import { segmentService } from '@/services/segmentService';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
+import EmptyState from '@/components/shared/EmptyState.vue';
+import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency } from '@/utils/formatters';
 import type { Segment } from '@/types/segment';
 
 const store = useSegmentStore();
+const toast = useToast();
+const { confirm } = useConfirm();
 const { items, loading, error } = storeToRefs(store);
 
-const showCreate = ref(false);
-const editing    = ref<Segment | null>(null);
-const saving     = ref(false);
+const showCreate  = ref(false);
+const editing     = ref<Segment | null>(null);
+const saving      = ref(false);
+const currentPage = ref(1);
+const itemsPerPage = 9; // 3×3 grid
 
 const form = ref({ name: '', description: '', color: '#7c5ef0', icon: 'fas fa-users' });
 
@@ -189,6 +210,12 @@ onMounted(() => store.fetchAll());
 const totalCustomers = computed(() => items.value.reduce((s, g) => s + (g.customerCount ?? 0), 0));
 const totalRevenue   = computed(() => items.value.reduce((s, g) => s + (g.totalRevenue ?? 0), 0));
 const systemCount    = computed(() => items.value.filter(g => g.isSystem).length);
+
+const totalPages      = computed(() => Math.ceil(items.value.length / itemsPerPage));
+const paginatedSegments = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return items.value.slice(start, start + itemsPerPage);
+});
 
 function editSegment(seg: Segment) {
   editing.value    = seg;
@@ -212,20 +239,29 @@ async function saveSegment() {
       const created = await segmentService.createSegment(form.value);
       store.prependItem(created);
     }
+    toast.success(editing.value ? 'Segment updated' : 'Segment created');
     closeModal();
   } catch (e: any) {
-    alert(e?.message ?? 'Save failed');
+    toast.error(e?.message ?? 'Save failed', 'Error');
   } finally {
     saving.value = false;
   }
 }
 
 async function deleteSegment(seg: Segment) {
-  if (!confirm(`Delete segment "${seg.name}"?`)) return;
+  const ok = await confirm({
+    title:       'Delete segment',
+    message:     `Delete "${seg.name}"?`,
+    detail:      'Customers in this segment will not be affected.',
+    confirmText: 'Delete',
+    variant:     'danger',
+  });
+  if (!ok) return;
   try {
     await store.remove(seg.id);
+    toast.success('Segment deleted');
   } catch (e: any) {
-    alert(e?.message ?? 'Delete failed');
+    toast.error(e?.message ?? 'Delete failed', 'Error');
   }
 }
 </script>

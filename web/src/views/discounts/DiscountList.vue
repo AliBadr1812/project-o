@@ -95,7 +95,7 @@
                 <span style="color: var(--text-muted);">Loading…</span>
               </td>
             </tr>
-            <tr v-for="d in filtered" :key="d.id">
+            <tr v-for="d in paginatedItems" :key="d.id">
               <td>
                 <span class="font-mono text-sm font-semibold px-2 py-0.5 rounded"
                   style="background: rgba(var(--accent-rgb),0.10); color: var(--accent);">
@@ -148,32 +148,52 @@
                 </div>
               </td>
             </tr>
-            <tr v-if="!loading && filtered.length === 0">
+            <tr v-if="!loading && items.length > 0 && filtered.length === 0">
               <td colspan="8" class="py-12 text-center">
-                <i class="fas fa-ticket text-3xl mb-3" style="color: var(--text-muted);"></i>
-                <p class="text-sm" style="color: var(--text-muted);">No discount codes found.</p>
+                <i class="fas fa-magnifying-glass text-3xl mb-3" style="color: var(--text-muted);"></i>
+                <p class="text-sm font-medium mb-1" style="color: var(--text-primary);">No results</p>
+                <p class="text-xs" style="color: var(--text-muted);">No discount codes match your search.</p>
               </td>
             </tr>
           </tbody>
         </table>
+        <EmptyState v-if="!loading && items.length === 0"
+          title="No discount codes yet"
+          description="Create your first coupon code to offer promotions to customers."
+          action-text="New Discount"
+          action-to="/discounts/create">
+          <template #icon><i class="fas fa-ticket"></i></template>
+        </EmptyState>
+        <Pagination v-if="filtered.length > itemsPerPage"
+          :current-page="currentPage" :total-pages="totalPages"
+          :total-items="filtered.length" :items-per-page="itemsPerPage"
+          @page-change="(p) => { currentPage.value = p; window.scrollTo({ top: 0, behavior: 'smooth' }); }" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useDiscountStore } from '@/stores/discountStore';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
+import EmptyState from '@/components/shared/EmptyState.vue';
+import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import type { Discount } from '@/types/discount';
 
-const router = useRouter();
-const store  = useDiscountStore();
+const router  = useRouter();
+const store   = useDiscountStore();
+const toast   = useToast();
+const { confirm } = useConfirm();
 const { items, loading, error } = storeToRefs(store);
 
-const search = ref('');
+const search      = ref('');
+const currentPage  = ref(1);
+const itemsPerPage = 8;
 
 onMounted(() => store.fetchAll());
 
@@ -194,6 +214,14 @@ const filtered = computed(() => {
   );
 });
 
+const totalPages     = computed(() => Math.ceil(filtered.value.length / itemsPerPage));
+const paginatedItems = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filtered.value.slice(start, start + itemsPerPage);
+});
+
+watch(search, () => { currentPage.value = 1; });
+
 function isExpired(endDate: string): boolean {
   return endDate ? new Date(endDate) < new Date() : false;
 }
@@ -207,11 +235,20 @@ const toggleActive = async (d: Discount) => {
 };
 
 const deleteDiscount = async (id: number) => {
-  if (!confirm('Delete this discount code?')) return;
+  const disc = items.value.find(d => d.id === id);
+  const ok = await confirm({
+    title: 'Delete discount code',
+    message: `Delete "${disc?.code ?? 'this code'}"?`,
+    detail: 'Customers will no longer be able to use this code.',
+    confirmText: 'Delete',
+    variant: 'danger',
+  });
+  if (!ok) return;
   try {
     await store.remove(id);
+    toast.success('Discount code deleted');
   } catch (e: any) {
-    alert(e?.message ?? 'Delete failed');
+    toast.error(e?.message ?? 'Delete failed', 'Error');
   }
 };
 </script>

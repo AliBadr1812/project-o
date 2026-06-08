@@ -67,7 +67,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="p in outOfStock" :key="p.id">
+            <tr v-for="p in paginatedOos" :key="p.id">
               <td>
                 <div class="flex items-center gap-3">
                   <img :src="p.images?.[0] || 'https://freesvg.org/img/abstract-user-flat-4.png'"
@@ -90,6 +90,10 @@
           </tbody>
         </table>
       </div>
+      <Pagination v-if="outOfStock.length > perPage"
+        :current-page="pageOos" :total-pages="totalPagesOos"
+        :total-items="outOfStock.length" :items-per-page="perPage"
+        @page-change="(p) => { pageOos.value = p; }" />
     </div>
 
     <!-- Low Stock -->
@@ -112,7 +116,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="p in lowStock" :key="p.id">
+            <tr v-for="p in paginatedLow" :key="p.id">
               <td>
                 <div class="flex items-center gap-3">
                   <img :src="p.images?.[0] || 'https://freesvg.org/img/abstract-user-flat-4.png'"
@@ -140,6 +144,10 @@
           </tbody>
         </table>
       </div>
+      <Pagination v-if="lowStock.length > perPage"
+        :current-page="pageLow" :total-pages="totalPagesLow"
+        :total-items="lowStock.length" :items-per-page="perPage"
+        @page-change="(p) => { pageLow.value = p; }" />
     </div>
 
     <!-- Loading / Empty -->
@@ -148,18 +156,24 @@
       <p style="color:var(--text-muted);">Loading inventory…</p>
     </div>
 
-    <div v-else-if="!outOfStock.length && !lowStock.length" class="glass-card p-12 text-center">
-      <i class="fas fa-circle-check text-4xl mb-4" style="color:var(--ni-green);"></i>
-      <p class="text-lg font-semibold mb-1" style="color:var(--text-primary);">All good!</p>
-      <p style="color:var(--text-muted);">No inventory alerts at this time. All products are well stocked.</p>
+    <div v-else-if="!outOfStock.length && !lowStock.length" class="glass-card overflow-hidden">
+      <EmptyState
+        title="All good — no alerts!"
+        description="No inventory alerts at this time. All products are well stocked and ready for orders.">
+        <template #icon>
+          <i class="fas fa-circle-check" style="color: var(--ni-green);"></i>
+        </template>
+      </EmptyState>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useProductStore } from '@/stores/productStore';
+import EmptyState from '@/components/shared/EmptyState.vue';
+import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency } from '@/utils/formatters';
 
 const store = useProductStore();
@@ -170,4 +184,20 @@ onMounted(() => store.fetchAll());
 const outOfStock  = computed(() => products.value.filter(p => p.stock === 0));
 const lowStock    = computed(() => products.value.filter(p => p.stock > 0 && p.stock <= 10));
 const wellStocked = computed(() => products.value.filter(p => p.stock > 10));
+
+// Pagination for each section
+const pageOos = ref(1);
+const pageLow = ref(1);
+const perPage = 8;
+
+const paginatedOos = computed(() => {
+  const s = (pageOos.value - 1) * perPage;
+  return outOfStock.value.slice(s, s + perPage);
+});
+const paginatedLow = computed(() => {
+  const s = (pageLow.value - 1) * perPage;
+  return lowStock.value.slice(s, s + perPage);
+});
+const totalPagesOos = computed(() => Math.ceil(outOfStock.value.length / perPage));
+const totalPagesLow = computed(() => Math.ceil(lowStock.value.length / perPage));
 </script>
