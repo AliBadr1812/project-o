@@ -101,6 +101,9 @@
           <table class="glass-table w-full">
             <thead>
               <tr>
+                <th class="w-10">
+                  <input type="checkbox" v-model="selectAll" style="accent-color:var(--accent);width:14px;height:14px;" />
+                </th>
                 <th>Customer</th>
                 <th>Email</th>
                 <th>Orders</th>
@@ -113,12 +116,16 @@
             </thead>
             <tbody>
               <tr v-if="loading">
-                <td colspan="8" class="py-10 text-center">
+                <td colspan="9" class="py-10 text-center">
                   <i class="fas fa-spinner fa-spin mr-2" style="color: var(--text-muted);"></i>
                   <span style="color: var(--text-muted);">Loading…</span>
                 </td>
               </tr>
               <tr v-for="customer in paginatedCustomers" :key="customer.id">
+                <td>
+                  <input type="checkbox" :value="customer.id" v-model="selectedIds"
+                    style="accent-color:var(--accent);width:14px;height:14px;" />
+                </td>
                 <td>
                   <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
@@ -178,6 +185,28 @@
           @page-change="onPageChange" />
       </template>
     </Card>
+
+    <!-- Floating Bulk Action Bar -->
+    <Transition name="bulk-bar">
+      <div v-if="selectedIds.length > 0"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl"
+        style="background: var(--glass-bg-strong); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.25);">
+        <span class="text-sm font-semibold" style="color: var(--text-primary);">
+          {{ selectedIds.length }} selected
+        </span>
+        <div class="w-px h-5" style="background: var(--glass-border);"></div>
+        <button @click="bulkExportCustomers" class="btn-glass text-sm flex items-center gap-1.5">
+          <i class="fas fa-download text-xs"></i>Export
+        </button>
+        <button @click="bulkDelete" class="btn-glass text-sm flex items-center gap-1.5"
+          style="color: var(--ni-red);">
+          <i class="fas fa-trash text-xs"></i>Delete
+        </button>
+        <button @click="selectedIds = []" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Clear">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -192,9 +221,13 @@ import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency, formatDate, getInitials } from '@/utils/formatters';
 import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import { useCustomerStore } from '@/stores/customerStore';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
 
 const router = useRouter();
 const store = useCustomerStore();
+const toast = useToast();
+const { confirm } = useConfirm();
 const { items: customers, loading, error } = storeToRefs(store);
 
 // ── UI state ──────────────────────────────────────────────────────────────
@@ -202,6 +235,17 @@ const searchQuery  = ref('');
 const customerType = ref('');
 const currentPage  = ref(1);
 const itemsPerPage = 5;
+const selectedIds  = ref<number[]>([]);
+
+const selectAll = computed({
+  get: () => paginatedCustomers.value.length > 0 &&
+             paginatedCustomers.value.every(c => selectedIds.value.includes(c.id)),
+  set: (v: boolean) => {
+    const ids = paginatedCustomers.value.map(c => c.id);
+    if (v) selectedIds.value = [...new Set([...selectedIds.value, ...ids])];
+    else   selectedIds.value = selectedIds.value.filter(id => !ids.includes(id));
+  },
+});
 
 onMounted(() => store.fetchAll());
 
@@ -266,5 +310,38 @@ const exportCustomers = () => {
     filteredCustomers.value,
     ['id', 'fullName', 'email', 'phone', 'type', 'status', 'orderCount', 'totalSpent', 'lastOrderDate'],
   );
+  toast.success(`Exported ${filteredCustomers.value.length} customers`);
+};
+
+// ── Bulk actions ──────────────────────────────────────────────────────────
+const bulkExportCustomers = () => {
+  const selected = filteredCustomers.value.filter(c => selectedIds.value.includes(c.id));
+  exportToCsv(datestampedFilename('customers-selected'), selected,
+    ['id', 'fullName', 'email', 'phone', 'type', 'status', 'orderCount', 'totalSpent']);
+  toast.success(`Exported ${selected.length} customers to CSV`);
+};
+
+const bulkDelete = async () => {
+  if (!selectedIds.value.length) return;
+  const ok = await confirm({
+    title:       'Delete customers',
+    message:     `Permanently delete ${selectedIds.value.length} selected customers?`,
+    detail:      'All their orders and data will be removed.',
+    confirmText: `Delete ${selectedIds.value.length}`,
+    variant:     'danger',
+  });
+  if (!ok) return;
+  for (const id of [...selectedIds.value]) {
+    try { await store.remove(id); } catch { /* skip */ }
+  }
+  toast.success(`${selectedIds.value.length} customers deleted`);
+  selectedIds.value = [];
 };
 </script>
+
+<style scoped>
+.bulk-bar-enter-active { transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.bulk-bar-leave-active { transition: all 0.2s ease; }
+.bulk-bar-enter-from,
+.bulk-bar-leave-to   { opacity: 0; transform: translateX(-50%) translateY(16px) scale(0.95); }
+</style>

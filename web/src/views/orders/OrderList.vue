@@ -113,6 +113,10 @@
                 <table class="glass-table w-full">
                     <thead>
                         <tr>
+                            <th class="w-10">
+                              <input type="checkbox" v-model="selectAll"
+                                style="accent-color:var(--accent);width:14px;height:14px;" />
+                            </th>
                             <th class="cursor-pointer" @click="sortBy('order')">
                                 Order
                                 <i v-if="sortField === 'order'" :class="sortDirection === 'asc' ? 'fas fa-arrow-up ml-1' : 'fas fa-arrow-down ml-1'" class="text-[10px]"></i>
@@ -135,6 +139,10 @@
                     </thead>
                     <tbody>
                         <tr v-for="order in paginatedOrders" :key="order.id">
+                            <td>
+                              <input v-if="order.id" type="checkbox" :value="order.id" v-model="selectedIds"
+                                style="accent-color:var(--accent);width:14px;height:14px;" />
+                            </td>
                             <td v-if="!order"></td>
                             <td v-else>
                                 <div class="flex flex-col">
@@ -212,6 +220,28 @@
                 @page-change="onPageChange"
             />
         </Card>
+
+    <!-- Floating Bulk Action Bar -->
+    <Transition name="bulk-bar">
+      <div v-if="selectedIds.length > 0"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl"
+        style="background: var(--glass-bg-strong); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.25);">
+        <span class="text-sm font-semibold" style="color: var(--text-primary);">
+          {{ selectedIds.length }} selected
+        </span>
+        <div class="w-px h-5" style="background: var(--glass-border);"></div>
+        <button @click="bulkExportOrders" class="btn-glass text-sm flex items-center gap-1.5">
+          <i class="fas fa-download text-xs"></i>Export
+        </button>
+        <button @click="bulkCancel" class="btn-glass text-sm flex items-center gap-1.5"
+          style="color: var(--ni-orange);">
+          <i class="fas fa-ban text-xs"></i>Cancel
+        </button>
+        <button @click="selectedIds = []" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Clear">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+    </Transition>
     </div>
 </template>
 
@@ -226,10 +256,14 @@ import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency, formatDate, formatOrderNumber, getInitials } from '@/utils/formatters';
 import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import { useOrderStore } from '@/stores/orderStore';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
 import type { Order } from '@/types/order';
 
-const router = useRouter();
-const store = useOrderStore();
+const router  = useRouter();
+const store   = useOrderStore();
+const toast   = useToast();
+const { confirm } = useConfirm();
 const { items: orders, loading, error } = storeToRefs(store);
 
 // ── UI state ──────────────────────────────────────────────────────────────
@@ -240,6 +274,17 @@ const currentPage = ref(1);
 const itemsPerPage = 8;
 const sortField = ref('date');
 const sortDirection = ref('desc');
+const selectedIds = ref<number[]>([]);
+
+const selectAll = computed({
+  get: () => paginatedOrders.value.length > 0 &&
+             paginatedOrders.value.every(o => o.id && selectedIds.value.includes(o.id)),
+  set: (v: boolean) => {
+    const ids = paginatedOrders.value.map(o => o.id!).filter(Boolean);
+    if (v) selectedIds.value = [...new Set([...selectedIds.value, ...ids])];
+    else   selectedIds.value = selectedIds.value.filter(id => !ids.includes(id));
+  },
+});
 
 // Date Range
 const dateRange = ref({
@@ -437,28 +482,31 @@ const editOrder = (id: number) => {
 };
 
 const printInvoice = (id: number) => {
-    const order = store.items.find(o => o.id === id);
-    if (order) {
-        alert(`Printing invoice for order #${order.orderNumber}`);
-        // In a real app, you would open a print dialog or generate a PDF
-    }
+    router.push(`/orders/${id}`);
+    toast.info('Open the order detail to print the invoice');
 };
 
 const processOrder = (id: number) => {
     const order = store.items.find(o => o.id === id);
     if (order && order.status === 'pending') {
         store.updateItem(id, { status: 'processing' });
-        alert(`Order #${order.orderNumber} is now being processed`);
+        toast.success(`Order #${order.orderNumber} is now processing`);
     }
 };
 
-const cancelOrder = (id: number) => {
+const cancelOrder = async (id: number) => {
     const order = store.items.find(o => o.id === id);
-    if (order && confirm('Are you sure you want to cancel this order?')) {
-        if (order.status === 'pending' || order.status === 'processing') {
-            store.updateItem(id, { status: 'cancelled' });
-            alert(`Order #${order.orderNumber} has been cancelled`);
-        }
+    if (!order) return;
+    const ok = await confirm({
+        title:       'Cancel order',
+        message:     `Cancel order #${order.orderNumber} for ${order.customerName}?`,
+        detail:      'The customer will need to place a new order.',
+        confirmText: 'Cancel Order',
+        variant:     'warning',
+    });
+    if (ok && (order.status === 'pending' || order.status === 'processing')) {
+        store.updateItem(id, { status: 'cancelled' });
+        toast.warning(`Order #${order.orderNumber} has been cancelled`);
     }
 };
 
@@ -468,10 +516,38 @@ const exportOrders = () => {
     filteredOrders.value,
     ['id', 'orderNumber', 'customerName', 'customerEmail', 'status', 'total', 'itemCount', 'createdAt'],
   );
+  toast.success(`Exported ${filteredOrders.value.length} orders to CSV`);
 };
 
 const goToAnalytics = () => {
     router.push('/analytics');
+};
+
+// ── Bulk actions ──────────────────────────────────────────────────────────
+const bulkCancel = async () => {
+  if (!selectedIds.value.length) return;
+  const ok = await confirm({
+    title:       'Cancel orders',
+    message:     `Cancel ${selectedIds.value.length} selected orders?`,
+    confirmText: `Cancel ${selectedIds.value.length} Orders`,
+    variant:     'warning',
+  });
+  if (!ok) return;
+  for (const id of selectedIds.value) {
+    const o = orders.value.find(x => x.id === id);
+    if (o && (o.status === 'pending' || o.status === 'processing')) {
+      store.updateItem(id, { status: 'cancelled' });
+    }
+  }
+  toast.warning(`${selectedIds.value.length} orders cancelled`);
+  selectedIds.value = [];
+};
+
+const bulkExportOrders = () => {
+  const selected = filteredOrders.value.filter(o => o.id && selectedIds.value.includes(o.id));
+  exportToCsv(datestampedFilename('orders-selected'), selected,
+    ['id', 'orderNumber', 'customerName', 'customerEmail', 'status', 'total', 'createdAt']);
+  toast.success(`Exported ${selected.length} orders to CSV`);
 };
 
 // Watch for filter changes and reset to page 1
@@ -479,4 +555,11 @@ watch([statusFilter, searchQuery, dateRange], () => {
     currentPage.value = 1;
 }, { deep: true });
 </script>
+
+<style scoped>
+.bulk-bar-enter-active { transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.bulk-bar-leave-active { transition: all 0.2s ease; }
+.bulk-bar-enter-from,
+.bulk-bar-leave-to   { opacity: 0; transform: translateX(-50%) translateY(16px) scale(0.95); }
+</style>
 

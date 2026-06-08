@@ -104,6 +104,9 @@
           <table class="glass-table w-full">
             <thead>
               <tr>
+                <th class="w-10">
+                  <input type="checkbox" v-model="selectAll" style="accent-color:var(--accent);width:14px;height:14px;" />
+                </th>
                 <th>Product</th>
                 <th>Category</th>
                 <th>Price</th>
@@ -114,12 +117,16 @@
             </thead>
             <tbody>
               <tr v-if="loading">
-                <td colspan="6" class="py-10 text-center">
+                <td colspan="7" class="py-10 text-center">
                   <i class="fas fa-spinner fa-spin mr-2" style="color: var(--text-muted);"></i>
                   <span style="color: var(--text-muted);">Loading…</span>
                 </td>
               </tr>
               <tr v-for="product in paginatedProducts" :key="product.id">
+                <td>
+                  <input type="checkbox" :value="product.id" v-model="selectedIds"
+                    style="accent-color:var(--accent);width:14px;height:14px;" />
+                </td>
                 <td>
                   <div class="flex items-center gap-3">
                     <div class="relative">
@@ -208,8 +215,37 @@
         />
       </template>
     </Card>
+
+    <!-- Floating Bulk Action Bar -->
+    <Transition name="bulk-bar">
+      <div v-if="selectedIds.length > 0"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl"
+        style="background: var(--glass-bg-strong); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.25);">
+        <span class="text-sm font-semibold" style="color: var(--text-primary);">
+          {{ selectedIds.length }} selected
+        </span>
+        <div class="w-px h-5" style="background: var(--glass-border);"></div>
+        <button @click="bulkExport" class="btn-glass text-sm flex items-center gap-1.5">
+          <i class="fas fa-download text-xs"></i>Export
+        </button>
+        <button @click="bulkDelete" class="btn-glass text-sm flex items-center gap-1.5"
+          style="color: var(--ni-red);">
+          <i class="fas fa-trash text-xs"></i>Delete
+        </button>
+        <button @click="selectedIds = []" class="btn-glass-icon w-7 h-7 rounded-lg text-xs" title="Clear selection">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.bulk-bar-enter-active { transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.bulk-bar-leave-active { transition: all 0.2s ease; }
+.bulk-bar-enter-from,
+.bulk-bar-leave-to   { opacity: 0; transform: translateX(-50%) translateY(16px) scale(0.95); }
+</style>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
@@ -222,10 +258,14 @@ import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency, formatDate, formatSku } from '@/utils/formatters';
 import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import { useProductStore } from '@/stores/productStore';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
 import type { Product } from '@/types/product';
 
-const router = useRouter();
-const store = useProductStore();
+const router  = useRouter();
+const store   = useProductStore();
+const toast   = useToast();
+const { confirm } = useConfirm();
 const { items: products, loading, error } = storeToRefs(store);
 
 // ── UI state ──────────────────────────────────────────────────────────────
@@ -233,6 +273,17 @@ const sortBy      = ref('createdAt:desc');
 const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 5;
+const selectedIds = ref<number[]>([]);
+
+const selectAll = computed({
+  get: () => paginatedProducts.value.length > 0 &&
+             paginatedProducts.value.every(p => selectedIds.value.includes(p.id)),
+  set: (v: boolean) => {
+    const ids = paginatedProducts.value.map(p => p.id);
+    if (v) selectedIds.value = [...new Set([...selectedIds.value, ...ids])];
+    else   selectedIds.value = selectedIds.value.filter(id => !ids.includes(id));
+  },
+});
 
 onMounted(() => store.fetchAll());
 
@@ -295,11 +346,20 @@ const viewProduct = (id: number) => router.push(`/products/${id}`);
 const editProduct = (id: number) => router.push(`/products/${id}/edit`);
 
 const deleteProduct = async (id: number) => {
-  if (!confirm('Are you sure you want to delete this product?')) return;
+  const product = products.value.find(p => p.id === id);
+  const ok = await confirm({
+    title:       'Delete product',
+    message:     `"${product?.name ?? 'This product'}" will be permanently removed.`,
+    detail:      'This action cannot be undone.',
+    confirmText: 'Delete',
+    variant:     'danger',
+  });
+  if (!ok) return;
   try {
     await store.remove(id);
+    toast.success('Product deleted successfully');
   } catch (e: any) {
-    alert(e?.message ?? 'Delete failed');
+    toast.error(e?.message ?? 'Delete failed', 'Error');
   }
 };
 
@@ -309,6 +369,7 @@ const exportProducts = () => {
     filteredProducts.value,
     ['id', 'name', 'sku', 'categories', 'price', 'stock', 'status', 'createdAt'],
   );
+  toast.success(`Exported ${filteredProducts.value.length} products to CSV`);
 };
 
 const duplicateProduct = (id: number) => {
@@ -322,5 +383,29 @@ const duplicateProduct = (id: number) => {
     createdAt: new Date().toISOString(),
   };
   store.prependItem(copy);
+  toast.info(`"${src.name}" duplicated`);
+};
+
+// ── Bulk actions ──────────────────────────────────────────────────────────
+const bulkDelete = async () => {
+  if (!selectedIds.value.length) return;
+  const ok = await confirm({
+    title:       'Delete products',
+    message:     `Permanently delete ${selectedIds.value.length} selected products?`,
+    confirmText: `Delete ${selectedIds.value.length}`,
+    variant:     'danger',
+  });
+  if (!ok) return;
+  for (const id of [...selectedIds.value]) {
+    try { await store.remove(id); } catch { /* skip */ }
+  }
+  toast.success(`${selectedIds.value.length} products deleted`);
+  selectedIds.value = [];
+};
+
+const bulkExport = () => {
+  const selected = filteredProducts.value.filter(p => selectedIds.value.includes(p.id));
+  exportToCsv(datestampedFilename('products-selected'), selected, ['id', 'name', 'sku', 'categories', 'price', 'stock', 'status']);
+  toast.success(`Exported ${selected.length} products to CSV`);
 };
 </script>
