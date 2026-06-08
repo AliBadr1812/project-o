@@ -124,6 +124,7 @@ import { useProductStore  } from '@/stores/productStore';
 import { useOrderStore    } from '@/stores/orderStore';
 import { useCustomerStore } from '@/stores/customerStore';
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts';
+import { useCommandPalette }    from '@/composables/useCommandPalette';
 import { formatCurrency } from '@/utils/formatters';
 
 const router = useRouter();
@@ -138,7 +139,9 @@ const { items: orders    } = storeToRefs(orderStore);
 const { items: customers } = storeToRefs(customerStore);
 
 // ── State ──────────────────────────────────────────────────────────────────
-const open          = ref(false);
+// `open` lives in the shared composable so the sidebar (and any other component)
+// can also trigger the palette without prop-drilling or events.
+const { open, openPalette: _open, closePalette } = useCommandPalette();
 const query         = ref('');
 const selectedIndex = ref(0);
 const isSearching   = ref(false);
@@ -158,7 +161,7 @@ function toggle() {
   open.value ? close() : openPalette();
 }
 function openPalette() {
-  open.value = true;
+  _open();
   query.value = '';
   selectedIndex.value = 0;
   // Ensure stores are loaded
@@ -168,7 +171,7 @@ function openPalette() {
   nextTick(() => inputRef.value?.focus());
 }
 function close() {
-  open.value = false;
+  closePalette();
   query.value = '';
 }
 

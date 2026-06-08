@@ -21,11 +21,19 @@
         </div>
       </div>
 
-      <!-- Search -->
-      <div class="sidebar-search flex items-center gap-2.5 px-3 py-2.5 rounded-xl mb-3">
+      <!-- Search — opens command palette -->
+      <button
+        class="sidebar-search w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl mb-3 text-left transition-colors"
+        style="cursor: pointer;"
+        @click="openPalette"
+      >
         <i class="fas fa-magnifying-glass text-xs" style="color: var(--text-muted);"></i>
-        <span class="text-[13px]" style="color: var(--text-muted);">Search…</span>
-      </div>
+        <span class="flex-1 text-[13px]" style="color: var(--text-muted);">Search…</span>
+        <span class="flex items-center gap-0.5">
+          <kbd class="sidebar-kbd">⌘</kbd>
+          <kbd class="sidebar-kbd">K</kbd>
+        </span>
+      </button>
     </div>
 
     <!-- ── Scrollable nav ─────────────────────────────────────────────── -->
@@ -165,6 +173,7 @@
 import { computed } from 'vue';
 import { NAVIGATION_ITEMS } from '@/utils/constants';
 import { useTheme } from '@/composables/useTheme';
+import { useCommandPalette } from '@/composables/useCommandPalette';
 
 // Keep the prop/emit for backwards-compat with App.vue but drive the icon
 // from the composable's isDark so Settings can also change it.
@@ -172,6 +181,7 @@ defineProps<{ dark: boolean }>();
 defineEmits(['toggle-dark']);
 
 const { isDark, toggleDark } = useTheme();
+const { openPalette } = useCommandPalette();
 
 const overviewItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Dashboard', 'Analytics'].includes(i.name)));
 const commerceItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Products', 'Orders', 'Customers', 'Categories', 'Inventory Alerts', 'Discounts', 'Returns', 'Segments'].includes(i.name)));
@@ -179,6 +189,27 @@ const settingsItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Settings', 
 </script>
 
 <style scoped>
+/* Search button hover */
+.sidebar-search:hover { background: rgba(var(--accent-rgb), 0.07); }
+
+/* ⌘K key chips */
+.sidebar-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
 /* Thin, subtle scrollbar for the nav region */
 .sidebar-scroll {
   scrollbar-width: thin;
