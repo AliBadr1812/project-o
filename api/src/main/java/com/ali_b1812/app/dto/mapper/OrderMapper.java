@@ -87,5 +87,13 @@ public interface OrderMapper {
     @Mapping(target = "shippingAddress", ignore = true)
     @Mapping(target = "notes", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "customerName", ignore = true)
+    @Mapping(target = "customerEmail", ignore = true)
+    @Mapping(target = "customerPhone", ignore = true)
+    @Mapping(target = "subtotal", ignore = true)
+    @Mapping(target = "shippingCost", ignore = true)
+    @Mapping(target = "tax", ignore = true)
+    @Mapping(target = "discount", ignore = true)
+    @Mapping(target = "paymentMethod", ignore = true)
     void updateEntityFromRequest(UpdateOrderRequest request, @MappingTarget Order entity);
 }

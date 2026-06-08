@@ -35,6 +35,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
         return orderMockData.getOrdersByCustomerEmail(email);
     }
 
+    @SuppressWarnings("unchecked")
     default Order save(Order order) {
         return orderMockData.saveOrder(order);
     }
