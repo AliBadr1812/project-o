@@ -184,9 +184,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import Breadcrumb from '@/components/layout/Breadcrumb.vue';
 import Card from '@/components/ui/Card.vue';
-import Button from '@/components/ui/Button.vue';
 import Badge from '@/components/ui/Badge.vue';
 import { formatDate } from '@/utils/formatters';
 import { useToast } from '@/composables/useToast';
@@ -261,27 +259,6 @@ onMounted(() => {
   }
 });
 
-// Breadcrumbs
-const breadcrumbs = computed(() => {
-  const items = [
-    { path: '/dashboard', name: 'Dashboard' },
-    { path: '/categories', name: 'Categories' }
-  ];
-
-  if (isEditing.value) {
-    items.push({
-      path: route.path,
-      name: `Edit: ${form.name || 'Category'}`
-    });
-  } else {
-    items.push({
-      path: '/categories/new',
-      name: 'New Category'
-    });
-  }
-
-  return items;
-});
 
 // Methods
 const validateForm = (): boolean => {
@@ -316,8 +293,8 @@ const handleSubmit = async () => {
     }
 
     router.push('/categories');
-  } catch (error: any) {
-    toast.error(error?.message ?? 'Failed to save category. Please try again.', 'Error');
+  } catch (error: unknown) {
+    toast.error(error instanceof Error ? error.message : 'Failed to save category. Please try again.', 'Error');
   } finally {
     submitting.value = false;
   }

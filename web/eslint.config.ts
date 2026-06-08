@@ -23,4 +23,22 @@ export default defineConfigWithVueTs(
     ...pluginVitest.configs.recommended,
     files: ['src/**/__tests__/*'],
   },
+
+  // ── Project-level rule overrides ──────────────────────────────────────────
+  {
+    name: 'app/rule-overrides',
+    rules: {
+      // Many well-established single-word component names are used throughout
+      // (Badge, Button, Card, Footer, Modal, Pagination, Sidebar, Sparkline,
+      //  Table, Breadcrumb, Dashboard). Renaming them all would be very
+      // disruptive, so we allow known single-word exceptions.
+      'vue/multi-word-component-names': ['error', {
+        ignores: [
+          'Badge', 'Button', 'Card', 'Header', 'Footer', 'Modal',
+          'Pagination', 'Sidebar', 'Sparkline', 'Table',
+          'Breadcrumb', 'Dashboard',
+        ],
+      }],
+    },
+  },
 )

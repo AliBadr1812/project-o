@@ -167,7 +167,7 @@
         <Pagination v-if="filtered.length > itemsPerPage"
           :current-page="currentPage" :total-pages="totalPages"
           :total-items="filtered.length" :items-per-page="itemsPerPage"
-          @page-change="(p) => { currentPage.value = p; window.scrollTo({ top: 0, behavior: 'smooth' }); }" />
+          @page-change="(p: number) => { currentPage = p; }" />
       </div>
     </div>
   </div>
@@ -247,8 +247,8 @@ const deleteDiscount = async (id: number) => {
   try {
     await store.remove(id);
     toast.success('Discount code deleted');
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Delete failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Delete failed', 'Error');
   }
 };
 </script>

@@ -386,7 +386,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
 import Badge from '@/components/ui/Badge.vue';
@@ -450,8 +450,8 @@ const updateStatus = async () => {
     try {
         order.value = await orderService.updateOrderStatus(order.value.id, order.value.status);
         toast.success(`Order status updated to ${order.value.status}`, 'Status Updated');
-    } catch (err: any) {
-        toast.error(err?.message ?? 'Failed to update order status', 'Error');
+    } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Failed to update order status', 'Error');
     }
 };
 
@@ -466,7 +466,7 @@ const statusMeta: Record<string, { icon: string; iconBg: string; iconColor: stri
 async function quickStatus(newStatus: string) {
     if (!order.value?.id) return;
     try {
-        order.value = await orderService.updateOrderStatus(order.value.id, newStatus);
+        order.value = await orderService.updateOrderStatus(order.value.id, newStatus as Order['status']);
         const meta = statusMeta[newStatus] ?? { icon: 'fas fa-circle-check', iconBg: 'var(--ni-green-bg)', iconColor: 'var(--ni-green)' };
         activityLog.value.unshift({
             title:    `Status changed to ${newStatus}`,
@@ -475,8 +475,8 @@ async function quickStatus(newStatus: string) {
             ...meta,
         });
         toast.success(`Order marked as ${newStatus}`, 'Status Updated');
-    } catch (e: any) {
-        toast.error(e?.message ?? 'Status update failed', 'Error');
+    } catch (e: unknown) {
+        toast.error(e instanceof Error ? e.message : 'Status update failed', 'Error');
     }
 }
 
@@ -568,8 +568,8 @@ const addNote = async () => {
             content: content.trim()
         });
         toast.success('Note added to order');
-        } catch (err: any) {
-        toast.error(err?.message ?? 'Failed to add note', 'Error');
+        } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Failed to add note', 'Error');
         }
     }
 };
@@ -580,10 +580,11 @@ onMounted(async () => {
     if (order.value) {
         // Build initial activity log from order data
         activityLog.value = [];
-        const o = order.value as any;
-        if (o.deliveredAt) activityLog.value.push({ title: 'Order delivered', detail: 'Marked as delivered', time: formatDate(o.deliveredAt), ...statusMeta.delivered });
-        if (o.shippedAt)   activityLog.value.push({ title: 'Order shipped',   detail: trackingInfo.number ? `Tracking: ${trackingInfo.number}` : 'Dispatched to carrier', time: formatDate(o.shippedAt), ...statusMeta.shipped });
-        if (o.processedAt) activityLog.value.push({ title: 'Processing started', detail: 'Order accepted for fulfillment', time: formatDate(o.processedAt), ...statusMeta.processing });
+        const o = order.value;
+        const fallbackMeta = { icon: 'fas fa-circle', iconBg: 'var(--ni-blue-bg)', iconColor: 'var(--ni-blue)' };
+        if (o.deliveredAt) activityLog.value.push({ title: 'Order delivered', detail: 'Marked as delivered', time: formatDate(o.deliveredAt), ...(statusMeta.delivered ?? fallbackMeta) });
+        if (o.shippedAt)   activityLog.value.push({ title: 'Order shipped',   detail: trackingInfo.number ? `Tracking: ${trackingInfo.number}` : 'Dispatched to carrier', time: formatDate(o.shippedAt), ...(statusMeta.shipped ?? fallbackMeta) });
+        if (o.processedAt) activityLog.value.push({ title: 'Processing started', detail: 'Order accepted for fulfillment', time: formatDate(o.processedAt), ...(statusMeta.processing ?? fallbackMeta) });
         activityLog.value.push({ title: 'Order placed', detail: 'Customer placed order online', time: formatDate(o.createdAt), icon: 'fas fa-bag-shopping', iconBg: 'var(--ni-blue-bg)', iconColor: 'var(--ni-blue)' });
     }
 });

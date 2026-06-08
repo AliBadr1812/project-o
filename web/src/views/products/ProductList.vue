@@ -310,8 +310,8 @@ const filteredProducts = computed(() => {
 
   const [field, order] = sortBy.value.split(':');
   list.sort((a, b) => {
-    let av = a[field as keyof Product] as any;
-    let bv = b[field as keyof Product] as any;
+    let av = a[field as keyof Product] as string | number;
+    let bv = b[field as keyof Product] as string | number;
     if (field === 'createdAt') { av = new Date(av ?? 0).getTime(); bv = new Date(bv ?? 0).getTime(); }
     return order === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
   });
@@ -358,8 +358,8 @@ const deleteProduct = async (id: number) => {
   try {
     await store.remove(id);
     toast.success('Product deleted successfully');
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Delete failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Delete failed', 'Error');
   }
 };
 

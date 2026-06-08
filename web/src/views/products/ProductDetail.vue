@@ -340,7 +340,6 @@ import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import Modal from '@/components/ui/Modal.vue';
-import Button from '@/components/ui/Button.vue';
 import Card from '@/components/ui/Card.vue';
 import Badge from '@/components/ui/Badge.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
@@ -357,11 +356,13 @@ const { confirm } = useConfirm();
 
 // State
 const loading = ref(true);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const product = ref<any>(null);
 const mainImage = ref('');
 const activeTab = ref('overview');
 const showReviewModal = ref(false);
 const showCategoryModal = ref(false);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const reviews = ref<any[]>([]);
 
 // Tabs
@@ -470,7 +471,7 @@ const mockReviews = [
 ];
 
 // Methods
-const calculateProfitMargin = (prod: any) => {
+const calculateProfitMargin = (prod: { price: number; cost: number }) => {
   if (!prod || prod.price === 0) return 0;
   return (((prod.price - prod.cost) / prod.price) * 100).toFixed(1);
 };
@@ -506,8 +507,8 @@ const handleDelete = async () => {
     await store.remove(Number(product.value.id));
     toast.success('Product deleted');
     router.push('/products');
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Delete failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Delete failed', 'Error');
   }
 };
 

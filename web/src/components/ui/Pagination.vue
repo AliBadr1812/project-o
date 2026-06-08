@@ -77,7 +77,7 @@ const visiblePages = computed(() => {
   const pages: (number | string)[] = [];
   const half  = Math.floor(maxVisiblePages.value / 2);
   let start   = Math.max(1, props.currentPage - half);
-  let end     = Math.min(props.totalPages, start + maxVisiblePages.value - 1);
+  const end   = Math.min(props.totalPages, start + maxVisiblePages.value - 1);
   if (end - start < maxVisiblePages.value - 1) start = Math.max(1, end - maxVisiblePages.value + 1);
 
   for (let i = start; i <= end; i++) pages.push(i);

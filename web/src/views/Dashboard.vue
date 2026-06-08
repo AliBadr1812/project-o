@@ -120,7 +120,7 @@
             <div class="flex items-center gap-1.5">
               <button
                 v-for="r in ['week','month','quarter']" :key="r"
-                @click="setChartRange(r as any)"
+                @click="setChartRange(r as 'week' | 'month' | 'quarter')"
                 class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
                 :class="chartRange === r ? 'btn-accent' : 'btn-glass'"
               >{{ r.charAt(0).toUpperCase() + r.slice(1) }}</button>
@@ -400,7 +400,7 @@ const revenueSparkline = computed(() => {
   const dayMs = 86_400_000;
   for (const o of orders.value) {
     if (o.status === 'cancelled' || o.status === 'refunded') continue;
-    const age = now - new Date(o.createdAt).getTime();
+    const age = now - new Date(o.createdAt ?? '').getTime();
     const idx = Math.floor(age / dayMs);
     if (idx >= 0 && idx < 7) buckets[6 - idx] += o.total;
   }
@@ -493,6 +493,7 @@ const chartOptions = {
       cornerRadius:    10,
       displayColors:   false,
       callbacks: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         label: (ctx: any) => `$${ctx.parsed.y.toLocaleString()}`,
       },
     },
@@ -501,7 +502,7 @@ const chartOptions = {
     y: {
       beginAtZero: true,
       grid:  { color: 'rgba(255,255,255,0.06)' },
-      ticks: { color: 'rgba(60,30,100,0.45)', callback: (v: any) => '$' + v.toLocaleString() },
+      ticks: { color: 'rgba(60,30,100,0.45)', callback: (v: number | string) => '$' + Number(v).toLocaleString() },
     },
     x: {
       grid:  { color: 'rgba(255,255,255,0.06)' },

@@ -244,6 +244,7 @@ const toast  = useToast();
 const { confirm } = useConfirm();
 
 // Customer data — enriched from store + sensible defaults
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const customer = ref<any>(null);
 
 onMounted(async () => {
@@ -335,7 +336,7 @@ const deleteAddress = async (addressId: number) => {
     variant:     'danger',
   });
   if (ok) {
-    customer.value.addresses = customer.value.addresses.filter((addr: any) => addr.id !== addressId);
+    customer.value.addresses = customer.value.addresses?.filter((addr: { id: number }) => addr.id !== addressId);
     toast.success('Address removed');
   }
 };

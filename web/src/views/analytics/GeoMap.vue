@@ -32,7 +32,7 @@ const bubbleColors = [
 ];
 
 function buildIcon(region: typeof props.regions[number], index: number): L.DivIcon {
-  const color = bubbleColors[index % bubbleColors.length];
+  const color = bubbleColors[index % bubbleColors.length]!;
   const size  = 28 + Math.round(region.percentage * 0.55); // 28–57 px
 
   return L.divIcon({

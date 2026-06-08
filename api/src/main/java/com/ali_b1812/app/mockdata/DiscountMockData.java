@@ -116,7 +116,4 @@ public class DiscountMockData {
         return discounts.removeIf(d -> d.getId().equals(id));
     }
 
-    private long nextId() {
-        return idGenerator.get();
-    }
 }

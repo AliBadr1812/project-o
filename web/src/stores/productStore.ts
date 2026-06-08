@@ -17,8 +17,8 @@ export const useProductStore = defineStore('products', () => {
     try {
       items.value  = await productService.getAllProducts();
       loaded.value = true;
-    } catch (e: any) {
-      error.value = e?.message ?? 'Failed to load products';
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : 'Failed to load products';
     } finally {
       loading.value = false;
     }
@@ -38,7 +38,7 @@ export const useProductStore = defineStore('products', () => {
   /** Patch a product in the local cache by id. */
   function updateItem(id: number, patch: Partial<Product>) {
     const idx = items.value.findIndex(p => p.id === id);
-    if (idx !== -1) items.value[idx] = { ...items.value[idx], ...patch };
+    if (idx !== -1) items.value[idx] = { ...items.value[idx]!, ...patch };
   }
 
   return { items, loading, error, loaded, fetchAll, remove, prependItem, updateItem };

@@ -150,8 +150,8 @@ async function loadLogs() {
       action:     filterAction.value || undefined,
       entityType: filterEntity.value || undefined,
     });
-  } catch (e: any) {
-    error.value = e?.message ?? 'Failed to load audit logs';
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : 'Failed to load audit logs';
   } finally {
     loading.value = false;
   }

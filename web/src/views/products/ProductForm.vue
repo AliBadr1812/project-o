@@ -397,8 +397,8 @@ const submitForm = async () => {
     }
     toast.success(isEditing.value ? 'Product updated' : 'Product created', 'Saved');
     router.push('/products');
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Save failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Save failed', 'Error');
   } finally {
     isSubmitting.value = false;
   }

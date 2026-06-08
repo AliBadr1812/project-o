@@ -25,6 +25,14 @@ export interface Product {
   dimensions?: string;
 }
 
+export interface ProductReview {
+  id:        number;
+  author:    string;
+  rating:    number;
+  date:      string;
+  comment:   string;
+}
+
 export interface ProductStats {
   total: number;
   inStock: number;

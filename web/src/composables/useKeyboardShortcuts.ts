@@ -12,7 +12,7 @@
  *   ?             → open shortcut help overlay
  */
 
-import { ref, onUnmounted } from 'vue';
+import { ref } from 'vue';
 
 export type ShortcutHandler = (event: KeyboardEvent) => void;
 

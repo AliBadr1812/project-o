@@ -385,7 +385,7 @@ export function validateForm<T extends Record<string, unknown>>(
 /**
  * Check if form is valid
  */
-export function isFormValid<T extends Record<string, unknown>>(
+export function isFormValid(
   errors: Record<string, string>
 ): boolean {
   return Object.keys(errors).length === 0;

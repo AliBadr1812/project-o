@@ -306,7 +306,6 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
-import Badge from '@/components/ui/Badge.vue';
 import { formatCurrency, formatDate, getInitials } from '@/utils/formatters';
 import type { Order, ShippingAddress } from '@/types/order';
 

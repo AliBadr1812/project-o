@@ -13,7 +13,7 @@ export function exportToCsv<T extends Record<string, unknown>>(
 ): void {
   if (!rows.length) return;
 
-  const cols = (columns ?? Object.keys(rows[0])) as string[];
+  const cols = (columns ?? Object.keys(rows[0]!)) as string[];
 
   const escape = (value: unknown): string => {
     const str = value == null ? '' : String(value);

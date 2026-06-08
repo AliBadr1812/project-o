@@ -288,8 +288,8 @@ const handleDelete = async (id: number) => {
     await store.remove(id);
     selectedIds.value = selectedIds.value.filter(x => x !== id);
     toast.success('Category deleted');
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Delete failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Delete failed', 'Error');
   }
 };
 

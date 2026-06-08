@@ -137,7 +137,7 @@
         <Pagination v-if="filtered.length > itemsPerPage"
           :current-page="currentPage" :total-pages="totalPages"
           :total-items="filtered.length" :items-per-page="itemsPerPage"
-          @page-change="(p) => { currentPage.value = p; window.scrollTo({ top: 0, behavior: 'smooth' }); }" />
+          @page-change="(p: number) => { currentPage = p; }" />
       </div>
     </div>
 
@@ -308,8 +308,8 @@ async function updateStatus(r: Return, status: string) {
     const updated = await returnService.updateReturn(r.id, { status });
     store.updateItem(r.id, updated);
     toast.success(`Return ${r.returnNumber} marked as ${status.toLowerCase().replace('_', ' ')}`);
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Update failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Update failed', 'Error');
   }
 }
 
@@ -325,8 +325,8 @@ async function updateStatusFromDrawer(status: string) {
     store.updateItem(selected.value.id, updated);
     selected.value = { ...selected.value, ...updated };
     toast.success('Status updated');
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Update failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Update failed', 'Error');
   }
 }
 
@@ -337,8 +337,8 @@ async function saveNotes() {
     store.updateItem(selected.value.id, updated);
     selected.value = { ...selected.value, staffNotes: staffNotesDraft.value };
     toast.success('Staff notes saved');
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Save failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Save failed', 'Error');
   }
 }
 </script>

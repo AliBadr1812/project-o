@@ -264,7 +264,7 @@ const router  = useRouter();
 const store   = useOrderStore();
 const toast   = useToast();
 const { confirm } = useConfirm();
-const { items: orders, loading, error } = storeToRefs(store);
+const { items: orders } = storeToRefs(store);
 
 // ── UI state ──────────────────────────────────────────────────────────────
 const statusFilter = ref('');
@@ -513,7 +513,7 @@ const cancelOrder = async (id: number) => {
 const exportOrders = () => {
   exportToCsv(
     datestampedFilename('orders'),
-    filteredOrders.value,
+    filteredOrders.value as unknown as Record<string, unknown>[],
     ['id', 'orderNumber', 'customerName', 'customerEmail', 'status', 'total', 'itemCount', 'createdAt'],
   );
   toast.success(`Exported ${filteredOrders.value.length} orders to CSV`);
@@ -545,7 +545,7 @@ const bulkCancel = async () => {
 
 const bulkExportOrders = () => {
   const selected = filteredOrders.value.filter(o => o.id && selectedIds.value.includes(o.id));
-  exportToCsv(datestampedFilename('orders-selected'), selected,
+  exportToCsv(datestampedFilename('orders-selected'), selected as unknown as Record<string, unknown>[],
     ['id', 'orderNumber', 'customerName', 'customerEmail', 'status', 'total', 'createdAt']);
   toast.success(`Exported ${selected.length} orders to CSV`);
 };

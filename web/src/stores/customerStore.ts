@@ -17,8 +17,8 @@ export const useCustomerStore = defineStore('customers', () => {
     try {
       items.value  = await customerService.getAllCustomers();
       loaded.value = true;
-    } catch (e: any) {
-      error.value = e?.message ?? 'Failed to load customers';
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : 'Failed to load customers';
     } finally {
       loading.value = false;
     }
@@ -33,7 +33,7 @@ export const useCustomerStore = defineStore('customers', () => {
   /** Patch a customer in the local cache by id. */
   function updateItem(id: number, patch: Partial<Customer>) {
     const idx = items.value.findIndex(c => c.id === id);
-    if (idx !== -1) items.value[idx] = { ...items.value[idx], ...patch };
+    if (idx !== -1) items.value[idx] = { ...items.value[idx]!, ...patch };
   }
 
   return { items, loading, error, loaded, fetchAll, remove, updateItem };

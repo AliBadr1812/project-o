@@ -196,8 +196,8 @@ async function submit() {
     }
     toast.success(isEdit.value ? 'Discount updated' : 'Discount created');
     router.push('/discounts');
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Save failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Save failed', 'Error');
   } finally {
     saving.value = false;
   }

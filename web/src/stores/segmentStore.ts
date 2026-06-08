@@ -16,8 +16,8 @@ export const useSegmentStore = defineStore('segments', () => {
     try {
       items.value  = await segmentService.getAllSegments();
       loaded.value = true;
-    } catch (e: any) {
-      error.value = e?.message ?? 'Failed to load segments';
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : 'Failed to load segments';
     } finally {
       loading.value = false;
     }
@@ -34,7 +34,7 @@ export const useSegmentStore = defineStore('segments', () => {
 
   function updateItem(id: number, patch: Partial<Segment>) {
     const idx = items.value.findIndex(s => s.id === id);
-    if (idx !== -1) items.value[idx] = { ...items.value[idx], ...patch };
+    if (idx !== -1) items.value[idx] = { ...items.value[idx]!, ...patch };
   }
 
   return { items, loading, error, loaded, fetchAll, remove, prependItem, updateItem };

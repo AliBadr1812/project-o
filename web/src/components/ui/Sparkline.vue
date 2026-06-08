@@ -68,10 +68,10 @@ const lastPoint = computed(() => points.value[points.value.length - 1] ?? null);
 
 function toSmoothPath(pts: { x: number; y: number }[]): string {
   if (pts.length < 2) return '';
-  let d = `M ${pts[0].x} ${pts[0].y}`;
+  let d = `M ${pts[0]!.x} ${pts[0]!.y}`;
   for (let i = 1; i < pts.length; i++) {
-    const prev = pts[i - 1];
-    const curr = pts[i];
+    const prev = pts[i - 1]!;
+    const curr = pts[i]!;
     const cpx  = (prev.x + curr.x) / 2;
     d += ` C ${cpx} ${prev.y}, ${cpx} ${curr.y}, ${curr.x} ${curr.y}`;
   }
@@ -84,8 +84,8 @@ const areaPath = computed(() => {
   const pts = points.value;
   if (pts.length < 2) return '';
   const base = props.height - padding + 2;
-  const first = pts[0];
-  const last  = pts[pts.length - 1];
+  const first = pts[0]!;
+  const last  = pts[pts.length - 1]!;
   return `${toSmoothPath(pts)} L ${last.x} ${base} L ${first.x} ${base} Z`;
 });
 </script>

@@ -17,8 +17,8 @@ export const useOrderStore = defineStore('orders', () => {
     try {
       items.value  = await orderService.getAllOrders();
       loaded.value = true;
-    } catch (e: any) {
-      error.value = e?.message ?? 'Failed to load orders';
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : 'Failed to load orders';
     } finally {
       loading.value = false;
     }
@@ -27,7 +27,7 @@ export const useOrderStore = defineStore('orders', () => {
   /** Partially update an order in the local cache (e.g. status change). */
   function updateItem(id: number, patch: Partial<Order>) {
     const idx = items.value.findIndex(o => o.id === id);
-    if (idx !== -1) items.value[idx] = { ...items.value[idx], ...patch };
+    if (idx !== -1) items.value[idx] = { ...items.value[idx]!, ...patch };
   }
 
   /** Delete an order and remove it from the local cache. */

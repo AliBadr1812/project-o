@@ -320,7 +320,6 @@ const regionColors = [
   'linear-gradient(135deg,#ff6b6b,#ee5a24)',
 ];
 
-const regionFlags = ['🌎', '🌍', '🌏', '🌎', '🕌'];
 
 // Types
 interface Metric {
@@ -350,14 +349,6 @@ interface Product {
   stock: number;
 }
 
-interface Order {
-  id: string;
-  customerName: string;
-  date: string;
-  amount: number;
-  status: 'completed' | 'processing' | 'pending' | 'shipped' | 'cancelled';
-}
-
 interface Region {
   name: string;
   percentage: number;
@@ -380,14 +371,6 @@ function getDaysAgoFormatted(days: number): string {
   const date = new Date();
   date.setDate(date.getDate() - days);
   return formatDateForInput(date);
-}
-
-function parseDate(dateString: string): Date {
-  return new Date(dateString + 'T00:00:00');
-}
-
-function isDateAfter(date1: string, date2: string): boolean {
-  return parseDate(date1) > parseDate(date2);
 }
 
 // Time range options
@@ -652,6 +635,7 @@ const chartOptions = {
       cornerRadius: 10,
       displayColors: false,
       callbacks: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         label: (context: any) => `$${context.parsed.y.toLocaleString()}`
       }
     }
@@ -660,7 +644,8 @@ const chartOptions = {
     y: {
       beginAtZero: true,
       grid: { color: 'rgba(255,255,255,0.06)' },
-      ticks: { color: 'rgba(60,30,100,0.5)', callback: (value: any) => '$' + value.toLocaleString() }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ticks: { color: 'rgba(60,30,100,0.5)', callback: (value: any) => '$' + Number(value).toLocaleString() }
     },
     x: {
       grid: { color: 'rgba(255,255,255,0.06)' },
@@ -733,10 +718,9 @@ function handleRefresh() {
 }
 
 function exportCategories() {
-  exportToCsv(datestampedFilename('category_revenue'), categoryRevenue.value);
+  exportToCsv(datestampedFilename('category_revenue'), categoryRevenue.value as unknown as Record<string, unknown>[]);
 }
 
-function viewAllProducts() { router.push('/products'); }
 function goToOrder(orderId: number | undefined) { if (orderId) router.push(`/orders/${orderId}`); }
 
 function updateChart() {
@@ -744,7 +728,8 @@ function updateChart() {
     chart.destroy();
     const ctx = document.getElementById('salesChart') as HTMLCanvasElement;
     if (ctx) {
-      chart = new Chart(ctx, { type: salesChartType.value, data: salesChartData.value, options: chartOptions });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      chart = new Chart(ctx, { type: salesChartType.value, data: salesChartData.value, options: chartOptions as any });
     }
   }
 }
@@ -754,7 +739,8 @@ onMounted(() => {
   productStore.fetchAll();
   customerStore.fetchAll();
   const ctx = document.getElementById('salesChart') as HTMLCanvasElement;
-  if (ctx) chart = new Chart(ctx, { type: salesChartType.value, data: salesChartData.value, options: chartOptions });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (ctx) chart = new Chart(ctx, { type: salesChartType.value, data: salesChartData.value, options: chartOptions as any });
 });
 
 onUnmounted(() => { if (chart) chart.destroy(); });

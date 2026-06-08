@@ -66,11 +66,13 @@
       </EmptyState>
     </div>
     <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-      <div v-if="loading" v-for="n in 5" :key="n" class="glass-card p-6 animate-pulse">
-        <div class="w-10 h-10 rounded-xl mb-4" style="background: var(--glass-bg);"></div>
-        <div class="h-4 rounded mb-2" style="background: var(--glass-bg); width: 60%;"></div>
-        <div class="h-3 rounded" style="background: var(--glass-bg); width: 80%;"></div>
-      </div>
+      <template v-if="loading">
+        <div v-for="n in 5" :key="n" class="glass-card p-6 animate-pulse">
+          <div class="w-10 h-10 rounded-xl mb-4" style="background: var(--glass-bg);"></div>
+          <div class="h-4 rounded mb-2" style="background: var(--glass-bg); width: 60%;"></div>
+          <div class="h-3 rounded" style="background: var(--glass-bg); width: 80%;"></div>
+        </div>
+      </template>
       <div v-for="seg in paginatedSegments" :key="seg.id" class="glass-card p-6 flex flex-col gap-4">
         <!-- Card header -->
         <div class="flex items-start justify-between">
@@ -128,7 +130,7 @@
     <Pagination v-if="items.length > itemsPerPage"
       :current-page="currentPage" :total-pages="totalPages"
       :total-items="items.length" :items-per-page="itemsPerPage"
-      @page-change="(p) => { currentPage.value = p; window.scrollTo({ top: 0, behavior: 'smooth' }); }" />
+      @page-change="(p: number) => { currentPage = p; }" />
 
     <!-- Create / Edit Modal -->
     <Teleport to="body">
@@ -241,8 +243,8 @@ async function saveSegment() {
     }
     toast.success(editing.value ? 'Segment updated' : 'Segment created');
     closeModal();
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Save failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Save failed', 'Error');
   } finally {
     saving.value = false;
   }
@@ -260,8 +262,8 @@ async function deleteSegment(seg: Segment) {
   try {
     await store.remove(seg.id);
     toast.success('Segment deleted');
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Delete failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Delete failed', 'Error');
   }
 }
 </script>

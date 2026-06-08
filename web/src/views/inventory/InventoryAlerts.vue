@@ -93,7 +93,7 @@
       <Pagination v-if="outOfStock.length > perPage"
         :current-page="pageOos" :total-pages="totalPagesOos"
         :total-items="outOfStock.length" :items-per-page="perPage"
-        @page-change="(p) => { pageOos.value = p; }" />
+        @page-change="(p: number) => { pageOos = p; }" />
     </div>
 
     <!-- Low Stock -->
@@ -147,7 +147,7 @@
       <Pagination v-if="lowStock.length > perPage"
         :current-page="pageLow" :total-pages="totalPagesLow"
         :total-items="lowStock.length" :items-per-page="perPage"
-        @page-change="(p) => { pageLow.value = p; }" />
+        @page-change="(p: number) => { pageLow = p; }" />
     </div>
 
     <!-- Loading / Empty -->

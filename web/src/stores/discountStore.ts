@@ -16,8 +16,8 @@ export const useDiscountStore = defineStore('discounts', () => {
     try {
       items.value  = await discountService.getAllDiscounts();
       loaded.value = true;
-    } catch (e: any) {
-      error.value = e?.message ?? 'Failed to load discounts';
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : 'Failed to load discounts';
     } finally {
       loading.value = false;
     }
@@ -34,7 +34,7 @@ export const useDiscountStore = defineStore('discounts', () => {
 
   function updateItem(id: number, patch: Partial<Discount>) {
     const idx = items.value.findIndex(d => d.id === id);
-    if (idx !== -1) items.value[idx] = { ...items.value[idx], ...patch };
+    if (idx !== -1) items.value[idx] = { ...items.value[idx]!, ...patch };
   }
 
   return { items, loading, error, loaded, fetchAll, remove, prependItem, updateItem };

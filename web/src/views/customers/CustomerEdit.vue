@@ -360,8 +360,8 @@ async function handleSave() {
     store.updateItem(id, updated);
     toast.success('Customer saved', 'Saved');
     router.push('/customers');
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Save failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Save failed', 'Error');
   } finally {
     saving.value = false;
   }
@@ -396,8 +396,8 @@ async function handleDelete() {
     await store.remove(customer.value.id);
     toast.success('Customer deleted');
     router.push('/customers');
-  } catch (e: any) {
-    toast.error(e?.message ?? 'Delete failed', 'Error');
+  } catch (e: unknown) {
+    toast.error(e instanceof Error ? e.message : 'Delete failed', 'Error');
   }
 }
 </script>

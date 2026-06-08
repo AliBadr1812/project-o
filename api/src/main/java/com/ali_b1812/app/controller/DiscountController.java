@@ -3,7 +3,6 @@ package com.ali_b1812.app.controller;
 import com.ali_b1812.app.dto.response.ApiResponse;
 import com.ali_b1812.app.dto.response.DiscountResponse;
 import com.ali_b1812.app.service.DiscountService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

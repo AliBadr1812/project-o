@@ -375,9 +375,9 @@ public class UserService implements IUserService {
      
     @Override
     public Page<UserResponse> getFollowing(Long userId, Pageable pageable) {
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         return userRepository.findUsersFollowedBy(userId, pageable)
             .map(userMapper::toResponse);
     }

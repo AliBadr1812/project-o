@@ -16,8 +16,8 @@ export const useReturnStore = defineStore('returns', () => {
     try {
       items.value  = await returnService.getAllReturns();
       loaded.value = true;
-    } catch (e: any) {
-      error.value = e?.message ?? 'Failed to load returns';
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : 'Failed to load returns';
     } finally {
       loading.value = false;
     }
@@ -34,7 +34,7 @@ export const useReturnStore = defineStore('returns', () => {
 
   function updateItem(id: number, patch: Partial<Return>) {
     const idx = items.value.findIndex(r => r.id === id);
-    if (idx !== -1) items.value[idx] = { ...items.value[idx], ...patch };
+    if (idx !== -1) items.value[idx] = { ...items.value[idx]!, ...patch };
   }
 
   return { items, loading, error, loaded, fetchAll, remove, prependItem, updateItem };

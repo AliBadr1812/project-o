@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 defineProps({
-  type:        { type: String,  default: 'button' },
+  type:        { type: String as () => 'button' | 'submit' | 'reset', default: 'button' },
   disabled:    { type: Boolean, default: false },
   loading:     { type: Boolean, default: false },
   loadingText: { type: String,  default: '' },

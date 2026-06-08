@@ -158,7 +158,7 @@ onUnmounted(() => unregister());
 
 // ── Open / close ──────────────────────────────────────────────────────────
 function toggle() {
-  open.value ? close() : openPalette();
+  if (open.value) close(); else openPalette();
 }
 function openPalette() {
   _open();
@@ -297,7 +297,7 @@ function moveSelection(dir: 1 | -1) {
 
 function activateSelected() {
   const item = flatItems.value[selectedIndex.value];
-  if (item) activateItem(item as any);
+  if (item) activateItem(item as ResultItem);
 }
 
 function activateItem(item: { action: () => void }) {

@@ -116,7 +116,7 @@ export interface PaginationParams {
   sortBy?:    string;
   sortOrder?: 'asc' | 'desc';
   search?:    string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface BreadcrumbItem {
