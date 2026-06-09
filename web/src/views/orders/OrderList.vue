@@ -7,6 +7,10 @@
                 <p class="page-subtitle">Manage customer orders</p>
             </div>
             <div class="flex items-center gap-3">
+                <router-link to="/orders/stats" class="btn-glass text-sm">
+                    <i class="fas fa-chart-bar text-xs mr-1"></i>
+                    Statistics
+                </router-link>
                 <button @click="exportOrders" class="btn-accent text-sm">
                     <i class="fas fa-download text-xs mr-1"></i>
                     Export
