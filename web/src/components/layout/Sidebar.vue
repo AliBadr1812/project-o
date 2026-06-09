@@ -105,22 +105,22 @@
     <!-- ── Fixed bottom: controls + user card ────────────────────────── -->
     <div class="flex-shrink-0 px-3.5 py-7 flex flex-col gap-2.5">
 
-      <!-- Notification + Dark mode row -->
+      <!-- Notification + Dark mode + Quick-add row -->
       <div class="flex items-center gap-2 px-1">
-        <!-- Notifications -->
-        <router-link to="/notifications" class="flex-1">
-          <button
-            class="btn-glass-icon relative w-full rounded-xl"
-            style="height: 38px;"
-            title="Notifications"
-          >
-            <i class="fas fa-bell text-sm"></i>
-            <span
-              class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-              style="background: #dc2626; box-shadow: 0 0 4px rgba(220,38,38,0.7);"
-            ></span>
-          </button>
-        </router-link>
+        <!-- Notifications — plain button, no nested anchor -->
+        <button
+          class="btn-glass-icon relative flex-1 rounded-xl"
+          style="height: 38px;"
+          title="Notifications"
+          @click="router.push('/notifications')"
+        >
+          <i class="fas fa-bell text-sm"></i>
+          <!-- Live unread badge — hidden when 0 -->
+          <span
+            v-if="unreadCount > 0"
+            class="notif-badge"
+          >{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+        </button>
 
         <!-- Dark mode toggle -->
         <button
@@ -132,60 +132,104 @@
           <i :class="isDark ? 'fas fa-sun' : 'fas fa-moon'" class="text-sm"></i>
         </button>
 
-        <!-- New item quick add -->
-        <router-link to="/products/create" class="flex-1">
-          <button
-            class="btn-glass-icon w-full rounded-xl"
-            style="height: 38px;"
-            title="Add new product"
-          >
-            <i class="fas fa-plus text-sm"></i>
-          </button>
-        </router-link>
+        <!-- Context-aware quick-add -->
+        <button
+          class="btn-glass-icon flex-1 rounded-xl"
+          style="height: 38px;"
+          :title="quickAddLabel"
+          @click="router.push(quickAddPath)"
+        >
+          <i class="fas fa-plus text-sm"></i>
+        </button>
       </div>
 
       <!-- User card -->
-      <router-link to="/settings/profile">
-        <div class="sidebar-user-card flex items-center gap-2.5 p-3 rounded-2xl transition-all duration-200">
-          <div
-            class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-            style="background: linear-gradient(145deg, #c084fc, #7c3aed);
-                   color: #fff;
-                   box-shadow: 0 2px 8px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.3);"
-          >
-            A
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="text-[13px] font-semibold truncate" style="color: var(--text-primary);">Ali</div>
-            <div class="text-[11px] truncate" style="color: var(--text-muted);">Administrator</div>
-          </div>
-          <div
-            class="w-2 h-2 rounded-full flex-shrink-0"
-            style="background: var(--online-dot); box-shadow: 0 0 6px rgba(48,209,88,0.7);"
-          ></div>
+      <div class="sidebar-user-card flex items-center gap-2.5 p-3 rounded-2xl transition-all duration-200"
+           style="cursor: pointer;"
+           @click="router.push('/settings/profile')">
+        <div
+          class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+          style="background: linear-gradient(145deg, #c084fc, #7c3aed);
+                 color: #fff;
+                 box-shadow: 0 2px 8px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.3);"
+        >
+          {{ userInitial }}
         </div>
-      </router-link>
+        <div class="flex-1 min-w-0">
+          <div class="text-[13px] font-semibold truncate" style="color: var(--text-primary);">{{ userName }}</div>
+          <div class="text-[11px] truncate" style="color: var(--text-muted);">{{ userRoleLabel }}</div>
+        </div>
+        <!-- Logout button -->
+        <button
+          class="btn-glass-icon w-7 h-7 rounded-lg text-xs flex-shrink-0"
+          title="Sign out"
+          @click.stop="handleLogout"
+        >
+          <i class="fas fa-right-from-bracket"></i>
+        </button>
+      </div>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { NAVIGATION_ITEMS } from '@/utils/constants';
 import { useTheme } from '@/composables/useTheme';
 import { useCommandPalette } from '@/composables/useCommandPalette';
+import { useNotifications } from '@/composables/useNotifications';
+import { useAuth } from '@/composables/useAuth';
 
-// Keep the prop/emit for backwards-compat with App.vue but drive the icon
-// from the composable's isDark so Settings can also change it.
 defineProps<{ dark: boolean }>();
 defineEmits(['toggle-dark']);
 
+const route  = useRoute();
+const router = useRouter();
+
 const { isDark, toggleDark } = useTheme();
 const { openPalette } = useCommandPalette();
+const { unreadCount } = useNotifications();
+const { user, logout } = useAuth();
+
+const userName      = computed(() => user.value?.name ?? 'Admin');
+const userInitial   = computed(() => userName.value.charAt(0).toUpperCase());
+const userRoleLabel = computed(() => {
+  const r = user.value?.role?.toLowerCase() ?? 'admin';
+  return r.charAt(0).toUpperCase() + r.slice(1);
+});
+
+function handleLogout() {
+  logout();
+  router.push('/login');
+}
 
 const overviewItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Dashboard', 'Analytics'].includes(i.name)));
 const commerceItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Products', 'Orders', 'Customers', 'Categories', 'Inventory Alerts', 'Discounts', 'Returns', 'Segments'].includes(i.name)));
 const settingsItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Settings', 'Audit Log'].includes(i.name)));
+
+// ── Context-aware quick-add ──────────────────────────────────────────────
+const quickAddConfig: Record<string, { path: string; label: string }> = {
+  '/products':   { path: '/products/create',    label: 'New product'  },
+  '/orders':     { path: '/orders/create',       label: 'New order'    },
+  '/customers':  { path: '/customers/create',    label: 'New customer' },
+  '/discounts':  { path: '/discounts/create',    label: 'New discount' },
+  '/categories': { path: '/categories/create',   label: 'New category' },
+};
+
+const quickAddPath = computed(() => {
+  for (const prefix of Object.keys(quickAddConfig)) {
+    if (route.path.startsWith(prefix)) return quickAddConfig[prefix]!.path;
+  }
+  return '/products/create';
+});
+
+const quickAddLabel = computed(() => {
+  for (const prefix of Object.keys(quickAddConfig)) {
+    if (route.path.startsWith(prefix)) return quickAddConfig[prefix]!.label;
+  }
+  return 'New product';
+});
 </script>
 
 <style scoped>
@@ -210,22 +254,36 @@ const settingsItems  = computed(() => NAVIGATION_ITEMS.filter(i => ['Settings', 
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
+/* Notification unread badge */
+.notif-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px var(--glass-panel, #fff);
+  pointer-events: none;
+}
+
 /* Thin, subtle scrollbar for the nav region */
 .sidebar-scroll {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb, rgba(124,94,240,0.28)) transparent;
 }
-.sidebar-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-.sidebar-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
+.sidebar-scroll::-webkit-scrollbar       { width: 4px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
 .sidebar-scroll::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb, rgba(124,94,240,0.28));
   border-radius: 9999px;
 }
-.sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--accent, #7c3aed);
-}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent, #7c3aed); }
 </style>
