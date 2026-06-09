@@ -1,310 +1,246 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Dashboard from '@/views/Dashboard.vue';
-import ProductList from '@/views/products/ProductList.vue';
-import ProductForm from '@/views/products/ProductForm.vue';
-import OrderList from '@/views/orders/OrderList.vue';
-import OrderEdit from '@/views/orders/OrderEdit.vue';
-import CustomerList from '@/views/customers/CustomerList.vue';
-import CustomerEdit from '@/views/customers/CustomerEdit.vue';
+import Dashboard        from '@/views/Dashboard.vue';
+import ProductList      from '@/views/products/ProductList.vue';
+import ProductForm      from '@/views/products/ProductForm.vue';
+import OrderList        from '@/views/orders/OrderList.vue';
+import OrderEdit        from '@/views/orders/OrderEdit.vue';
+import OrderStats       from '@/views/orders/OrderStats.vue';
+import CustomerList     from '@/views/customers/CustomerList.vue';
+import CustomerEdit     from '@/views/customers/CustomerEdit.vue';
 import AnalyticsDashboard from '@/views/analytics/AnalyticsDashboard.vue';
-import Settings from '@/views/settings/GeneralSettings.vue';
-import OrderDetail from '@/views/orders/OrderDetail.vue';
-import ProductDetail from '@/views/products/ProductDetail.vue';
-import CategoryList from '@/views/categories/CategoryList.vue';
-import UserProfile from '@/views/settings/UserProfile.vue';
-import CustomerDetail from '@/views/customers/CustomerDetail.vue';
-import CategoryForm from '@/views/categories/CategoryForm.vue';
+import Settings         from '@/views/settings/GeneralSettings.vue';
+import OrderDetail      from '@/views/orders/OrderDetail.vue';
+import ProductDetail    from '@/views/products/ProductDetail.vue';
+import CategoryList     from '@/views/categories/CategoryList.vue';
+import UserProfile      from '@/views/settings/UserProfile.vue';
+import CustomerDetail   from '@/views/customers/CustomerDetail.vue';
+import CategoryForm     from '@/views/categories/CategoryForm.vue';
 import NotificationList from '@/views/notifications/NotificationList.vue';
-import DiscountList from '@/views/discounts/DiscountList.vue';
-import DiscountForm from '@/views/discounts/DiscountForm.vue';
-import InventoryAlerts from '@/views/inventory/InventoryAlerts.vue';
-import ReturnList from '@/views/returns/ReturnList.vue';
-import SegmentList from '@/views/segments/SegmentList.vue';
-import AuditLog from '@/views/audit/AuditLog.vue';
+import DiscountList     from '@/views/discounts/DiscountList.vue';
+import DiscountForm     from '@/views/discounts/DiscountForm.vue';
+import InventoryAlerts  from '@/views/inventory/InventoryAlerts.vue';
+import ReturnList       from '@/views/returns/ReturnList.vue';
+import SegmentList      from '@/views/segments/SegmentList.vue';
+import AuditLog         from '@/views/audit/AuditLog.vue';
+import LoginView        from '@/views/auth/LoginView.vue';
+import NotFound         from '@/views/NotFound.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    { path: '/', redirect: '/dashboard' },
+
+    // ── Public ──────────────────────────────────────────────────────────
     {
-    path: '/',
-    redirect: '/dashboard'
+      path: '/login',
+      name: 'Login',
+      component: LoginView,
+      meta: { public: true, title: 'Sign In' },
     },
-  // {
-  //   path: '/login',
-  //   name: 'Login',
-  //   component: Login,
-  //   meta: { public: true }
-  // },
+
+    // ── Dashboard ───────────────────────────────────────────────────────
     {
       path: '/dashboard',
       name: 'Dashboard',
       component: Dashboard,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Dashboard'
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Dashboard', title: 'Dashboard' },
     },
+
+    // ── Products ────────────────────────────────────────────────────────
     {
       path: '/products',
       name: 'Products',
       component: ProductList,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Products'
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Products', title: 'Products' },
     },
     {
       path: '/products/create',
       name: 'CreateProduct',
       component: ProductForm,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'New',
-        parent: {
-          path: '/products',
-          name: 'Products'
-        }
-      }
+      meta: { requiresAuth: true, breadcrumb: 'New Product', title: 'New Product', parent: { path: '/products', name: 'Products' } },
     },
     {
       path: '/products/:id',
       name: 'ProductDetail',
       component: ProductDetail,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Product Detail',
-        parent: {
-          path: '/products',
-          name: 'Products'
-        }
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Product Detail', title: 'Product Detail', parent: { path: '/products', name: 'Products' } },
     },
     {
       path: '/products/:id/edit',
       name: 'EditProduct',
       component: ProductForm,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Edit Product',
-        parent: {
-          path: '/products/:id',
-          name: 'ProductDetail'
-        }
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Edit Product', title: 'Edit Product', parent: { path: '/products/:id', name: 'ProductDetail' } },
     },
+
+    // ── Orders ──────────────────────────────────────────────────────────
     {
       path: '/orders',
       name: 'Orders',
       component: OrderList,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Orders'
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Orders', title: 'Orders' },
+    },
+    {
+      path: '/orders/stats',
+      name: 'OrderStats',
+      component: OrderStats,
+      meta: { requiresAuth: true, breadcrumb: 'Order Analytics', title: 'Order Analytics', parent: { path: '/orders', name: 'Orders' } },
     },
     {
       path: '/orders/edit/:id',
       name: 'EditOrder',
       component: OrderEdit,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Edit Order',
-        parent: { path: '/orders', name: 'Orders' }
-      }
-    },
-    {
-      path: '/customers',
-      name: 'Customers',
-      component: CustomerList,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Customers'
-      }
-    },
-    {
-      path: '/customers/edit/:id',
-      name: 'EditCustomer',
-      component: CustomerEdit,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Edit Customer',
-        parent: { path: '/customers', name: 'Customers' }
-      }
-    },
-    {
-      path: '/customers/:id',
-      name: 'CustomerDetail',
-      component: CustomerDetail,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Customer Detail',
-        parent: {
-          path: '/customers',
-          name: 'Customer'
-        }
-      }
-    },
-    {
-      path: '/analytics',
-      name: 'Analytics',
-      component: AnalyticsDashboard,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Analytics'
-      }
-    },
-    {
-      path: '/settings',
-      name: 'Settings',
-      component: Settings,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Settings',
-      }
-    },
-    {
-      path: '/settings/profile',
-      name: 'UserProfile',
-      component: UserProfile,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'User Profile',
-        parent: {
-          path: '/settings',
-          name: 'Settings'
-        }
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Edit Order', title: 'Edit Order', parent: { path: '/orders', name: 'Orders' } },
     },
     {
       path: '/order/:orderId',
       name: 'OrderDetails',
       component: OrderDetail,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Order Details',
-        parent: {
-          path: '/orders',
-          name: 'Orders'
-        }
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Order Details', title: 'Order Details', parent: { path: '/orders', name: 'Orders' } },
     },
+
+    // ── Customers ───────────────────────────────────────────────────────
+    {
+      path: '/customers',
+      name: 'Customers',
+      component: CustomerList,
+      meta: { requiresAuth: true, breadcrumb: 'Customers', title: 'Customers' },
+    },
+    {
+      path: '/customers/edit/:id',
+      name: 'EditCustomer',
+      component: CustomerEdit,
+      meta: { requiresAuth: true, breadcrumb: 'Edit Customer', title: 'Edit Customer', parent: { path: '/customers', name: 'Customers' } },
+    },
+    {
+      path: '/customers/:id',
+      name: 'CustomerDetail',
+      component: CustomerDetail,
+      meta: { requiresAuth: true, breadcrumb: 'Customer Detail', title: 'Customer Detail', parent: { path: '/customers', name: 'Customers' } },
+    },
+
+    // ── Analytics ───────────────────────────────────────────────────────
+    {
+      path: '/analytics',
+      name: 'Analytics',
+      component: AnalyticsDashboard,
+      meta: { requiresAuth: true, breadcrumb: 'Analytics', title: 'Analytics' },
+    },
+
+    // ── Categories ──────────────────────────────────────────────────────
     {
       path: '/categories',
       name: 'Categories',
       component: CategoryList,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Categories'
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Categories', title: 'Categories' },
     },
     {
-        path: '/categories/create',
-        name: 'CreateCategory',
-        component: CategoryForm,
-        meta: {
-            requiresAuth: false,
-            breadcrumb: 'Create Category',
-            parent: { path: '/categories', name: 'Categories' }
-        }
+      path: '/categories/create',
+      name: 'CreateCategory',
+      component: CategoryForm,
+      meta: { requiresAuth: true, breadcrumb: 'Create Category', title: 'New Category', parent: { path: '/categories', name: 'Categories' } },
     },
     {
-        path: '/categories/edit/:id',
-        name: 'EditCategory',
-        component: CategoryForm,
-        meta: {
-            requiresAuth: false,
-            breadcrumb: 'Edit Category',
-            parent: { path: '/categories', name: 'Categories' }
-        }
+      path: '/categories/edit/:id',
+      name: 'EditCategory',
+      component: CategoryForm,
+      meta: { requiresAuth: true, breadcrumb: 'Edit Category', title: 'Edit Category', parent: { path: '/categories', name: 'Categories' } },
     },
-    {
-      path: '/notifications',
-      name: 'Notifications',
-      component: NotificationList,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Notifications',
-      }
-    },
-    {
-      path: '/inventory/alerts',
-      name: 'InventoryAlerts',
-      component: InventoryAlerts,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Inventory Alerts',
-        parent: { path: '/products', name: 'Products' }
-      }
-    },
+
+    // ── Discounts ───────────────────────────────────────────────────────
     {
       path: '/discounts',
       name: 'Discounts',
       component: DiscountList,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Discounts',
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Discounts', title: 'Discounts' },
     },
     {
       path: '/discounts/create',
       name: 'CreateDiscount',
       component: DiscountForm,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'New Discount',
-        parent: { path: '/discounts', name: 'Discounts' }
-      }
+      meta: { requiresAuth: true, breadcrumb: 'New Discount', title: 'New Discount', parent: { path: '/discounts', name: 'Discounts' } },
     },
     {
       path: '/discounts/:id/edit',
       name: 'EditDiscount',
       component: DiscountForm,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Edit Discount',
-        parent: { path: '/discounts', name: 'Discounts' }
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Edit Discount', title: 'Edit Discount', parent: { path: '/discounts', name: 'Discounts' } },
+    },
+
+    // ── Other commerce ──────────────────────────────────────────────────
+    {
+      path: '/notifications',
+      name: 'Notifications',
+      component: NotificationList,
+      meta: { requiresAuth: true, breadcrumb: 'Notifications', title: 'Notifications' },
+    },
+    {
+      path: '/inventory/alerts',
+      name: 'InventoryAlerts',
+      component: InventoryAlerts,
+      meta: { requiresAuth: true, breadcrumb: 'Inventory Alerts', title: 'Inventory Alerts', parent: { path: '/products', name: 'Products' } },
     },
     {
       path: '/returns',
       name: 'Returns',
       component: ReturnList,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Returns & Refunds',
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Returns & Refunds', title: 'Returns & Refunds' },
     },
     {
       path: '/segments',
       name: 'Segments',
       component: SegmentList,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Customer Segments',
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Customer Segments', title: 'Customer Segments' },
     },
     {
       path: '/audit-log',
       name: 'AuditLog',
       component: AuditLog,
-      meta: {
-        requiresAuth: false,
-        breadcrumb: 'Audit Log',
-      }
+      meta: { requiresAuth: true, breadcrumb: 'Audit Log', title: 'Audit Log' },
+    },
+
+    // ── Settings ────────────────────────────────────────────────────────
+    {
+      path: '/settings',
+      name: 'Settings',
+      component: Settings,
+      meta: { requiresAuth: true, breadcrumb: 'Settings', title: 'Settings' },
+    },
+    {
+      path: '/settings/profile',
+      name: 'UserProfile',
+      component: UserProfile,
+      meta: { requiresAuth: true, breadcrumb: 'User Profile', title: 'User Profile', parent: { path: '/settings', name: 'Settings' } },
+    },
+
+    // ── 404 catch-all ───────────────────────────────────────────────────
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: NotFound,
+      meta: { title: '404 Not Found' },
     },
   ],
-})
+});
 
-// Auth guard
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem('token');
+// ── Auth guard ──────────────────────────────────────────────────────────────
+router.beforeEach((to, _from, next) => {
+  const isAuthenticated = !!localStorage.getItem('auth_token');
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login');
+    // Redirect to login, preserve intended destination
+    next({ name: 'Login', query: { redirect: to.fullPath } });
   } else if (to.meta.public && isAuthenticated) {
-    next('/dashboard');
+    // Already logged in — skip login page
+    next({ name: 'Dashboard' });
   } else {
     next();
   }
 });
 
-export default router
+// ── Document title ──────────────────────────────────────────────────────────
+router.afterEach((to) => {
+  const title = to.meta.title as string | undefined;
+  document.title = title ? `${title} — ShopAdmin` : 'ShopAdmin';
+});
+
+export default router;

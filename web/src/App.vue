@@ -1,12 +1,18 @@
 <template>
-  <div id="app" class="h-screen flex relative overflow-hidden">
-    <!-- Fixed wallpaper behind everything -->
+  <!-- Login page has its own full-screen layout — no sidebar/nav -->
+  <div v-if="isPublicRoute" class="h-screen relative overflow-hidden">
+    <div class="wallpaper fixed inset-0 -z-10"></div>
+    <router-view />
+    <ToastContainer />
+    <ConfirmDialog />
+  </div>
+
+  <!-- Authenticated shell -->
+  <div v-else id="app" class="h-screen flex relative overflow-hidden">
     <div class="wallpaper fixed inset-0 -z-10"></div>
 
-    <!-- Sidebar -->
     <Sidebar :dark="isDark" @toggle-dark="toggleDark" />
 
-    <!-- Main content -->
     <div class="flex-1 flex flex-col h-screen overflow-hidden">
       <main class="flex-1 p-7 overflow-y-auto">
         <Breadcrumb v-if="!isDashboardRoute" :items="breadcrumbs" class="mb-5" />
@@ -21,7 +27,8 @@
       <Footer />
     </div>
 
-    <LoadingSpinner v-if="isLoading" />
+    <!-- Global overlays -->
+    <LoadingSpinner v-if="isNavigating" />
     <ToastContainer />
     <ConfirmDialog />
     <KeyboardShortcutsOverlay />
@@ -30,147 +37,112 @@
 </template>
 
 <script setup lang="ts">
-import LoadingSpinner from './components/shared/LoadingSpinner.vue';
-import ToastContainer from './components/ui/ToastContainer.vue';
-import ConfirmDialog from './components/ui/ConfirmDialog.vue';
+import LoadingSpinner           from './components/shared/LoadingSpinner.vue';
+import ToastContainer           from './components/ui/ToastContainer.vue';
+import ConfirmDialog            from './components/ui/ConfirmDialog.vue';
 import KeyboardShortcutsOverlay from './components/ui/KeyboardShortcutsOverlay.vue';
-import CommandPalette from './components/ui/CommandPalette.vue';
-import Sidebar from './components/layout/Sidebar.vue';
-import Breadcrumb from './components/layout/Breadcrumb.vue';
-import Footer from './components/layout/Footer.vue';
+import CommandPalette           from './components/ui/CommandPalette.vue';
+import Sidebar                  from './components/layout/Sidebar.vue';
+import Breadcrumb               from './components/layout/Breadcrumb.vue';
+import Footer                   from './components/layout/Footer.vue';
 import { computed, ref, watch, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useTheme } from '@/composables/useTheme';
+import { useRoute, useRouter }  from 'vue-router';
+import { useTheme }             from '@/composables/useTheme';
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts';
 
-const isLoading = false;
-const route = useRoute();
+const route  = useRoute();
 const router = useRouter();
 
-/* ── Theme / dark mode ── */
+/* ── Route helpers ──────────────────────────────────────────────────────── */
+const isPublicRoute    = computed(() => !!route.meta.public || route.name === 'NotFound');
+const isDashboardRoute = computed(() => route.path === '/dashboard' || route.path === '/');
+
+/* ── Global loading state — shown during route transitions ─────────────── */
+const isNavigating = ref(false);
+router.beforeEach(() => { isNavigating.value = true;  });
+router.afterEach(()  => { isNavigating.value = false; });
+
+/* ── Theme / dark mode ──────────────────────────────────────────────────── */
 const { isDark, toggleDark, init: initTheme } = useTheme();
 
-/* ── Keyboard shortcuts ── */
+/* ── Keyboard shortcuts ─────────────────────────────────────────────────── */
 const { registerShortcut, toggleHelp, hideHelp } = useKeyboardShortcuts();
 
 onMounted(() => {
   initTheme();
 
   // Navigation shortcuts
-  registerShortcut({
-    id: 'goto-dashboard', key: 'd', meta: true,
-    description: 'Go to Dashboard', group: 'Navigation',
-    handler: () => router.push('/dashboard'),
-  });
-  registerShortcut({
-    id: 'goto-products', key: 'p', meta: true,
-    description: 'Go to Products', group: 'Navigation',
-    handler: () => router.push('/products'),
-  });
-  registerShortcut({
-    id: 'goto-orders', key: 'o', meta: true,
-    description: 'Go to Orders', group: 'Navigation',
-    handler: () => router.push('/orders'),
-  });
-  registerShortcut({
-    id: 'goto-customers', key: 'u', meta: true,
-    description: 'Go to Customers', group: 'Navigation',
-    handler: () => router.push('/customers'),
-  });
+  registerShortcut({ id: 'goto-dashboard', key: 'd', meta: true,  description: 'Go to Dashboard', group: 'Navigation', handler: () => router.push('/dashboard') });
+  registerShortcut({ id: 'goto-products',  key: 'p', meta: true,  description: 'Go to Products',  group: 'Navigation', handler: () => router.push('/products')  });
+  registerShortcut({ id: 'goto-orders',    key: 'o', meta: true,  description: 'Go to Orders',    group: 'Navigation', handler: () => router.push('/orders')    });
+  registerShortcut({ id: 'goto-customers', key: 'u', meta: true,  description: 'Go to Customers', group: 'Navigation', handler: () => router.push('/customers') });
 
-  // Create shortcuts
+  // Context-aware create
   registerShortcut({
-    id: 'new-product', key: 'n', meta: false,
-    description: 'New product', group: 'Create',
+    id: 'new-item', key: 'n', meta: false,
+    description: 'New item (context-aware)', group: 'Create',
     handler: () => {
-      if (route.path.startsWith('/products')) router.push('/products/create');
-      else if (route.path.startsWith('/orders')) router.push('/orders/create');
-      else if (route.path.startsWith('/customers')) router.push('/customers/create');
-      else if (route.path.startsWith('/discounts')) router.push('/discounts/create');
+      if      (route.path.startsWith('/products'))   router.push('/products/create');
+      else if (route.path.startsWith('/orders'))     router.push('/orders/create');
+      else if (route.path.startsWith('/customers'))  router.push('/customers/create');
+      else if (route.path.startsWith('/discounts'))  router.push('/discounts/create');
       else if (route.path.startsWith('/categories')) router.push('/categories/create');
       else router.push('/products/create');
     },
   });
 
-  // Search shortcut
-  registerShortcut({
-    id: 'focus-search', key: '/', meta: false,
-    description: 'Focus search', group: 'General',
-    handler: () => {
-      const input = document.querySelector<HTMLInputElement>('.sidebar-search input, [data-search-input]');
-      input?.focus();
-    },
-  });
-
-  // Theme toggle
-  registerShortcut({
-    id: 'toggle-dark', key: 't', meta: false,
-    description: 'Toggle dark mode', group: 'General',
-    handler: () => toggleDark(),
-  });
-
-  // Help overlay
-  registerShortcut({
-    id: 'show-help', key: '?', meta: false,
-    description: 'Show keyboard shortcuts', group: 'General',
-    handler: () => toggleHelp(),
-  });
-
-  // Escape — close overlay or go back
-  registerShortcut({
-    id: 'escape', key: 'Escape', meta: false,
-    description: 'Close overlay / go back', group: 'General',
-    handler: () => hideHelp(),
-  });
+  registerShortcut({ id: 'toggle-dark', key: 't',      meta: false, description: 'Toggle dark mode',       group: 'General', handler: () => toggleDark()  });
+  registerShortcut({ id: 'show-help',   key: '?',      meta: false, description: 'Show keyboard shortcuts', group: 'General', handler: () => toggleHelp()  });
+  registerShortcut({ id: 'escape',      key: 'Escape', meta: false, description: 'Close overlay / go back', group: 'General', handler: () => hideHelp()    });
 });
 
-/* ── Breadcrumbs ── */
-const productName = ref('');
+/* ── Breadcrumbs with real record names ─────────────────────────────────── */
+// Storage for dynamic segment names resolved from route params
+const recordLabel = ref('');
 
 watch(
-  () => route.path,
+  () => route.fullPath,
   () => {
-    if (route.name === 'ProductDetail' && route.params.id) {
-      productName.value = 'Product #' + route.params.id;
-    } else {
-      productName.value = '';
-    }
-  },
-  { immediate: true }
-);
+    const name = route.name as string;
+    const id   = route.params.id ?? route.params.orderId;
 
-const isDashboardRoute = computed(
-  () => route.path === '/dashboard' || route.path === '/'
+    if      (name === 'ProductDetail') recordLabel.value = `Product #${id}`;
+    else if (name === 'EditProduct')   recordLabel.value = `Product #${id}`;
+    else if (name === 'OrderDetails')  recordLabel.value = `Order #${id}`;
+    else if (name === 'EditOrder')     recordLabel.value = `Order #${id}`;
+    else if (name === 'CustomerDetail')recordLabel.value = `Customer #${id}`;
+    else if (name === 'EditCustomer')  recordLabel.value = `Customer #${id}`;
+    else                               recordLabel.value = '';
+  },
+  { immediate: true },
 );
 
 const breadcrumbs = computed(() => {
-  const items = [];
-  const currentRoute = router.currentRoute.value;
+  const items: { path: string; name: string }[] = [];
+  const cr = router.currentRoute.value;
 
+  // Always start with Dashboard
   if (!isDashboardRoute.value) {
     items.push({ path: '/dashboard', name: 'Dashboard' });
   }
 
-  if (currentRoute.meta.parent) {
-    const parent = currentRoute.meta.parent as { path: string; name: string };
+  // Optional parent breadcrumb
+  if (cr.meta.parent) {
+    const parent = cr.meta.parent as { path: string; name: string };
     let parentPath = parent.path;
     if (parentPath.includes(':id') && route.params.id) {
       parentPath = parentPath.replace(':id', route.params.id as string);
     }
+    if (parentPath.includes(':orderId') && route.params.orderId) {
+      parentPath = parentPath.replace(':orderId', route.params.orderId as string);
+    }
     items.push({ path: parentPath, name: parent.name });
   }
 
-  let breadcrumbName = currentRoute.meta.breadcrumb as string;
-  if (breadcrumbName === ':id' && route.params.id) {
-    breadcrumbName = productName.value || `Product #${route.params.id}`;
-  }
-
-  if (
-    breadcrumbName &&
-    breadcrumbName !== 'Dashboard' &&
-    !items.some(item => item.name === breadcrumbName)
-  ) {
-    items.push({ path: currentRoute.path, name: breadcrumbName });
+  // Current page — use resolved record label when available
+  const label = recordLabel.value || (cr.meta.breadcrumb as string);
+  if (label && label !== 'Dashboard' && !items.some(i => i.name === label)) {
+    items.push({ path: cr.path, name: label });
   }
 
   return items;
