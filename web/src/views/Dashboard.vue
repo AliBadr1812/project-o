@@ -4,7 +4,7 @@
     <!-- Page header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Good evening 👋</h1>
+        <h1 class="page-title">{{ greeting }} 👋</h1>
         <p class="page-subtitle">Here's what's happening with your store today.</p>
       </div>
       <div class="flex items-center gap-3">
@@ -22,11 +22,26 @@
           <i class="fas fa-rotate-right text-xs"></i>
           Refresh
         </button>
+        <!-- Widget visibility toggle -->
+        <div class="relative">
+          <button @click="showWidgetMenu = !showWidgetMenu" class="btn-glass gap-2" title="Toggle widgets">
+            <i class="fas fa-sliders text-xs"></i>
+          </button>
+          <Transition name="fade">
+            <div v-if="showWidgetMenu" class="widget-menu glass-card absolute right-0 top-full mt-2 p-3 z-50 w-52 flex flex-col gap-1.5">
+              <p class="text-[11px] font-semibold uppercase tracking-wide mb-1" style="color: var(--text-muted);">Visible widgets</p>
+              <label v-for="w in widgetDefs" :key="w.key" class="flex items-center gap-2.5 cursor-pointer py-1">
+                <input type="checkbox" v-model="visibleWidgets[w.key]" class="widget-check" />
+                <span class="text-[13px]" style="color: var(--text-primary);">{{ w.label }}</span>
+              </label>
+            </div>
+          </Transition>
+        </div>
       </div>
     </div>
 
     <!-- Stat cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div v-if="visibleWidgets.stats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
       <Card>
         <div class="p-5">
@@ -107,7 +122,7 @@
     </div>
 
     <!-- Charts row -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div v-if="visibleWidgets.charts" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
       <!-- Revenue chart -->
       <Card class="lg:col-span-2">
@@ -169,10 +184,10 @@
     </div>
 
     <!-- Activity row -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div v-if="visibleWidgets.recentOrders || visibleWidgets.quickActions" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
       <!-- Recent orders -->
-      <Card class="lg:col-span-2 overflow-hidden">
+      <Card v-if="visibleWidgets.recentOrders" class="lg:col-span-2 overflow-hidden">
         <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
           <div class="flex items-center justify-between">
             <div>
@@ -244,7 +259,7 @@
       <div class="flex flex-col gap-6">
 
         <!-- Quick actions -->
-        <Card>
+        <Card v-if="visibleWidgets.quickActions">
           <div class="px-6 py-4" style="border-bottom: 1px solid var(--glass-border);">
             <h2 class="text-[15px] font-semibold" style="color: var(--text-primary);">Quick Actions</h2>
           </div>
@@ -322,46 +337,92 @@ onMounted(() => {
 
 const chartRange    = ref<'week' | 'month' | 'quarter'>('month');
 const selectedRange = ref('Last 30 days');
+const showWidgetMenu = ref(false);
 
-// ── Computed stats from real data ─────────────────────────────────────────
+// ── Widget visibility — persisted to localStorage ─────────────────────────
+const WIDGET_KEY = 'dashboard_widgets';
+const widgetDefs = [
+  { key: 'stats',        label: 'Stat cards'     },
+  { key: 'charts',       label: 'Revenue charts' },
+  { key: 'recentOrders', label: 'Recent orders'  },
+  { key: 'quickActions', label: 'Quick actions'  },
+];
+const defaultWidgets = { stats: true, charts: true, recentOrders: true, quickActions: true };
+
+function loadWidgets() {
+  try {
+    const saved = localStorage.getItem(WIDGET_KEY);
+    return saved ? { ...defaultWidgets, ...JSON.parse(saved) } : { ...defaultWidgets };
+  } catch { return { ...defaultWidgets }; }
+}
+
+const visibleWidgets = ref<Record<string, boolean>>(loadWidgets());
+
+watch(visibleWidgets, (v) => {
+  localStorage.setItem(WIDGET_KEY, JSON.stringify(v));
+}, { deep: true });
+
+// ── Dynamic greeting ──────────────────────────────────────────────────────
+const greeting = computed(() => {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+});
+
+// ── Range → milliseconds window ───────────────────────────────────────────
+const rangeMs = computed(() => {
+  const map: Record<string, number> = {
+    'Today':          1  * 24 * 60 * 60 * 1000,
+    'Last 7 days':    7  * 24 * 60 * 60 * 1000,
+    'Last 30 days':   30 * 24 * 60 * 60 * 1000,
+    'Last Quarter':   90 * 24 * 60 * 60 * 1000,
+  };
+  return map[selectedRange.value] ?? 30 * 24 * 60 * 60 * 1000;
+});
+
+// ── Computed stats from real data, filtered by selectedRange ─────────────
 const stats = computed(() => {
-  const now        = new Date();
-  const msPerMonth = 30 * 24 * 60 * 60 * 1000;
+  const now    = new Date();
+  const window = rangeMs.value;
+  const prev   = window; // "previous period" is same length before current window
 
-  const activeOrders = orders.value.filter(
-    o => o.status !== 'cancelled' && o.status !== 'refunded',
-  );
-  const totalRevenue    = activeOrders.reduce((s, o) => s + o.total, 0);
-  const totalOrders     = orders.value.length;
-  const avgOrderValue   = totalOrders > 0 ? Math.round((totalRevenue / totalOrders) * 100) / 100 : 0;
-
-  // "last month" = orders placed 30–60 days ago
-  const lastMonthOrders = orders.value.filter(o => {
+  // Orders within the selected range
+  const rangeOrders = orders.value.filter(o => {
+    if (!o.createdAt) return false;
+    return now.getTime() - new Date(o.createdAt).getTime() <= window;
+  });
+  const prevOrders = orders.value.filter(o => {
     if (!o.createdAt) return false;
     const age = now.getTime() - new Date(o.createdAt).getTime();
-    return age > msPerMonth && age <= 2 * msPerMonth;
+    return age > window && age <= 2 * prev;
   });
-  const lastMonthRevenue = lastMonthOrders
+
+  const activeOrders  = rangeOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded');
+  const totalRevenue  = activeOrders.reduce((s, o) => s + o.total, 0);
+  const totalOrders   = rangeOrders.length;
+  const avgOrderValue = totalOrders > 0 ? Math.round((totalRevenue / totalOrders) * 100) / 100 : 0;
+
+  const lastMonthRevenue = prevOrders
     .filter(o => o.status !== 'cancelled' && o.status !== 'refunded')
     .reduce((s, o) => s + o.total, 0);
 
   const totalCustomers = customers.value.filter(c => c.status === 'active').length;
   const newCustomers   = customers.value.filter(c => {
     if (!c.lastOrderDate) return false;
-    return now.getTime() - new Date(c.lastOrderDate).getTime() <= msPerMonth;
+    return now.getTime() - new Date(c.lastOrderDate).getTime() <= window;
   }).length;
 
   const completionRate = totalOrders > 0
-    ? Math.round((orders.value.filter(o => o.status === 'delivered').length / totalOrders) * 100)
+    ? Math.round((rangeOrders.filter(o => o.status === 'delivered').length / totalOrders) * 100)
     : 0;
 
-  const inStockProducts = products.value.filter(p => p.stock > 0).length;
-  const inventoryHealth = products.value.length > 0
+  const inStockProducts  = products.value.filter(p => p.stock > 0).length;
+  const inventoryHealth  = products.value.length > 0
     ? Math.round((inStockProducts / products.value.length) * 100)
     : 0;
 
-  // Satisfaction: proxy — % of VIP + returning customers
-  const happyCustomers = customers.value.filter(c => c.type === 'vip' || c.type === 'returning').length;
+  const happyCustomers   = customers.value.filter(c => c.type === 'vip' || c.type === 'returning').length;
   const satisfactionRate = customers.value.length > 0
     ? Math.round((happyCustomers / customers.value.length) * 100)
     : 0;
@@ -373,8 +434,8 @@ const stats = computed(() => {
     avgOrderValue,
     totalCustomers,
     newCustomers,
-    conversionRate:  3.2,   // no visitor tracking — keep static
-    totalVisitors:   76025, // no visitor tracking — keep static
+    conversionRate:  3.2,
+    totalVisitors:   76025,
     completionRate,
     satisfactionRate,
     inventoryHealth,
@@ -429,16 +490,18 @@ const topProducts = computed(() =>
     })),
 );
 
-// ── Recent orders: last 6 by createdAt ───────────────────────────────────
-const recentOrders = computed(() =>
-  [...orders.value]
+// ── Recent orders: last 6 within range ───────────────────────────────────
+const recentOrders = computed(() => {
+  const now = Date.now();
+  return [...orders.value]
+    .filter(o => o.createdAt && now - new Date(o.createdAt).getTime() <= rangeMs.value)
     .sort((a, b) => {
       const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return tb - ta;
     })
-    .slice(0, 6),
-);
+    .slice(0, 6);
+});
 
 const quickActions = [
   { label: 'Add Product',  path: '/products/create', icon: 'fas fa-plus',        color: 'ni-p' },
@@ -556,3 +619,19 @@ onMounted(() => {
 
 watch(chartRange, updateChart);
 </script>
+
+<style scoped>
+.widget-menu {
+  min-width: 200px;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+.widget-check {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.15s, transform 0.15s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-4px); }
+</style>
