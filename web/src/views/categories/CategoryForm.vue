@@ -183,7 +183,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
 import Badge from '@/components/ui/Badge.vue';
 import { formatDate } from '@/utils/formatters';
@@ -194,6 +194,24 @@ const router = useRouter();
 const route = useRoute();
 const toast = useToast();
 const { confirm } = useConfirm();
+
+const isDirty   = ref(false);
+const formSaved = ref(false);
+let watchPaused = true;
+setTimeout(() => { watchPaused = false; }, 500);
+
+onBeforeRouteLeave(async () => {
+  if (isDirty.value && !formSaved.value) {
+    const ok = await confirm({
+      title:       'Unsaved changes',
+      message:     'You have unsaved changes.',
+      detail:      'Leave without saving?',
+      confirmText: 'Leave',
+      variant:     'danger',
+    });
+    if (!ok) return false;
+  }
+});
 
 // State
 const submitting = ref(false);
@@ -249,6 +267,8 @@ const form = reactive({
   updatedAt: ''
 });
 
+watch(form, () => { if (!watchPaused) isDirty.value = true; }, { deep: true });
+
 // Load mock data if editing
 onMounted(() => {
   if (isEditing.value) {
@@ -292,6 +312,7 @@ const handleSubmit = async () => {
       toast.success('Category created successfully!', 'Created');
     }
 
+    formSaved.value = true;
     router.push('/categories');
   } catch (error: unknown) {
     toast.error(error instanceof Error ? error.message : 'Failed to save category. Please try again.', 'Error');
@@ -308,7 +329,7 @@ const handleCancel = async () => {
     cancelText:  'Keep editing',
     variant:     'warning',
   });
-  if (ok) router.push('/categories');
+  if (ok) { formSaved.value = true; router.push('/categories'); }
 };
 
 const triggerFileUpload = () => {

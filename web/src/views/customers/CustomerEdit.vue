@@ -253,8 +253,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, reactive, onMounted, watch } from 'vue';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
 import { formatCurrency, formatDate, getInitials } from '@/utils/formatters';
 import { customerService } from '@/services/customerService';
@@ -270,6 +270,24 @@ const { confirm } = useConfirm();
 
 const loading = ref(true);
 const saving  = ref(false);
+
+const isDirty   = ref(false);
+const formSaved = ref(false);
+let watchPaused = true;
+setTimeout(() => { watchPaused = false; }, 500);
+
+onBeforeRouteLeave(async () => {
+  if (isDirty.value && !formSaved.value) {
+    const ok = await confirm({
+      title:       'Unsaved changes',
+      message:     'You have unsaved changes.',
+      detail:      'Leave without saving?',
+      confirmText: 'Leave',
+      variant:     'danger',
+    });
+    if (!ok) return false;
+  }
+});
 
 interface Customer {
   id:            number;
@@ -297,6 +315,8 @@ const form = reactive({
   notes:  '',
   address: { street: '', city: '', state: '', zip: '', country: 'US' },
 });
+
+watch(form, () => { if (!watchPaused) isDirty.value = true; }, { deep: true });
 
 // ── Options ───────────────────────────────────────────────────────────
 const typeOptions = [
@@ -358,6 +378,7 @@ async function handleSave() {
       type:     form.type,
     });
     store.updateItem(id, updated);
+    formSaved.value = true;
     toast.success('Customer saved', 'Saved');
     router.push('/customers');
   } catch (e: unknown) {

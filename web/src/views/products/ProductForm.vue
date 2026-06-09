@@ -290,19 +290,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
+import { useConfirm } from '@/composables/useConfirm';
 import { productService } from '@/services/productService';
 import { useProductStore } from '@/stores/productStore';
 import { useToast } from '@/composables/useToast';
 
-const route  = useRoute();
-const router = useRouter();
-const store  = useProductStore();
-const toast  = useToast();
+const route   = useRoute();
+const router  = useRouter();
+const store   = useProductStore();
+const toast   = useToast();
+const { confirm } = useConfirm();
 
-const isEditing = computed(() => !!route.params.id);
+const isEditing    = computed(() => !!route.params.id);
 const isSubmitting = ref(false);
+const isDirty      = ref(false);
+const formSaved    = ref(false);
+
+// Mark dirty on any field change (after first render)
+let watchPaused = true;
+setTimeout(() => { watchPaused = false; }, 500);
+
+onBeforeRouteLeave(async () => {
+  if (isDirty.value && !formSaved.value) {
+    const ok = await confirm({
+      title:       'Unsaved changes',
+      message:     'You have unsaved changes.',
+      detail:      'Leave without saving?',
+      confirmText: 'Leave',
+      variant:     'danger',
+    });
+    if (!ok) return false;
+  }
+});
+
+watch(product, () => { if (!watchPaused) isDirty.value = true; }, { deep: true });
 
 const product = ref({
   name: '', sku: '', categoryId: '', brand: '',
@@ -395,6 +418,7 @@ const submitForm = async () => {
       const created = await productService.createProduct(payload);
       store.prependItem(created);
     }
+    formSaved.value = true;
     toast.success(isEditing.value ? 'Product updated' : 'Product created', 'Saved');
     router.push('/products');
   } catch (e: unknown) {

@@ -303,19 +303,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, reactive, onMounted, watch } from 'vue';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import Card from '@/components/ui/Card.vue';
 import { formatCurrency, formatDate, getInitials } from '@/utils/formatters';
 import type { Order, ShippingAddress } from '@/types/order';
+import { useConfirm } from '@/composables/useConfirm';
 
 const route  = useRoute();
 const router = useRouter();
+const { confirm } = useConfirm();
 
 const loading = ref(true);
 const saving  = ref(false);
 const order   = ref<Order | null>(null);
 const newNote = ref('');
+
+const isDirty   = ref(false);
+const formSaved = ref(false);
+let watchPaused = true;
+setTimeout(() => { watchPaused = false; }, 500);
+
+onBeforeRouteLeave(async () => {
+  if (isDirty.value && !formSaved.value) {
+    const ok = await confirm({
+      title:       'Unsaved changes',
+      message:     'You have unsaved changes.',
+      detail:      'Leave without saving?',
+      confirmText: 'Leave',
+      variant:     'danger',
+    });
+    if (!ok) return false;
+  }
+});
 
 // Editable form state (separate from the read-only order ref)
 const form = reactive({
@@ -324,6 +344,8 @@ const form = reactive({
     name: '', phone: '', street: '', city: '', state: '', zipCode: '', country: 'US',
   } as ShippingAddress,
 });
+
+watch(form, () => { if (!watchPaused) isDirty.value = true; }, { deep: true });
 
 // ── Static helpers ────────────────────────────────────────────────────
 const statusOptions = [
@@ -420,6 +442,7 @@ async function handleSave() {
 
   console.log('Order saved:', { id: order.value.id, status: form.status, shippingAddress: form.shippingAddress });
   saving.value = false;
+  formSaved.value = true;
   router.push('/orders');
 }
 </script>

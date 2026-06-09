@@ -132,20 +132,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { useDiscountStore } from '@/stores/discountStore';
 import { discountService } from '@/services/discountService';
 import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
 import { formatCurrency } from '@/utils/formatters';
 
 const route  = useRoute();
 const router = useRouter();
 const store  = useDiscountStore();
 const toast  = useToast();
+const { confirm } = useConfirm();
 
 const isEdit = computed(() => !!route.params.id);
 const saving = ref(false);
+
+const isDirty   = ref(false);
+const formSaved = ref(false);
+let watchPaused = true;
+setTimeout(() => { watchPaused = false; }, 500);
+
+onBeforeRouteLeave(async () => {
+  if (isDirty.value && !formSaved.value) {
+    const ok = await confirm({
+      title:       'Unsaved changes',
+      message:     'You have unsaved changes.',
+      detail:      'Leave without saving?',
+      confirmText: 'Leave',
+      variant:     'danger',
+    });
+    if (!ok) return false;
+  }
+});
 
 const form = ref({
   code:               '',
@@ -158,6 +178,8 @@ const form = ref({
   endDate:            '',
   isActive:           true,
 });
+
+watch(form, () => { if (!watchPaused) isDirty.value = true; }, { deep: true });
 
 onMounted(async () => {
   if (!isEdit.value) return;
@@ -194,6 +216,7 @@ async function submit() {
       const created = await discountService.createDiscount(payload);
       store.prependItem(created);
     }
+    formSaved.value = true;
     toast.success(isEdit.value ? 'Discount updated' : 'Discount created');
     router.push('/discounts');
   } catch (e: unknown) {
