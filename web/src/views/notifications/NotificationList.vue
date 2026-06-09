@@ -218,23 +218,14 @@
 import { ref, computed, reactive } from 'vue';
 import { useToast } from '@/composables/useToast';
 import { useConfirm } from '@/composables/useConfirm';
+import { useNotifications, type AppNotification } from '@/composables/useNotifications';
 
 const toast = useToast();
 const { confirm } = useConfirm();
+const { notifications, unreadCount: sharedUnreadCount, markRead: sharedMarkRead, markAllRead: sharedMarkAllRead, dismiss: sharedDismiss, clearAll: sharedClearAll } = useNotifications();
 
 /* ── Types ── */
 type NotificationType = 'order' | 'customer' | 'product' | 'alert' | 'info' | 'payment';
-
-interface Notification {
-  id: number;
-  type: NotificationType;
-  title: string;
-  message: string;
-  time: string;
-  timestamp: number;
-  read: boolean;
-  action?: { label: string; path: string };
-}
 
 /* ── Type visual config ── */
 const typeConfig: Record<NotificationType, {
@@ -250,92 +241,6 @@ const typeConfig: Record<NotificationType, {
   info:     { icon: 'fas fa-circle-info',          iconBg: 'var(--ni-teal-bg)',   iconColor: 'var(--ni-teal)',   dotColor: 'var(--ni-teal)'   },
   payment:  { icon: 'fas fa-credit-card',          iconBg: 'var(--ni-green-bg)',  iconColor: 'var(--ni-green)',  dotColor: 'var(--ni-green)'  },
 };
-
-/* ── Mock data ── */
-const notifications = ref<Notification[]>([
-  {
-    id: 1, type: 'order',
-    title: 'New order received',
-    message: 'Order #1042 for $284.00 was placed by Marcus Johnson — 2× Wireless Headphones, 1× USB-C Hub.',
-    time: '2 min ago', timestamp: Date.now() - 2 * 60_000, read: false,
-    action: { label: 'View order', path: '/orders' },
-  },
-  {
-    id: 2, type: 'alert',
-    title: 'Low stock warning',
-    message: 'Mechanical Keyboard Pro is down to 3 units. Restock soon to avoid a stockout.',
-    time: '15 min ago', timestamp: Date.now() - 15 * 60_000, read: false,
-    action: { label: 'Manage products', path: '/products' },
-  },
-  {
-    id: 3, type: 'payment',
-    title: 'Payment confirmed',
-    message: '$1,240.00 for order #1038 (Sophia Kim) was successfully processed via Stripe.',
-    time: '38 min ago', timestamp: Date.now() - 38 * 60_000, read: false,
-    action: { label: 'View order', path: '/orders' },
-  },
-  {
-    id: 4, type: 'customer',
-    title: 'New customer registered',
-    message: "Ethan Clarke signed up and completed their first purchase — eligible for the returning-customer tier.",
-    time: '1 hr ago', timestamp: Date.now() - 60 * 60_000, read: false,
-    action: { label: 'View customer', path: '/customers' },
-  },
-  {
-    id: 5, type: 'order',
-    title: 'Order shipped',
-    message: 'Order #1035 for Aisha Patel has been dispatched. Tracking: TRK-882910-US via FedEx.',
-    time: '2 hr ago', timestamp: Date.now() - 2 * 3600_000, read: true,
-    action: { label: 'View order', path: '/orders' },
-  },
-  {
-    id: 6, type: 'info',
-    title: 'Monthly report ready',
-    message: 'Your May 2026 sales report is ready. Total revenue: $48,320 — up 12% vs. April.',
-    time: '4 hr ago', timestamp: Date.now() - 4 * 3600_000, read: true,
-    action: { label: 'View analytics', path: '/analytics' },
-  },
-  {
-    id: 7, type: 'alert',
-    title: 'Order cancellation request',
-    message: 'Noah Bennett has requested to cancel order #1031 ($98.00). Respond within 24 hours.',
-    time: '6 hr ago', timestamp: Date.now() - 6 * 3600_000, read: true,
-    action: { label: 'Review order', path: '/orders' },
-  },
-  {
-    id: 8, type: 'product',
-    title: 'New product review',
-    message: '5-star review submitted for "Noise-Cancelling Earbuds Pro" by verified buyer Lena Fischer.',
-    time: 'Yesterday', timestamp: Date.now() - 24 * 3600_000, read: true,
-    action: { label: 'View product', path: '/products' },
-  },
-  {
-    id: 9, type: 'customer',
-    title: 'VIP milestone reached',
-    message: "Sophia Kim completed her 10th purchase and has been upgraded to VIP status.",
-    time: 'Yesterday', timestamp: Date.now() - 26 * 3600_000, read: true,
-    action: { label: 'View customer', path: '/customers' },
-  },
-  {
-    id: 10, type: 'payment',
-    title: 'Refund issued',
-    message: '$45.00 refund issued to Isabella Torres for order #1019. Expected within 3–5 business days.',
-    time: '2 days ago', timestamp: Date.now() - 48 * 3600_000, read: true,
-  },
-  {
-    id: 11, type: 'info',
-    title: 'Maintenance window scheduled',
-    message: 'Planned maintenance June 10, 02:00–04:00 UTC. Dashboard will be in read-only mode.',
-    time: '2 days ago', timestamp: Date.now() - 50 * 3600_000, read: true,
-  },
-  {
-    id: 12, type: 'product',
-    title: 'Category reorganised',
-    message: '"Audio & Wearables" was updated — 14 products re-tagged with the new subcategories.',
-    time: '3 days ago', timestamp: Date.now() - 72 * 3600_000, read: true,
-    action: { label: 'View categories', path: '/categories' },
-  },
-]);
 
 /* ── UI state ── */
 const searchQuery = ref('');
@@ -354,7 +259,7 @@ const prefs = reactive([
 ]);
 
 /* ── Derived counts ── */
-const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
+const unreadCount = sharedUnreadCount;
 const alertCount  = computed(() => notifications.value.filter(n => n.type === 'alert').length);
 
 /* ── Filter tabs ── */
@@ -388,7 +293,7 @@ const filtered = computed(() => {
 /* ── Grouping ── */
 const groupedNotifications = computed(() => {
   const now = Date.now();
-  const groups: { label: string; items: Notification[] }[] = [];
+  const groups: { label: string; items: AppNotification[] }[] = [];
 
   const today     = filtered.value.filter(n => now - n.timestamp < 24 * 3600_000);
   const yesterday = filtered.value.filter(n => { const d = now - n.timestamp; return d >= 24 * 3600_000 && d < 48 * 3600_000; });
@@ -402,16 +307,16 @@ const groupedNotifications = computed(() => {
 });
 
 /* ── Actions ── */
-function markRead(n: Notification) { n.read = true; }
+function markRead(n: AppNotification) { sharedMarkRead(n.id); }
 
 function markAllRead() {
   const count = notifications.value.filter(n => !n.read).length;
-  notifications.value.forEach(n => { n.read = true; });
+  sharedMarkAllRead();
   toast.success(`${count} notification${count !== 1 ? 's' : ''} marked as read`);
 }
 
-function dismiss(n: Notification) {
-  notifications.value.splice(notifications.value.findIndex(x => x.id === n.id), 1);
+function dismiss(n: AppNotification) {
+  sharedDismiss(n.id);
 }
 
 async function clearAll() {
@@ -424,7 +329,7 @@ async function clearAll() {
   });
   if (ok) {
     const count = notifications.value.length;
-    notifications.value = [];
+    sharedClearAll();
     toast.success(`${count} notifications cleared`);
   }
 }
@@ -443,14 +348,14 @@ function toggleSelect(id: number) {
 
 function bulkMarkRead() {
   const count = selectedIds.value.size;
-  notifications.value.forEach(n => { if (selectedIds.value.has(n.id)) n.read = true; });
+  notifications.value.forEach(n => { if (selectedIds.value.has(n.id)) sharedMarkRead(n.id); });
   selectedIds.value = new Set();
   toast.success(`${count} notification${count !== 1 ? 's' : ''} marked as read`);
 }
 
 function bulkDismiss() {
   const count = selectedIds.value.size;
-  notifications.value = notifications.value.filter(n => !selectedIds.value.has(n.id));
+  selectedIds.value.forEach(id => sharedDismiss(id));
   selectedIds.value = new Set();
   bulkMode.value = false;
   toast.success(`${count} notification${count !== 1 ? 's' : ''} deleted`);
