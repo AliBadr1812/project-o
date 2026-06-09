@@ -17,6 +17,17 @@ public class UserPreferencesController {
 
     private final UserPreferencesService service;
 
+    /**
+     * GET /user-preferences/default
+     * Convenience endpoint — the frontend calls this when no specific userId is
+     * known yet. Returns empty preferences (null data) so the UI uses its own defaults.
+     */
+    @GetMapping("/default")
+    @Operation(summary = "Get default (anonymous) preferences")
+    public ResponseEntity<ApiResponse<UserPreferencesResponse>> getDefault() {
+        return ResponseEntity.ok(ApiResponse.success("No preferences saved yet", null));
+    }
+
     @GetMapping("/{userId}")
     @Operation(summary = "Get preferences for a user")
     public ResponseEntity<ApiResponse<UserPreferencesResponse>> get(@PathVariable String userId) {
