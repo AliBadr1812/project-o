@@ -10,6 +10,9 @@
         <button @click="store.fetchAll(true)" class="btn-glass text-sm">
           <i class="fas fa-sync-alt text-xs mr-1"></i>Refresh
         </button>
+        <button @click="exportCsv" class="btn-glass text-sm">
+          <i class="fas fa-download text-xs mr-1"></i>Export CSV
+        </button>
         <router-link to="/discounts/create" class="btn-accent text-sm">
           <i class="fas fa-plus text-xs mr-1"></i>New Discount
         </router-link>
@@ -183,6 +186,7 @@ import { useConfirm } from '@/composables/useConfirm';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency, formatDate } from '@/utils/formatters';
+import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import type { Discount } from '@/types/discount';
 
 const router  = useRouter();
@@ -221,6 +225,14 @@ const paginatedItems = computed(() => {
 });
 
 watch(search, () => { currentPage.value = 1; });
+
+function exportCsv() {
+  exportToCsv(
+    datestampedFilename('discounts'),
+    filtered.value,
+    ['id', 'code', 'description', 'type', 'value', 'minimumOrderAmount', 'usageLimit', 'usedCount', 'isActive', 'startDate', 'endDate', 'createdAt'],
+  );
+}
 
 function isExpired(endDate: string): boolean {
   return endDate ? new Date(endDate) < new Date() : false;

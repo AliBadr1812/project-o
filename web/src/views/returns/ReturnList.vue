@@ -10,6 +10,9 @@
         <button @click="store.fetchAll(true)" class="btn-glass text-sm">
           <i class="fas fa-sync-alt text-xs mr-1"></i>Refresh
         </button>
+        <button @click="exportCsv" class="btn-glass text-sm">
+          <i class="fas fa-download text-xs mr-1"></i>Export CSV
+        </button>
       </div>
     </div>
 
@@ -218,6 +221,7 @@ import { useToast } from '@/composables/useToast';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency, formatDate } from '@/utils/formatters';
+import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import type { Return } from '@/types/return';
 
 const store = useReturnStore();
@@ -301,6 +305,14 @@ function methodLabel(m: string): string {
     BANK_TRANSFER:    'Bank Transfer',
   };
   return map[m] ?? m;
+}
+
+function exportCsv() {
+  exportToCsv(
+    datestampedFilename('returns'),
+    filtered.value,
+    ['id', 'returnNumber', 'orderNumber', 'customerName', 'customerEmail', 'status', 'reason', 'refundAmount', 'refundMethod', 'createdAt'],
+  );
 }
 
 async function updateStatus(r: Return, status: string) {

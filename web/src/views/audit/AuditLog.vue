@@ -6,9 +6,14 @@
         <h1 class="page-title">Audit Log</h1>
         <p class="page-subtitle">Track all administrative actions and system events</p>
       </div>
-      <button @click="loadLogs" class="btn-glass text-sm">
-        <i class="fas fa-sync-alt text-xs mr-1"></i>Refresh
-      </button>
+      <div class="flex items-center gap-3">
+        <button @click="loadLogs" class="btn-glass text-sm">
+          <i class="fas fa-sync-alt text-xs mr-1"></i>Refresh
+        </button>
+        <button @click="exportCsv" class="btn-glass text-sm">
+          <i class="fas fa-download text-xs mr-1"></i>Export CSV
+        </button>
+      </div>
     </div>
 
     <!-- Filters -->
@@ -122,6 +127,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { auditLogService } from '@/services/auditLogService';
+import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import type { AuditLog } from '@/types/auditLog';
 
 const logs    = ref<AuditLog[]>([]);
@@ -174,6 +180,14 @@ const filtered = computed(() => {
 
 const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / perPage)));
 const paginated  = computed(() => filtered.value.slice((page.value - 1) * perPage, page.value * perPage));
+
+function exportCsv() {
+  exportToCsv(
+    datestampedFilename('audit-log'),
+    filtered.value,
+    ['id', 'action', 'entityType', 'entityId', 'entityName', 'performedBy', 'details', 'ipAddress', 'timestamp'],
+  );
+}
 
 function clearFilters() {
   search.value       = '';

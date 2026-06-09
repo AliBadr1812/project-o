@@ -10,6 +10,9 @@
         <button @click="store.fetchAll(true)" class="btn-glass text-sm">
           <i class="fas fa-sync-alt text-xs mr-1"></i>Refresh
         </button>
+        <button @click="exportCsv" class="btn-glass text-sm">
+          <i class="fas fa-download text-xs mr-1"></i>Export CSV
+        </button>
         <button @click="showCreate = true" class="btn-accent text-sm">
           <i class="fas fa-plus text-xs mr-1"></i>New Segment
         </button>
@@ -192,6 +195,7 @@ import { useConfirm } from '@/composables/useConfirm';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/ui/Pagination.vue';
 import { formatCurrency } from '@/utils/formatters';
+import { exportToCsv, datestampedFilename } from '@/utils/csvExport';
 import type { Segment } from '@/types/segment';
 
 const store = useSegmentStore();
@@ -218,6 +222,14 @@ const paginatedSegments = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   return items.value.slice(start, start + itemsPerPage);
 });
+
+function exportCsv() {
+  exportToCsv(
+    datestampedFilename('segments'),
+    items.value,
+    ['id', 'name', 'description', 'customerCount', 'totalRevenue', 'avgOrderValue', 'isSystem', 'createdAt'],
+  );
+}
 
 function editSegment(seg: Segment) {
   editing.value    = seg;
